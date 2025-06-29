@@ -7,8 +7,8 @@ import {
   LLMResponse,
 } from "@/types/requests.ts";
 
-const MAIN_API_BASE_URL = "http://localhost:5001";
-const TOOLS_API_BASE_URL = "http://localhost:5000";
+const MAIN_API_BASE_URL = "/api/main";
+const TOOLS_API_BASE_URL = "/api/tools";
 
 export class MainAPI {
   static async getStatus(): Promise<StatusResponse> {

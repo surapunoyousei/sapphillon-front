@@ -1,4 +1,8 @@
 // レスポンスの型定義
+export interface StatusResponse {
+  status: string;
+}
+
 export interface WorkflowResponse {
   status: "success" | "failed";
   output?: string;
@@ -25,8 +29,4 @@ export interface TxtResponse {
 
 export interface LLMResponse {
   output: string;
-}
-
-export interface StatusResponse {
-  status: string;
 }
