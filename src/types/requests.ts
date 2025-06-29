@@ -8,6 +8,9 @@ export interface WorkflowResponse {
   output?: string;
   error?: string;
   llm_response?: string;
+  raw_output?: string;
+  stderr?: string;
+  stdout?: string;
 }
 
 export interface SearchResponse {

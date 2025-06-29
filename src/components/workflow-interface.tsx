@@ -1,124 +1,142 @@
-import { useState } from "react";
-import { Card } from "@/components/common/card.tsx";
-import { Button } from "@/components/common/button.tsx";
-import { Input } from "@/components/common/input.tsx";
-import { Separator } from "@/components/common/separator.tsx";
-import { WorkflowExecutor } from "@/components/workflow-executor.tsx";
-import { WorkflowHistory } from "@/components/workflow-history.tsx";
-import { History, Settings, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
+import { MainAPI } from "@/lib/requests.ts";
+import type { WorkflowResponse } from "@/types/requests.ts";
 
-interface WorkflowInterfaceProps {
-  isConnected: boolean;
-}
+export function WorkflowInterface() {
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [workflowResult, setWorkflowResult] = useState<WorkflowResponse | null>(
+    null,
+  );
+  const [error, setError] = useState<string | null>(null);
+  const [currentGoal, setCurrentGoal] = useState<string>("");
 
-export function WorkflowInterface({ isConnected }: WorkflowInterfaceProps) {
-  const [goal, setGoal] = useState("");
-  const [activeTab, setActiveTab] = useState<
-    "execute" | "history" | "settings"
-  >("execute");
+  // カスタムイベントをリッスンして、ヘッダーからのワークフロー実行を受け取る
+  useEffect(() => {
+    const handleExecuteWorkflow = async (event: Event) => {
+      const customEvent = event as CustomEvent<{ goal: string }>;
+      const { goal } = customEvent.detail;
+      await executeWorkflow(goal);
+    };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!goal.trim()) return;
+    globalThis.addEventListener("executeWorkflow", handleExecuteWorkflow);
+    return () => {
+      globalThis.removeEventListener("executeWorkflow", handleExecuteWorkflow);
+    };
+  }, []);
+
+  const executeWorkflow = async (goal: string) => {
+    setIsExecuting(true);
+    setError(null);
+    setCurrentGoal(goal);
+
+    try {
+      const result = await MainAPI.executeWorkflow(goal);
+      setWorkflowResult(result);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "ワークフローの実行中にエラーが発生しました",
+      );
+    } finally {
+      setIsExecuting(false);
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <Card className="bg-black/20 backdrop-blur-sm border-white/10">
-        <div className="p-6">
-          <div className="flex items-center gap-4 mb-6">
-            <Button
-              variant={activeTab === "execute" ? "default" : "ghost"}
-              onClick={() => setActiveTab("execute")}
-              className="flex items-center gap-2"
-            >
-              <Zap className="w-4 h-4" />
-              ワークフロー実行
-            </Button>
-            <Button
-              variant={activeTab === "history" ? "default" : "ghost"}
-              onClick={() => setActiveTab("history")}
-              className="flex items-center gap-2"
-            >
-              <History className="w-4 h-4" />
-              実行履歴
-            </Button>
-            <Button
-              variant={activeTab === "settings" ? "default" : "ghost"}
-              onClick={() => setActiveTab("settings")}
-              className="flex items-center gap-2"
-            >
-              <Settings className="w-4 h-4" />
-              設定
-            </Button>
+    <div className="max-w-7xl mx-auto">
+      {/* 実行状態の表示 */}
+      {isExecuting && (
+        <div className="alert alert-info mb-6">
+          <span className="loading loading-spinner"></span>
+          <span>ワークフローを実行中... 「{currentGoal}」</span>
+        </div>
+      )}
+
+      {/* エラーの表示 */}
+      {error && (
+        <div className="alert alert-error mb-6">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="stroke-current shrink-0 h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* 実行結果の表示 */}
+      {workflowResult && !isExecuting && (
+        <div className="space-y-6">
+          {/* ステータス情報 */}
+          <div className="bg-base-200 rounded-lg p-6 shadow-lg">
+            <h2 className="text-xl font-semibold mb-4">実行結果</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-base-content/70">プロンプト</p>
+                <p className="font-medium">{currentGoal}</p>
+              </div>
+              <div>
+                <p className="text-sm text-base-content/70">ステータス</p>
+                <p className="font-medium">
+                  {workflowResult.status === "success"
+                    ? <span className="text-success">成功</span>
+                    : <span className="text-error">失敗</span>}
+                </p>
+              </div>
+            </div>
           </div>
 
-          <Separator className="mb-6" />
+          <div className="bg-base-200 rounded-lg p-6 shadow-lg">
+            <h2 className="text-xl font-semibold mb-4">ワークフロー</h2>
+            <div className="bg-base-300 rounded p-4 max-h-96 overflow-y-auto">
+              <pre className="whitespace-pre-wrap text-sm">
+                {JSON.stringify(workflowResult, null, 2)}
+              </pre>
+            </div>
+          </div>
 
-          {activeTab === "execute" && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-xl font-semibold text-white mb-4">
-                  自然言語でワークフローを実行
-                </h2>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <Input
-                      placeholder="例: Geminiについて調べて、結果をまとめたテキストファイルを作成して"
-                      value={goal}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setGoal(e.target.value)}
-                      className="bg-white/5 border-white/20 text-white placeholder:text-slate-400"
-                    />
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <Button
-                      type="submit"
-                      disabled={!goal.trim()}
-                      className="bg-purple-600 hover:bg-purple-700 text-white"
-                    >
-                      ワークフローを実行
-                    </Button>
-                    {!isConnected && (
-                      <div className="text-yellow-400 text-sm">
-                        ⚠️
-                        一部のサーバーに接続できていません。機能が制限される可能性があります。
-                      </div>
-                    )}
-                  </div>
-                </form>
+          {/* 出力内容 */}
+          {workflowResult.output && (
+            <div className="bg-base-200 rounded-lg p-6 shadow-lg">
+              <h2 className="text-xl font-semibold mb-4">出力</h2>
+              <div className="bg-base-300 rounded p-4 max-h-96 overflow-y-auto">
+                <pre className="whitespace-pre-wrap text-sm">{workflowResult.output}</pre>
               </div>
-
-              <WorkflowExecutor
-                goal={goal}
-                setGoal={setGoal}
-                isConnected={isConnected}
-              />
             </div>
           )}
 
-          {activeTab === "history" && <WorkflowHistory />}
-
-          {activeTab === "settings" && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-white mb-4">設定</h2>
-              <div className="text-slate-300">
-                <p>
-                  バックエンドサーバーの設定やプラグイン管理など、今後実装予定の機能です。
-                </p>
-                <div className="mt-4 p-4 bg-slate-800/50 rounded-lg">
-                  <h3 className="font-medium mb-2">現在の設定:</h3>
-                  <ul className="text-sm space-y-1">
-                    <li>Main API: http://localhost:5001</li>
-                    <li>Tools API: http://localhost:5000</li>
-                    <li>接続タイムアウト: 10秒</li>
-                  </ul>
-                </div>
-              </div>
+          {/* エラー情報 */}
+          {workflowResult.error && (
+            <div className="bg-error/10 rounded-lg p-6 shadow-lg border border-error/20">
+              <h2 className="text-xl font-semibold mb-4 text-error">
+                エラー情報
+              </h2>
+              <p className="text-error">{workflowResult.error}</p>
             </div>
           )}
         </div>
-      </Card>
+      )}
+
+      {/* 初期状態 */}
+      {!workflowResult && !isExecuting && !error && (
+        <div className="bg-base-200 rounded-lg p-12 shadow-lg text-center">
+          <p className="text-lg text-base-content/70 mb-4">
+            上部のプロンプト入力欄に目標を入力して、Enterキーを押してください
+          </p>
+          <p className="text-sm text-base-content/50">
+            例：「家計簿ファイルをドキュメントフォルダから探してメール送信」
+          </p>
+        </div>
+      )}
     </div>
   );
 }
