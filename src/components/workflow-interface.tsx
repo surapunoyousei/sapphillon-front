@@ -49,7 +49,7 @@ export function WorkflowInterface() {
       {isExecuting && (
         <div className="alert alert-info mb-6">
           <span className="loading loading-spinner"></span>
-          <span>ワークフローを実行中... 「{currentGoal}」</span>
+          <span>ワークフローを生成し、実行中... 「{currentGoal}」</span>
         </div>
       )}
 
@@ -95,32 +95,49 @@ export function WorkflowInterface() {
             </div>
           </div>
 
-          <div className="bg-base-200 rounded-lg p-6 shadow-lg">
-            <h2 className="text-xl font-semibold mb-4">ワークフロー</h2>
-            <div className="bg-base-300 rounded p-4 max-h-96 overflow-y-auto">
-              <pre className="whitespace-pre-wrap text-sm">
-                {JSON.stringify(workflowResult, null, 2)}
-              </pre>
+          {/* 生成されたワークフロー */}
+          {workflowResult.workflow && (
+            <div className="bg-base-200 rounded-lg p-6 shadow-lg">
+              <h2 className="text-xl font-semibold mb-4">
+                生成されたワークフロー
+              </h2>
+              <div className="bg-base-300 rounded p-4 max-h-96 overflow-y-auto">
+                <pre className="whitespace-pre-wrap text-sm font-mono">
+                  {workflowResult.workflow}
+                </pre>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* 出力内容 */}
+          {/* 実行ログ */}
           {workflowResult.output && (
             <div className="bg-base-200 rounded-lg p-6 shadow-lg">
-              <h2 className="text-xl font-semibold mb-4">出力</h2>
+              <h2 className="text-xl font-semibold mb-4">実行ログ</h2>
               <div className="bg-base-300 rounded p-4 max-h-96 overflow-y-auto">
-                <pre className="whitespace-pre-wrap text-sm">{workflowResult.output}</pre>
+                <pre className="whitespace-pre-wrap text-sm font-mono">
+                  {workflowResult.output}
+                </pre>
               </div>
             </div>
           )}
 
           {/* エラー情報 */}
-          {workflowResult.error && (
+          {(workflowResult.error || workflowResult.llm_response) && (
             <div className="bg-error/10 rounded-lg p-6 shadow-lg border border-error/20">
               <h2 className="text-xl font-semibold mb-4 text-error">
                 エラー情報
               </h2>
-              <p className="text-error">{workflowResult.error}</p>
+              {workflowResult.error && (
+                <p className="text-error mb-4">{workflowResult.error}</p>
+              )}
+              {workflowResult.llm_response && (
+                <div className="mt-4">
+                  <p className="text-sm text-base-content/70 mb-2">
+                    LLMレスポンス
+                  </p>
+                  <p className="text-error/80">{workflowResult.llm_response}</p>
+                </div>
+              )}
             </div>
           )}
         </div>

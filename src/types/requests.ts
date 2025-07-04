@@ -6,6 +6,7 @@ export interface StatusResponse {
 export interface WorkflowResponse {
   status: "success" | "failed";
   output?: string;
+  workflow?: string;
   error?: string;
   llm_response?: string;
   raw_output?: string;

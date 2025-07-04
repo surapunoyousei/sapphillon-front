@@ -23,6 +23,21 @@ export class MainAPI {
     return data;
   }
 
+  private static decodeBase64(input: string): string {
+    try {
+      console.log(
+        `[MainAPI] Base64エンコードされた文字列の長さ: ${input.length}`
+      );
+      const decoded = atob(input);
+      console.log(`[MainAPI] デコードされた文字列:`, decoded);
+      return decoded;
+    } catch (e) {
+      console.error("Base64デコードエラー:", e);
+      console.log("生の文字列:", input);
+      return input;
+    }
+  }
+
   static async executeWorkflow(goal: string): Promise<WorkflowResponse> {
     console.log(`[MainAPI] POST ${MAIN_API_BASE_URL}/workflow`);
     console.log(`[MainAPI] Request body:`, { goal });
@@ -44,17 +59,10 @@ export class MainAPI {
     }
 
     if (data.output) {
-      try {
-        console.log(
-          `[MainAPI] Base64エンコードされたoutputの長さ: ${data.output.length}`
-        );
-        data.output = atob(data.output);
-        console.log(`[MainAPI] デコードされたoutput:`, data.output);
-      } catch (e) {
-        console.error("Base64デコードエラー:", e);
-        console.log("生のoutput:", data.output);
-        // デコードに失敗した場合は生データをそのまま使用
-      }
+      data.output = this.decodeBase64(data.output);
+    }
+    if (data.workflow) {
+      data.workflow = this.decodeBase64(data.workflow);
     }
 
     return data;
@@ -104,8 +112,8 @@ export class ToolsAPI {
     const data = await response.json();
     console.log(`[ToolsAPI] Response data:`, data);
 
-    if (!response.ok && response.status !== 500) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (!response.ok) {
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
     }
 
     return data;
