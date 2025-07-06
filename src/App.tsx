@@ -1,18 +1,23 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import HomePage from "./app/index.tsx";
-import WorkflowPage from "./app/workflow/page.tsx";
 import { AppBackground } from "./components/app-background.tsx";
+import { Header } from "./components/header.tsx";
+import { Home } from "./app/index.tsx";
 
 function App() {
   return (
     <>
       <AppBackground />
-      <Router>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/workflow" element={<WorkflowPage />} />
-        </Routes>
-      </Router>
+      <Header />
+      <main className="flex-1">
+        <Router>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/workflows" element={null} />
+            <Route path="/plugins" element={null} />
+            <Route path="/settings" element={null} />
+          </Routes>
+        </Router>
+      </main>
     </>
   );
 }
