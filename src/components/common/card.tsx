@@ -1,21 +1,18 @@
-import type { ReactNode } from "react";
-import { cn } from "@/lib/utils.ts";
+import { cn } from "../../lib/utils.ts";
 
-interface CardProps {
-  children: ReactNode;
-  className?: string;
-}
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-export function Card({ children, className }: CardProps) {
+export function Card({ className, ...props }: CardProps) {
   return (
     <div
       className={cn(
-        "flex flex-col bg-base-200 shadow-md border rounded border-base-300/20 dark:bg-base-600 mb-8 z-10",
+        "rounded-2xl border border-base-300/50 bg-base-100/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300",
+        "relative overflow-hidden",
+        "before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/5 before:to-transparent before:pointer-events-none",
         className,
       )}
-    >
-      {children}
-    </div>
+      {...props}
+    />
   );
 }
 
