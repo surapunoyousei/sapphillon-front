@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   AlertTriangle,
+  BookOpen,
   Calendar,
   CheckCircle,
   Clock,
@@ -599,8 +600,8 @@ export function PluginsPage() {
                 variant="light"
                 className="px-8 py-4 rounded-xl font-semibold text-lg shadow-lg"
               >
-                <Download className="w-5 h-5 mr-3" />
-                SDK をダウンロード
+                <BookOpen className="w-5 h-5 mr-3" />
+                プラグインについて
               </Button>
             </div>
           </Card>

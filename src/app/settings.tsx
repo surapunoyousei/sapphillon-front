@@ -129,17 +129,25 @@ export function SettingsPage() {
       name: "DeepSeek Coder",
       size: "6.8 GB",
       status: "downloading",
-      description: "プログラミング特化モデル",
+      description: "DeepSeek のコード生成モデル",
       capabilities: ["コード生成", "デバッグ", "リファクタリング", "説明"],
+    },
+    {
+      id: "Gemini-2.5-Flash",
+      name: "Gemini 2.5 Flash",
+      size: "API Key のみ",
+      status: "available",
+      description: "Google の最新のモデル",
+      capabilities: ["テキスト生成", "要約", "翻訳", "Q&A"],
     },
   ]);
 
   const tabs = [
     { id: "llm", name: "LLM設定", icon: Brain },
-    { id: "system", name: "システム", icon: Cpu },
-    { id: "security", name: "セキュリティ", icon: Shield },
+    // { id: "system", name: "システム", icon: Cpu },
+    // { id: "security", name: "セキュリティ", icon: Shield },
     { id: "ui", name: "インターフェース", icon: Palette },
-    { id: "network", name: "ネットワーク", icon: Wifi },
+    // { id: "network", name: "ネットワーク", icon: Wifi },
   ];
 
   const handleSave = () => {
@@ -393,69 +401,6 @@ export function SettingsPage() {
           <Shield className="w-6 h-6 mr-3 text-primary" />
           セキュリティ設定
         </h3>
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-base-200/40 rounded-xl border border-base-300/30">
-            <span className="text-sm font-semibold text-base-content">
-              ローカルデータ暗号化
-            </span>
-            <Switch
-              checked={settings.security.encryptLocalData}
-              onCheckedChange={(checked) =>
-                updateSetting("security", "encryptLocalData", checked)}
-            />
-          </div>
-          <div className="flex items-center justify-between p-4 bg-base-200/40 rounded-xl border border-base-300/30">
-            <span className="text-sm font-semibold text-base-content">
-              認証要求
-            </span>
-            <Switch
-              checked={settings.security.requireAuth}
-              onCheckedChange={(checked) =>
-                updateSetting("security", "requireAuth", checked)}
-            />
-          </div>
-          <div className="flex items-center justify-between p-4 bg-base-200/40 rounded-xl border border-base-300/30">
-            <span className="text-sm font-semibold text-base-content">
-              リモートアクセス許可
-            </span>
-            <Switch
-              checked={settings.security.allowRemoteAccess}
-              onCheckedChange={(checked) =>
-                updateSetting("security", "allowRemoteAccess", checked)}
-            />
-          </div>
-          <div className="flex items-center justify-between p-4 bg-base-200/40 rounded-xl border border-base-300/30">
-            <span className="text-sm font-semibold text-base-content">
-              サンドボックス有効化
-            </span>
-            <Switch
-              checked={settings.security.enableSandbox}
-              onCheckedChange={(checked) =>
-                updateSetting("security", "enableSandbox", checked)}
-            />
-          </div>
-          <div className="flex items-center justify-between p-4 bg-base-200/40 rounded-xl border border-base-300/30">
-            <span className="text-sm font-semibold text-base-content">
-              監査ログ
-            </span>
-            <Switch
-              checked={settings.security.auditLogging}
-              onCheckedChange={(checked) =>
-                updateSetting("security", "auditLogging", checked)}
-            />
-          </div>
-          <div className="flex items-center justify-between p-4 bg-base-200/40 rounded-xl border border-base-300/30">
-            <span className="text-sm font-semibold text-base-content">
-              セキュアモード
-            </span>
-            <Switch
-              checked={settings.security.secureMode}
-              onCheckedChange={(checked) =>
-                updateSetting("security", "secureMode", checked)}
-            />
-          </div>
-        </div>
 
         <div className="mt-8">
           <label className="block text-sm font-semibold mb-3 text-base-content">

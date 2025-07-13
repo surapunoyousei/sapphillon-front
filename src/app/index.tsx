@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   AlertCircle,
   Brain,
@@ -31,6 +32,7 @@ interface WorkflowExecution {
 }
 
 export function Home() {
+  const navigate = useNavigate();
   const [prompt, setPrompt] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [executions, setExecutions] = useState<WorkflowExecution[]>([
@@ -131,57 +133,10 @@ export function Home() {
     e.preventDefault();
     if (!prompt.trim() || isProcessing) return;
 
-    setIsProcessing(true);
-
-    // Simulate workflow creation and execution
-    const newExecution: WorkflowExecution = {
-      id: Date.now().toString(),
-      prompt: prompt.trim(),
-      status: "pending",
-      progress: 0,
-      startTime: new Date(),
-      steps: [
-        {
-          id: "1",
-          name: "LLMに接続",
-          status: "pending",
-          description: "ローカルLLMモデルに接続中...",
-        },
-        {
-          id: "2",
-          name: "プロンプトを解析",
-          status: "pending",
-          description: "ユーザーの指示を解析します",
-        },
-        {
-          id: "3",
-          name: "ワークフローを生成",
-          status: "pending",
-          description: "最適なワークフローを生成します",
-        },
-        {
-          id: "4",
-          name: "実行準備",
-          status: "pending",
-          description: "実行環境を準備します",
-        },
-      ],
-    };
-
-    setExecutions((prev) => [newExecution, ...prev]);
-    setPrompt("");
-
-    // Simulate processing
-    setTimeout(() => {
-      setIsProcessing(false);
-      setExecutions((prev) =>
-        prev.map((exec) =>
-          exec.id === newExecution.id
-            ? { ...exec, status: "running" as const, progress: 25 }
-            : exec
-        )
-      );
-    }, 1000);
+    // ワークフロー生成画面にナビゲート
+    const params = new URLSearchParams();
+    params.set("prompt", prompt.trim());
+    navigate(`/workflows/generate?${params.toString()}`);
   };
 
   const getStatusIcon = (status: string) => {
