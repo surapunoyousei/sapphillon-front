@@ -2,17 +2,21 @@ import { useEffect, useState } from "react";
 import {
   AlertCircle,
   CheckCircle,
+  ChevronDown,
+  ChevronRight,
   Clock,
   Code,
+  Download,
+  ExternalLink,
   FileText,
   Globe,
   Mail,
   Map,
   Pause,
   Play,
-  Sparkles,
   Square,
   Terminal,
+  X,
   Zap,
 } from "lucide-react";
 import { Button } from "../components/common/button.tsx";
@@ -23,17 +27,18 @@ interface ExecutionStep {
   title: string;
   plugin: string;
   description: string;
-  status: "pending" | "active" | "completed" | "error";
+  status: "pending" | "active" | "completed" | "error" | "skipped";
   startTime?: Date;
   endTime?: Date;
   logs: LogEntry[];
   result?: any;
+  expanded?: boolean;
 }
 
 interface LogEntry {
   id: string;
   timestamp: Date;
-  level: "info" | "warning" | "error" | "success";
+  level: "info" | "warning" | "error" | "success" | "debug";
   message: string;
   details?: string;
 }
@@ -42,127 +47,144 @@ export function WorkflowExecutionPage() {
   const [workflowName] = useState("ファイル整理ワークフロー");
   const [isRunning, setIsRunning] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
-  const [progress, setProgress] = useState(15);
+  const [currentStepIndex, setCurrentStepIndex] = useState(1);
+  const [startTime] = useState(new Date(Date.now() - 45000));
+  const [endTime, setEndTime] = useState<Date | null>(null);
 
   const [executionSteps, setExecutionSteps] = useState<ExecutionStep[]>([
     {
       id: "1",
-      title: "対象フォルダ検索",
+      title: "ファイル検索の準備",
       plugin: "ファイルマネージャー",
-      description: "デスクトップフォルダ内のファイルを検索します",
+      description:
+        "デスクトップフォルダへのアクセス権限を確認し、検索を開始します",
       status: "completed",
-      startTime: new Date(Date.now() - 5000),
-      endTime: new Date(Date.now() - 3000),
+      startTime: new Date(Date.now() - 45000),
+      endTime: new Date(Date.now() - 42000),
+      expanded: false,
       logs: [
         {
           id: "1",
-          timestamp: new Date(Date.now() - 5000),
+          timestamp: new Date(Date.now() - 45000),
           level: "info",
-          message: "ファイルマネージャープラグインを初期化しました",
+          message: "ファイルマネージャープラグインを初期化中...",
         },
         {
           id: "2",
-          timestamp: new Date(Date.now() - 4500),
+          timestamp: new Date(Date.now() - 44500),
           level: "info",
-          message: "デスクトップフォルダ (~/Desktop) にアクセスしています",
+          message: "アクセス権限を確認中",
         },
         {
           id: "3",
-          timestamp: new Date(Date.now() - 3500),
+          timestamp: new Date(Date.now() - 44000),
           level: "success",
-          message: "47個のファイルを発見しました",
+          message: "デスクトップフォルダへのアクセス権限を取得しました",
+        },
+        {
+          id: "4",
+          timestamp: new Date(Date.now() - 43500),
+          level: "info",
+          message: "ファイル検索エンジンを初期化中...",
+        },
+        {
+          id: "5",
+          timestamp: new Date(Date.now() - 42000),
+          level: "success",
+          message: "初期化が完了しました (3.2s)",
         },
       ],
       result: {
-        filesFound: 47,
-        path: "~/Desktop",
-        duration: "2.1秒",
+        status: "success",
+        duration: "3.2s",
+        filesScanned: 0,
       },
     },
     {
       id: "2",
-      title: "ファイル種別判定",
+      title: "ファイル検索の実行",
       plugin: "ファイルマネージャー",
-      description: "見つかったファイルの種類を判定します",
+      description: "デスクトップフォルダ内のすべてのファイルを検索・分析します",
       status: "active",
-      startTime: new Date(Date.now() - 2000),
+      startTime: new Date(Date.now() - 42000),
+      expanded: true,
       logs: [
         {
           id: "1",
-          timestamp: new Date(Date.now() - 2000),
+          timestamp: new Date(Date.now() - 42000),
           level: "info",
-          message: "ファイル種別判定を開始しました",
+          message: "ファイル検索を開始しました",
         },
         {
           id: "2",
-          timestamp: new Date(Date.now() - 1800),
+          timestamp: new Date(Date.now() - 41000),
           level: "info",
-          message: "JPEG画像: 12個検出",
+          message: "スキャン中: ~/Desktop/",
         },
         {
           id: "3",
-          timestamp: new Date(Date.now() - 1600),
-          level: "info",
-          message: "PNG画像: 8個検出",
+          timestamp: new Date(Date.now() - 40000),
+          level: "debug",
+          message: "発見: image1.jpg (2.3MB)",
         },
         {
           id: "4",
-          timestamp: new Date(Date.now() - 1400),
-          level: "info",
-          message: "PDF文書: 5個検出",
+          timestamp: new Date(Date.now() - 39500),
+          level: "debug",
+          message: "発見: photo.png (1.8MB)",
         },
         {
           id: "5",
-          timestamp: new Date(Date.now() - 1000),
+          timestamp: new Date(Date.now() - 39000),
+          level: "debug",
+          message: "発見: document.pdf (4.1MB)",
+        },
+        {
+          id: "6",
+          timestamp: new Date(Date.now() - 38500),
           level: "info",
-          message: "処理中... (進捗: 68%)",
+          message: "スキャン中: ~/Desktop/old_files/",
+        },
+        {
+          id: "7",
+          timestamp: new Date(Date.now() - 38000),
+          level: "debug",
+          message: "発見: screenshot.png (0.9MB)",
+        },
+        {
+          id: "8",
+          timestamp: new Date(Date.now() - 5000),
+          level: "info",
+          message: "進捗: 47/82 ファイル処理済み (57%)",
         },
       ],
     },
     {
       id: "3",
-      title: "整理フォルダ作成",
+      title: "ファイル分類",
       plugin: "ファイルマネージャー",
-      description: "「整理済み画像」フォルダを作成します",
+      description: "発見されたファイルを種類ごとに分類し、整理方針を決定します",
       status: "pending",
+      expanded: false,
       logs: [],
     },
     {
       id: "4",
-      title: "ファイル移動",
+      title: "フォルダ構造の作成",
       plugin: "ファイルマネージャー",
-      description: "画像ファイルを整理フォルダに移動します",
+      description: "整理用のフォルダ構造を作成します",
       status: "pending",
+      expanded: false,
       logs: [],
     },
-  ]);
-
-  const [globalLogs, setGlobalLogs] = useState<LogEntry[]>([
     {
-      id: "global-1",
-      timestamp: new Date(Date.now() - 6000),
-      level: "info",
-      message: "ワークフロー実行を開始しました",
-    },
-    {
-      id: "global-2",
-      timestamp: new Date(Date.now() - 5500),
-      level: "info",
-      message: "ファイルマネージャープラグインを読み込みました",
-    },
-    {
-      id: "global-3",
-      timestamp: new Date(Date.now() - 3000),
-      level: "success",
-      message: "ステップ1が完了しました",
-    },
-    {
-      id: "global-4",
-      timestamp: new Date(Date.now() - 2000),
-      level: "info",
-      message: "ステップ2を開始しました",
+      id: "5",
+      title: "ファイルの移動",
+      plugin: "ファイルマネージャー",
+      description: "分類されたファイルを適切なフォルダに移動します",
+      status: "pending",
+      expanded: false,
+      logs: [],
     },
   ]);
 
@@ -171,22 +193,21 @@ export function WorkflowExecutionPage() {
     if (!isRunning || isPaused) return;
 
     const interval = setInterval(() => {
-      // 進捗を更新
-      setProgress((prev) => {
-        const newProgress = prev + Math.random() * 5;
-        return newProgress > 100 ? 100 : newProgress;
-      });
-
-      // アクティブなステップにランダムでログを追加
       const activeStep = executionSteps.find((step) =>
         step.status === "active"
       );
-      if (activeStep && Math.random() > 0.7) {
+      if (activeStep && Math.random() > 0.6) {
         const newLog: LogEntry = {
           id: Date.now().toString(),
           timestamp: new Date(),
-          level: Math.random() > 0.8 ? "warning" : "info",
-          message: `処理中... (進捗: ${Math.floor(Math.random() * 30 + 70)}%)`,
+          level: Math.random() > 0.8 ? "debug" : "info",
+          message: Math.random() > 0.5
+            ? `進捗: ${
+              Math.floor(Math.random() * 30 + 50)
+            }/82 ファイル処理済み (${Math.floor(Math.random() * 30 + 60)}%)`
+            : `発見: file_${Math.floor(Math.random() * 100)}.${
+              Math.random() > 0.5 ? "jpg" : "png"
+            } (${(Math.random() * 5 + 0.5).toFixed(1)}MB)`,
         };
 
         setExecutionSteps((prev) =>
@@ -196,10 +217,8 @@ export function WorkflowExecutionPage() {
               : step
           )
         );
-
-        setGlobalLogs((prev) => [...prev, newLog]);
       }
-    }, 2000);
+    }, 2500);
 
     return () => clearInterval(interval);
   }, [isRunning, isPaused, executionSteps]);
@@ -211,331 +230,324 @@ export function WorkflowExecutionPage() {
   const handleStop = () => {
     setIsRunning(false);
     setIsPaused(false);
+    setEndTime(new Date());
   };
 
-  const getStepIcon = (plugin: string) => {
-    switch (plugin) {
-      case "ファイルマネージャー":
-        return FileText;
-      case "Webスクレイピング":
-        return Globe;
-      case "メール操作":
-        return Mail;
-      case "Google Maps":
-        return Map;
+  const toggleStepExpansion = (stepId: string) => {
+    setExecutionSteps((prev) =>
+      prev.map((step) =>
+        step.id === stepId ? { ...step, expanded: !step.expanded } : step
+      )
+    );
+  };
+
+  const getStepIcon = (status: string) => {
+    switch (status) {
+      case "completed":
+        return <CheckCircle className="w-5 h-5 text-success" />;
+      case "active":
+        return (
+          <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        );
+      case "error":
+        return <X className="w-5 h-5 text-error" />;
+      case "skipped":
+        return <AlertCircle className="w-5 h-5 text-warning" />;
       default:
-        return FileText;
+        return <Clock className="w-5 h-5 text-base-content/40" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "border-l-success";
+      case "active":
+        return "border-l-primary";
+      case "error":
+        return "border-l-error";
+      case "skipped":
+        return "border-l-warning";
+      default:
+        return "border-l-base-content/20";
     }
   };
 
   const getLogIcon = (level: string) => {
     switch (level) {
       case "success":
-        return <CheckCircle className="w-4 h-4 text-success" />;
+        return <CheckCircle className="w-3 h-3 text-success" />;
       case "error":
-        return <AlertCircle className="w-4 h-4 text-error" />;
+        return <X className="w-3 h-3 text-error" />;
       case "warning":
-        return <AlertCircle className="w-4 h-4 text-warning" />;
+        return <AlertCircle className="w-3 h-3 text-warning" />;
+      case "debug":
+        return <Code className="w-3 h-3 text-base-content/40" />;
       default:
-        return <Clock className="w-4 h-4 text-info" />;
+        return <Terminal className="w-3 h-3 text-info" />;
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <span className="badge badge-success badge-sm">完了</span>;
-      case "active":
-        return <span className="badge badge-primary badge-sm">実行中</span>;
-      case "error":
-        return <span className="badge badge-error badge-sm">エラー</span>;
-      default:
-        return <span className="badge badge-ghost badge-sm">待機中</span>;
+  const formatDuration = (start: Date, end?: Date) => {
+    if (!end) {
+      const duration = Math.floor((Date.now() - start.getTime()) / 1000);
+      const minutes = Math.floor(duration / 60);
+      const seconds = duration % 60;
+      return `${minutes}m ${seconds}s`;
+    } else {
+      const duration = Math.floor((end.getTime() - start.getTime()) / 1000);
+      const minutes = Math.floor(duration / 60);
+      const seconds = duration % 60;
+      return `${minutes}m ${seconds}s`;
     }
   };
 
-  const selectedStep = selectedStepId
-    ? executionSteps.find((step) => step.id === selectedStepId)
-    : executionSteps[currentStepIndex];
+  const completedSteps =
+    executionSteps.filter((step) => step.status === "completed").length;
+  const totalSteps = executionSteps.length;
+  const progress = (completedSteps / totalSteps) * 100;
+  const hasActiveStep = executionSteps.some((step) => step.status === "active");
 
   return (
     <div className="min-h-screen bg-base-100">
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-6 py-8 max-w-5xl">
         {/* ヘッダー */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-base-content mb-2">
-              {workflowName}
-            </h1>
-            <p className="text-base-content/70">
-              {isRunning ? "実行中..." : "実行完了"}
-            </p>
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-4">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  hasActiveStep
+                    ? "bg-primary/20"
+                    : endTime
+                    ? "bg-success/20"
+                    : "bg-error/20"
+                }`}
+              >
+                {hasActiveStep
+                  ? (
+                    <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  )
+                  : endTime
+                  ? <CheckCircle className="w-5 h-5 text-success" />
+                  : <X className="w-5 h-5 text-error" />}
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-base-content">
+                  {workflowName}
+                </h1>
+                <div className="flex items-center space-x-4 text-sm text-base-content/70">
+                  <span>
+                    {hasActiveStep ? "実行中" : endTime ? "完了" : "停止済み"}
+                  </span>
+                  <span>•</span>
+                  <span>
+                    実行時間: {formatDuration(startTime, endTime || undefined)}
+                  </span>
+                  <span>•</span>
+                  <span>
+                    {completedSteps}/{totalSteps} ステップ完了
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                onClick={handlePauseResume}
+                variant="light"
+                size="sm"
+                disabled={!isRunning}
+              >
+                {isPaused
+                  ? <Play className="w-4 h-4" />
+                  : <Pause className="w-4 h-4" />}
+              </Button>
+              <Button
+                onClick={handleStop}
+                variant="light"
+                size="sm"
+                className="text-error"
+                disabled={!isRunning}
+              >
+                <Square className="w-4 h-4" />
+              </Button>
+              <Button variant="light" size="sm">
+                <Download className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center space-x-3">
-            <Button
-              onClick={handlePauseResume}
-              variant={isPaused ? "primary" : "light"}
-              size="sm"
-              disabled={!isRunning}
-            >
-              {isPaused
-                ? <Play className="w-4 h-4" />
-                : <Pause className="w-4 h-4" />}
-              {isPaused ? "再開" : "一時停止"}
-            </Button>
-            <Button
-              onClick={handleStop}
-              variant="light"
-              size="sm"
-              className="text-error"
-              disabled={!isRunning}
-            >
-              <Square className="w-4 h-4" />
-              停止
-            </Button>
+
+          {/* 進捗バー */}
+          <div className="mb-4">
+            <div className="flex justify-between text-sm text-base-content/70 mb-2">
+              <span>全体進捗</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <div className="w-full bg-base-200 rounded-full h-2">
+              <div
+                className="h-2 bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
           </div>
         </div>
 
-        {/* 進捗バー */}
-        <Card className="p-6 mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-base-content">
-              全体進捗
-            </h2>
-            <span className="text-sm font-medium text-base-content">
-              {Math.round(progress)}%
-            </span>
-          </div>
-          <div className="w-full bg-base-200 rounded-full h-3 overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-500 ease-out relative"
-              style={{ width: `${progress}%` }}
+        {/* ステップ一覧 */}
+        <div className="space-y-2 mb-8">
+          {executionSteps.map((step, index) => (
+            <Card
+              key={step.id}
+              className={`border-l-4 ${
+                getStatusColor(step.status)
+              } transition-all duration-200`}
             >
-              <div className="absolute inset-0 bg-white/20 rounded-full animate-pulse">
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* ステップ一覧 */}
-          <div className="lg:col-span-1">
-            <Card className="p-6">
-              <h2 className="text-lg font-semibold mb-4 text-base-content">
-                実行ステップ
-              </h2>
-              <div className="space-y-3">
-                {executionSteps.map((step, index) => {
-                  const Icon = getStepIcon(step.plugin);
-                  const isSelected = selectedStepId === step.id ||
-                    (!selectedStepId && index === currentStepIndex);
-
-                  return (
-                    <div
-                      key={step.id}
-                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-                        isSelected
-                          ? "border-primary/40 bg-primary/5"
-                          : "border-base-300/30 hover:border-base-300/50 hover:bg-base-200/30"
-                      }`}
-                      onClick={() => setSelectedStepId(step.id)}
-                    >
-                      <div className="flex items-start space-x-3">
-                        <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                          <Icon className="w-4 h-4 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-1">
-                            <h3 className="font-medium text-base-content text-sm">
-                              {step.title}
-                            </h3>
-                            {getStatusBadge(step.status)}
-                          </div>
-                          <p className="text-xs text-base-content/60 mb-2">
-                            {step.description}
-                          </p>
-                          <div className="flex items-center space-x-2">
-                            <span className="text-xs px-2 py-1 bg-base-200/60 text-base-content/70 rounded">
-                              {step.plugin}
-                            </span>
-                            {step.logs.length > 0 && (
-                              <span className="text-xs text-base-content/50">
-                                {step.logs.length} ログ
-                              </span>
-                            )}
-                          </div>
-                        </div>
+              <div
+                className="p-4 cursor-pointer"
+                onClick={() => toggleStepExpansion(step.id)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    {getStepIcon(step.status)}
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <h3 className="font-semibold text-base-content">
+                          {step.title}
+                        </h3>
+                        <span className="text-xs px-2 py-1 bg-base-200/60 text-base-content/70 rounded">
+                          {step.plugin}
+                        </span>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
-          </div>
-
-          {/* ステップ詳細とログ */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* ステップ詳細 */}
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-base-content">
-                  ステップ詳細
-                </h2>
-                {selectedStep && getStatusBadge(selectedStep.status)}
-              </div>
-
-              {selectedStep && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 bg-base-200/30 rounded-xl">
-                      <h3 className="font-medium text-base-content mb-2">
-                        ステップ情報
-                      </h3>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-base-content/70">
-                            タイトル:
-                          </span>
-                          <span className="text-base-content">
-                            {selectedStep.title}
-                          </span>
+                      <p className="text-sm text-base-content/70 mt-1">
+                        {step.description}
+                      </p>
+                      {step.status !== "pending" && (
+                        <div className="flex items-center space-x-4 mt-2 text-xs text-base-content/60">
+                          {step.startTime && (
+                            <span>
+                              開始: {step.startTime.toLocaleTimeString()}
+                            </span>
+                          )}
+                          {step.endTime && (
+                            <span>
+                              時間:{" "}
+                              {formatDuration(step.startTime!, step.endTime)}
+                            </span>
+                          )}
+                          {step.logs.length > 0 && (
+                            <span>
+                              {step.logs.length} ログエントリ
+                            </span>
+                          )}
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-base-content/70">
-                            プラグイン:
-                          </span>
-                          <span className="text-base-content">
-                            {selectedStep.plugin}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-base-content/70">状態:</span>
-                          <span className="text-base-content">
-                            {selectedStep.status}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-4 bg-base-200/30 rounded-xl">
-                      <h3 className="font-medium text-base-content mb-2">
-                        実行時間
-                      </h3>
-                      <div className="space-y-2 text-sm">
-                        {selectedStep.startTime && (
-                          <div className="flex justify-between">
-                            <span className="text-base-content/70">
-                              開始時刻:
-                            </span>
-                            <span className="text-base-content">
-                              {selectedStep.startTime.toLocaleTimeString()}
-                            </span>
-                          </div>
-                        )}
-                        {selectedStep.endTime && (
-                          <div className="flex justify-between">
-                            <span className="text-base-content/70">
-                              終了時刻:
-                            </span>
-                            <span className="text-base-content">
-                              {selectedStep.endTime.toLocaleTimeString()}
-                            </span>
-                          </div>
-                        )}
-                        {selectedStep.result?.duration && (
-                          <div className="flex justify-between">
-                            <span className="text-base-content/70">
-                              実行時間:
-                            </span>
-                            <span className="text-base-content">
-                              {selectedStep.result.duration}
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                      )}
                     </div>
                   </div>
-
-                  {selectedStep.result && (
-                    <div className="p-4 bg-success/5 border border-success/20 rounded-xl">
-                      <h3 className="font-medium text-success mb-2">
-                        実行結果
-                      </h3>
-                      <pre className="text-sm text-base-content/80 whitespace-pre-wrap">
-                        {JSON.stringify(selectedStep.result, null, 2)}
-                      </pre>
-                    </div>
-                  )}
-                </div>
-              )}
-            </Card>
-
-            {/* ログ表示 */}
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-base-content flex items-center">
-                  <Terminal className="w-5 h-5 mr-2" />
-                  実行ログ
-                </h2>
-                <div className="flex items-center space-x-2">
-                  <Button variant="ghost" size="sm">
-                    <Code className="w-4 h-4" />
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    {step.logs.length > 0 && (
+                      <Button variant="ghost" size="sm" className="w-8 h-8 p-0">
+                        <ExternalLink className="w-3 h-3" />
+                      </Button>
+                    )}
+                    {step.logs.length > 0 && (
+                      <div className="text-base-content/40">
+                        {step.expanded
+                          ? <ChevronDown className="w-4 h-4" />
+                          : <ChevronRight className="w-4 h-4" />}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-base-300/20 rounded-xl p-4 max-h-96 overflow-y-auto">
-                <div className="space-y-2">
-                  {selectedStep?.logs && selectedStep.logs.length > 0
-                    ? (
-                      selectedStep.logs.map((log) => (
+              {/* 展開されたログ */}
+              {step.expanded && step.logs.length > 0 && (
+                <div className="border-t border-base-300/30 bg-base-200/20">
+                  <div className="p-4">
+                    <div className="bg-base-300/10 rounded-lg p-3 max-h-60 overflow-y-auto font-mono text-sm">
+                      {step.logs.map((log) => (
                         <div
                           key={log.id}
-                          className="flex items-start space-x-3 p-2 rounded-lg hover:bg-base-200/30 transition-colors"
+                          className="flex items-start space-x-2 py-1 hover:bg-base-200/20 rounded px-2 -mx-2"
                         >
-                          <div className="flex-shrink-0 mt-0.5">
+                          <span className="text-xs text-base-content/50 mt-0.5 w-20 flex-shrink-0">
+                            {log.timestamp.toLocaleTimeString()}
+                          </span>
+                          <div className="flex-shrink-0 mt-1">
                             {getLogIcon(log.level)}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center space-x-2">
-                              <span className="text-xs text-base-content/50 font-mono">
-                                {log.timestamp.toLocaleTimeString()}
-                              </span>
-                              <span
-                                className={`text-xs px-2 py-0.5 rounded ${
-                                  log.level === "success"
-                                    ? "bg-success/20 text-success"
-                                    : log.level === "error"
-                                    ? "bg-error/20 text-error"
-                                    : log.level === "warning"
-                                    ? "bg-warning/20 text-warning"
-                                    : "bg-info/20 text-info"
-                                }`}
-                              >
-                                {log.level.toUpperCase()}
-                              </span>
-                            </div>
-                            <p className="text-sm text-base-content mt-1">
+                            <span
+                              className={`text-xs px-1.5 py-0.5 rounded text-white mr-2 ${
+                                log.level === "success"
+                                  ? "bg-success"
+                                  : log.level === "error"
+                                  ? "bg-error"
+                                  : log.level === "warning"
+                                  ? "bg-warning"
+                                  : log.level === "debug"
+                                  ? "bg-base-content/40"
+                                  : "bg-info"
+                              }`}
+                            >
+                              {log.level.toUpperCase()}
+                            </span>
+                            <span className="text-base-content/80">
                               {log.message}
-                            </p>
+                            </span>
                             {log.details && (
-                              <p className="text-xs text-base-content/60 mt-1">
+                              <div className="text-xs text-base-content/60 mt-1 ml-12">
                                 {log.details}
-                              </p>
+                              </div>
                             )}
                           </div>
                         </div>
-                      ))
-                    )
-                    : (
-                      <div className="text-center py-8 text-base-content/50">
-                        <Terminal className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                        <p>ログがありません</p>
-                      </div>
-                    )}
+                      ))}
+                      {step.status === "active" && (
+                        <div className="flex items-center space-x-2 py-1 text-primary">
+                          <span className="text-xs text-base-content/50 w-20">
+                            {new Date().toLocaleTimeString()}
+                          </span>
+                          <div className="w-3 h-3 border border-primary border-t-transparent rounded-full animate-spin" />
+                          <span className="text-sm animate-pulse">
+                            実行中...
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </Card>
+          ))}
+        </div>
+
+        {/* フッター統計 */}
+        <div className="mt-8 pt-6 border-t border-base-300/30">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div>
+              <div className="text-2xl font-bold text-success">
+                {executionSteps.filter((s) => s.status === "completed").length}
+              </div>
+              <div className="text-sm text-base-content/70">完了</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-primary">
+                {executionSteps.filter((s) => s.status === "active").length}
+              </div>
+              <div className="text-sm text-base-content/70">実行中</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-base-content/50">
+                {executionSteps.filter((s) => s.status === "pending").length}
+              </div>
+              <div className="text-sm text-base-content/70">待機中</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-error">
+                {executionSteps.filter((s) => s.status === "error").length}
+              </div>
+              <div className="text-sm text-base-content/70">失敗</div>
+            </div>
           </div>
         </div>
       </div>

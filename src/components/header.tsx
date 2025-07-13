@@ -103,7 +103,8 @@ export function Header() {
           {/* Search and Actions */}
           <div className="flex items-center space-x-4">
             {/* Search */}
-            <form onSubmit={handleSearch} className="relative">
+            {
+              /* <form onSubmit={handleSearch} className="relative">
               <div
                 className={`flex items-center transition-all duration-300 ${
                   isSearchFocused ? "w-72" : "w-56"
@@ -120,7 +121,8 @@ export function Header() {
                   className="pl-12 pr-4 h-10 text-sm bg-base-200/60 border-base-300/40 focus:bg-base-100 focus:border-primary/40 rounded-xl shadow-sm backdrop-blur-sm"
                 />
               </div>
-            </form>
+            </form> */
+            }
 
             {/* Notifications */}
             <Button
