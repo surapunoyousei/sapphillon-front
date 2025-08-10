@@ -9,6 +9,17 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  resolve: {
+    alias: [
+      // 本番ビルド時のみ Devtools をスタブに切替
+      {
+        find: "@tanstack/react-query-devtools",
+        replacement: process.env.NODE_ENV === "production"
+          ? "/src/shims/rq-devtools-shim.tsx"
+          : "@tanstack/react-query-devtools",
+      },
+    ],
+  },
   server: {
     port: 8999,
   },

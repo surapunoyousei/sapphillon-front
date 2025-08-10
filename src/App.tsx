@@ -12,9 +12,6 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/workflows" element={null} />
-            <Route path="/plugins" element={null} />
-            <Route path="/settings" element={null} />
           </Routes>
         </Router>
       </main>
