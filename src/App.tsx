@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { AppBackground } from "./components/app-background.tsx";
 import { Header } from "./components/header.tsx";
 import { Home } from "./app/index.tsx";
+import { Debug } from "./app/debug.tsx";
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/debug" element={<Debug />} />
           </Routes>
         </Router>
       </main>
