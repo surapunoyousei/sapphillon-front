@@ -3,7 +3,9 @@
     "dev": "deno run -A --node-modules-dir npm:vite",
     "build": "deno run -A --node-modules-dir npm:vite build",
     "preview": "deno run -A --node-modules-dir npm:vite preview",
-    "serve": "deno run --allow-net --allow-read jsr:@std/http@1/file-server dist/"
+    "serve": "deno run --allow-net --allow-read jsr:@std/http@1/file-server dist/",
+    "test": "deno run -A --node-modules-dir npm:vitest run",
+    "test:watch": "deno run -A --node-modules-dir npm:vitest"
   },
   "compilerOptions": {
     "lib": [
@@ -22,6 +24,10 @@
     "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.1.10",
     "@tanstack/eslint-plugin-query": "npm:@tanstack/eslint-plugin-query@^5.83.1",
     "@tanstack/react-query": "npm:@tanstack/react-query@^5.84.2",
+    "vitest": "npm:vitest@^2",
+    "@testing-library/react": "npm:@testing-library/react@^16",
+    "@testing-library/jest-dom": "npm:@testing-library/jest-dom@^6",
+    "jsdom": "npm:jsdom@^25",
     "@tanstack/react-query-devtools": "npm:@tanstack/react-query-devtools@^5.84.2",
     "@types/react": "npm:@types/react@^19.0.10",
     "@types/react-dom": "npm:@types/react-dom@^19.0.4",
