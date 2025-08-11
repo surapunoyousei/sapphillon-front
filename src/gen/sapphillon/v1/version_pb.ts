@@ -21,8 +21,8 @@ export const file_sapphillon_v1_version: GenFile = /*@__PURE__*/
 export type Version = Message<"sapphillon.v1.Version"> & {
   /**
    * The version of the application.
-   * Format: "MAJOR.MINOR.PATCH" with optional pre-release or build metadata
-   * (e.g., "1.2.3", "1.2.3-beta.1", "1.2.3+build.45").
+   * Format: "vMAJOR.MINOR.PATCH" with optional pre-release or build metadata
+   * (e.g., "v1.2.3", "v1.2.3-alpha-1", "v1.2.3-beta.1").
    *
    * @generated from field: string version = 1;
    */

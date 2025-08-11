@@ -1,6 +1,6 @@
 ## Done
 
-- サブモジュール追加: `src/sapphillon-front/vendor/Sapphillon_API`（tag `v0.1.0-alpha`）
+- サブモジュール追加: `src/sapphillon-front/vendor/Sapphillon_API`（tag `v0.4.0-alpha`）
 - 生成設定: `buf.gen.yaml`（v2）追加、TS クライアントを `src/sapphillon-front/src/gen` に生成
 - 依存整理: `deno.json` に `@bufbuild/protobuf`、`@tanstack/react-query`、Devtools（本番はスタブ）を追加
 - モック実装: `src/lib/sapphillon-client.ts` に `createMockVersionClient()` を追加

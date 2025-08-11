@@ -4,13 +4,15 @@
 
 import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import type { Status } from "../../google/rpc/status_pb";
+import { file_google_rpc_status } from "../../google/rpc/status_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file sapphillon/v1/workflow_service.proto.
  */
 export const file_sapphillon_v1_workflow_service: GenFile = /*@__PURE__*/
-  fileDesc("CiRzYXBwaGlsbG9uL3YxL3dvcmtmbG93X3NlcnZpY2UucHJvdG8SDXNhcHBoaWxsb24udjEiKQoXR2VuZXJhdGVXb3JrZmxvd1JlcXVlc3QSDgoGcHJvbXB0GAEgASgJIjcKGEdlbmVyYXRlV29ya2Zsb3dSZXNwb25zZRIbChN3b3JrZmxvd19kZWZpbml0aW9uGAEgASgJIkYKEkZpeFdvcmtmbG93UmVxdWVzdBIbChN3b3JrZmxvd19kZWZpbml0aW9uGAEgASgJEhMKC2Rlc2NyaXB0aW9uGAIgASgJIlAKE0ZpeFdvcmtmbG93UmVzcG9uc2USIQoZZml4ZWRfd29ya2Zsb3dfZGVmaW5pdGlvbhgBIAEoCRIWCg5jaGFuZ2Vfc3VtbWFyeRgCIAEoCTLQAQoPV29ya2Zsb3dTZXJ2aWNlEmUKEEdlbmVyYXRlV29ya2Zsb3cSJi5zYXBwaGlsbG9uLnYxLkdlbmVyYXRlV29ya2Zsb3dSZXF1ZXN0Gicuc2FwcGhpbGxvbi52MS5HZW5lcmF0ZVdvcmtmbG93UmVzcG9uc2UwARJWCgtGaXhXb3JrZmxvdxIhLnNhcHBoaWxsb24udjEuRml4V29ya2Zsb3dSZXF1ZXN0GiIuc2FwcGhpbGxvbi52MS5GaXhXb3JrZmxvd1Jlc3BvbnNlMAFiBnByb3RvMw");
+  fileDesc("CiRzYXBwaGlsbG9uL3YxL3dvcmtmbG93X3NlcnZpY2UucHJvdG8SDXNhcHBoaWxsb24udjEiKQoXR2VuZXJhdGVXb3JrZmxvd1JlcXVlc3QSDgoGcHJvbXB0GAEgASgJIlsKGEdlbmVyYXRlV29ya2Zsb3dSZXNwb25zZRIbChN3b3JrZmxvd19kZWZpbml0aW9uGAEgASgJEiIKBnN0YXR1cxgCIAEoCzISLmdvb2dsZS5ycGMuU3RhdHVzIkYKEkZpeFdvcmtmbG93UmVxdWVzdBIbChN3b3JrZmxvd19kZWZpbml0aW9uGAEgASgJEhMKC2Rlc2NyaXB0aW9uGAIgASgJInQKE0ZpeFdvcmtmbG93UmVzcG9uc2USIQoZZml4ZWRfd29ya2Zsb3dfZGVmaW5pdGlvbhgBIAEoCRIWCg5jaGFuZ2Vfc3VtbWFyeRgCIAEoCRIiCgZzdGF0dXMYAyABKAsyEi5nb29nbGUucnBjLlN0YXR1czLQAQoPV29ya2Zsb3dTZXJ2aWNlEmUKEEdlbmVyYXRlV29ya2Zsb3cSJi5zYXBwaGlsbG9uLnYxLkdlbmVyYXRlV29ya2Zsb3dSZXF1ZXN0Gicuc2FwcGhpbGxvbi52MS5HZW5lcmF0ZVdvcmtmbG93UmVzcG9uc2UwARJWCgtGaXhXb3JrZmxvdxIhLnNhcHBoaWxsb24udjEuRml4V29ya2Zsb3dSZXF1ZXN0GiIuc2FwcGhpbGxvbi52MS5GaXhXb3JrZmxvd1Jlc3BvbnNlMAFiBnByb3RvMw", [file_google_rpc_status]);
 
 /**
  * Request to generate a workflow from a natural language prompt.
@@ -51,6 +53,14 @@ export type GenerateWorkflowResponse = Message<"sapphillon.v1.GenerateWorkflowRe
    * @generated from field: string workflow_definition = 1;
    */
   workflowDefinition: string;
+
+  /**
+   * The status of the response.
+   * If the status is not OK, it indicates an error.
+   *
+   * @generated from field: google.rpc.Status status = 2;
+   */
+  status?: Status;
 };
 
 /**
@@ -114,6 +124,14 @@ export type FixWorkflowResponse = Message<"sapphillon.v1.FixWorkflowResponse"> &
    * @generated from field: string change_summary = 2;
    */
   changeSummary: string;
+
+  /**
+   * The status of the response.
+   * If the status is not OK, it indicates an error.
+   *
+   * @generated from field: google.rpc.Status status = 3;
+   */
+  status?: Status;
 };
 
 /**

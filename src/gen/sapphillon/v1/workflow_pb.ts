@@ -8,13 +8,15 @@ import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import type { Permission } from "./permission_pb";
 import { file_sapphillon_v1_permission } from "./permission_pb";
+import type { PluginPackage } from "./plugin_pb";
+import { file_sapphillon_v1_plugin } from "./plugin_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file sapphillon/v1/workflow.proto.
  */
 export const file_sapphillon_v1_workflow: GenFile = /*@__PURE__*/
-  fileDesc("ChxzYXBwaGlsbG9uL3YxL3dvcmtmbG93LnByb3RvEg1zYXBwaGlsbG9uLnYxIvsBCgxXb3JrZmxvd0NvZGUSCgoCaWQYASABKAkSFQoNY29kZV9yZXZpc2lvbhgCIAEoBRIMCgRjb2RlGAMgASgJEjEKCGxhbmd1YWdlGAQgASgOMh8uc2FwcGhpbGxvbi52MS5Xb3JrZmxvd0xhbmd1YWdlEi4KCmNyZWF0ZWRfYXQYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEhMKBnJlc3VsdBgGIAEoCUgAiAEBEjcKFHJlcXVpcmVkX3Blcm1pc3Npb25zGAcgAygLMhkuc2FwcGhpbGxvbi52MS5QZXJtaXNzaW9uQgkKB19yZXN1bHQikAIKDldvcmtmbG93UmVzdWx0EgoKAmlkGAEgASgJEhQKDGRpc3BsYXlfbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIOCgZyZXN1bHQYBCABKAkSKgoGcmFuX2F0GAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI2CgtyZXN1bHRfdHlwZRgGIAEoDjIhLnNhcHBoaWxsb24udjEuV29ya2Zsb3dSZXN1bHRUeXBlEhEKCWV4aXRfY29kZRgHIAEoBRIeChZ3b3JrZmxvd19jb2RlX3JldmlzaW9uGAggASgFEiAKGHdvcmtmbG93X3Jlc3VsdF9yZXZpc2lvbhgJIAEoBSLKAgoIV29ya2Zsb3cSCgoCaWQYASABKAkSFAoMZGlzcGxheV9uYW1lGAIgASgJEhMKC2Rlc2NyaXB0aW9uGAMgASgJEjoKEXdvcmtmbG93X2xhbmd1YWdlGAQgASgOMh8uc2FwcGhpbGxvbi52MS5Xb3JrZmxvd0xhbmd1YWdlEjIKDXdvcmtmbG93X2NvZGUYBSADKAsyGy5zYXBwaGlsbG9uLnYxLldvcmtmbG93Q29kZRIuCgpjcmVhdGVkX2F0GAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GAcgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI3ChB3b3JrZmxvd19yZXN1bHRzGAggAygLMh0uc2FwcGhpbGxvbi52MS5Xb3JrZmxvd1Jlc3VsdCp5ChBXb3JrZmxvd0xhbmd1YWdlEiEKHVdPUktGTE9XX0xBTkdVQUdFX1VOU1BFQ0lGSUVEEAASIAocV09SS0ZMT1dfTEFOR1VBR0VfVFlQRVNDUklQVBABEiAKHFdPUktGTE9XX0xBTkdVQUdFX0pBVkFTQ1JJUFQQAipkChJXb3JrZmxvd1Jlc3VsdFR5cGUSLAooV09SS0ZMT1dfUkVTVUxUX1RZUEVfU1VDQ0VTU19VTlNQRUNJRklFRBAAEiAKHFdPUktGTE9XX1JFU1VMVF9UWVBFX0ZBSUxVUkUQAWIGcHJvdG8z", [file_google_protobuf_timestamp, file_sapphillon_v1_permission]);
+  fileDesc("ChxzYXBwaGlsbG9uL3YxL3dvcmtmbG93LnByb3RvEg1zYXBwaGlsbG9uLnYxIt4CCgxXb3JrZmxvd0NvZGUSCgoCaWQYASABKAkSFQoNY29kZV9yZXZpc2lvbhgCIAEoBRIMCgRjb2RlGAMgASgJEjEKCGxhbmd1YWdlGAQgASgOMh8uc2FwcGhpbGxvbi52MS5Xb3JrZmxvd0xhbmd1YWdlEi4KCmNyZWF0ZWRfYXQYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi0KBnJlc3VsdBgGIAMoCzIdLnNhcHBoaWxsb24udjEuV29ya2Zsb3dSZXN1bHQSNwoUcmVxdWlyZWRfcGVybWlzc2lvbnMYByADKAsyGS5zYXBwaGlsbG9uLnYxLlBlcm1pc3Npb24SNQoPcGx1Z2luX3BhY2thZ2VzGAggAygLMhwuc2FwcGhpbGxvbi52MS5QbHVnaW5QYWNrYWdlEhsKE3BsdWdpbl9mdW5jdGlvbl9pZHMYCSADKAkijgIKDldvcmtmbG93UmVzdWx0EgoKAmlkGAEgASgJEhQKDGRpc3BsYXlfbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIOCgZyZXN1bHQYBCABKAkSKgoGcmFuX2F0GAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI2CgtyZXN1bHRfdHlwZRgGIAEoDjIhLnNhcHBoaWxsb24udjEuV29ya2Zsb3dSZXN1bHRUeXBlEhEKCWV4aXRfY29kZRgHIAEoBRIgChh3b3JrZmxvd19yZXN1bHRfcmV2aXNpb24YCSABKAVKBAgIEAlSFndvcmtmbG93X2NvZGVfcmV2aXNpb24iygIKCFdvcmtmbG93EgoKAmlkGAEgASgJEhQKDGRpc3BsYXlfbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRI6ChF3b3JrZmxvd19sYW5ndWFnZRgEIAEoDjIfLnNhcHBoaWxsb24udjEuV29ya2Zsb3dMYW5ndWFnZRIyCg13b3JrZmxvd19jb2RlGAUgAygLMhsuc2FwcGhpbGxvbi52MS5Xb3JrZmxvd0NvZGUSLgoKY3JlYXRlZF9hdBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgHIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASNwoQd29ya2Zsb3dfcmVzdWx0cxgIIAMoCzIdLnNhcHBoaWxsb24udjEuV29ya2Zsb3dSZXN1bHQqeQoQV29ya2Zsb3dMYW5ndWFnZRIhCh1XT1JLRkxPV19MQU5HVUFHRV9VTlNQRUNJRklFRBAAEiAKHFdPUktGTE9XX0xBTkdVQUdFX1RZUEVTQ1JJUFQQARIgChxXT1JLRkxPV19MQU5HVUFHRV9KQVZBU0NSSVBUEAIqZAoSV29ya2Zsb3dSZXN1bHRUeXBlEiwKKFdPUktGTE9XX1JFU1VMVF9UWVBFX1NVQ0NFU1NfVU5TUEVDSUZJRUQQABIgChxXT1JLRkxPV19SRVNVTFRfVFlQRV9GQUlMVVJFEAFiBnByb3RvMw", [file_google_protobuf_timestamp, file_sapphillon_v1_permission, file_sapphillon_v1_plugin]);
 
 /**
  * Represents a specific revision of workflow source code and metadata.
@@ -37,6 +39,7 @@ export const file_sapphillon_v1_workflow: GenFile = /*@__PURE__*/
 export type WorkflowCode = Message<"sapphillon.v1.WorkflowCode"> & {
   /**
    * Stable identifier of the workflow code entity.
+   * Format: UUID.
    *
    * @generated from field: string id = 1;
    */
@@ -72,12 +75,12 @@ export type WorkflowCode = Message<"sapphillon.v1.WorkflowCode"> & {
   createdAt?: Timestamp;
 
   /**
-   * Optional result preview or cached output associated with this code revision.
-   * Behavior: Optional. May be empty when no run has occurred.
+   * Optional result previews or cached outputs associated with this code revision.
+   * Behavior: Optional. May be empty when no run has occurred. Can store multiple results.
    *
-   * @generated from field: optional string result = 6;
+   * @generated from field: repeated sapphillon.v1.WorkflowResult result = 6;
    */
-  result?: string;
+  result: WorkflowResult[];
 
   /**
    * Permissions required to execute this workflow code.
@@ -86,6 +89,21 @@ export type WorkflowCode = Message<"sapphillon.v1.WorkflowCode"> & {
    * @generated from field: repeated sapphillon.v1.Permission required_permissions = 7;
    */
   requiredPermissions: Permission[];
+
+  /**
+   * Plugin packages that this workflow code depends on.
+   * This allows the workflow to use functions defined in these plugins.
+   *
+   * @generated from field: repeated sapphillon.v1.PluginPackage plugin_packages = 8;
+   */
+  pluginPackages: PluginPackage[];
+
+  /**
+   * Plugin functions that this workflow code directly uses.
+   *
+   * @generated from field: repeated string plugin_function_ids = 9;
+   */
+  pluginFunctionIds: string[];
 };
 
 /**
@@ -116,6 +134,7 @@ export const WorkflowCodeSchema: GenMessage<WorkflowCode> = /*@__PURE__*/
 export type WorkflowResult = Message<"sapphillon.v1.WorkflowResult"> & {
   /**
    * Identifier of the result record.
+   * Format: UUID.
    *
    * @generated from field: string id = 1;
    */
@@ -164,13 +183,6 @@ export type WorkflowResult = Message<"sapphillon.v1.WorkflowResult"> & {
   exitCode: number;
 
   /**
-   * Code revision that produced this result.
-   *
-   * @generated from field: int32 workflow_code_revision = 8;
-   */
-  workflowCodeRevision: number;
-
-  /**
    * Monotonic revision of this result record.
    *
    * @generated from field: int32 workflow_result_revision = 9;
@@ -206,6 +218,7 @@ export const WorkflowResultSchema: GenMessage<WorkflowResult> = /*@__PURE__*/
 export type Workflow = Message<"sapphillon.v1.Workflow"> & {
   /**
    * Stable identifier for the workflow.
+   * Format: UUID.
    *
    * @generated from field: string id = 1;
    */
