@@ -20,7 +20,7 @@
   "imports": {
     "@/": "./src/",
     "@bufbuild/protobuf": "npm:@bufbuild/protobuf@^2.6.3",
-    "@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.4",
+    "@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.5",
     "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.1.10",
     "@tanstack/eslint-plugin-query": "npm:@tanstack/eslint-plugin-query@^5.83.1",
     "@tanstack/react-query": "npm:@tanstack/react-query@^5.84.2",
