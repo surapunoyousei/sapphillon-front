@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/common/button.tsx";
 import { Separator } from "@/components/common/separator.tsx";
 import { getBrowserOS } from "@/lib/browser-os.ts";
-import { createMockVersionClient } from "@/lib/sapphillon-client.ts";
+import { createMockVersionClient } from "../lib/mock/sapphillon-client.ts";
 
 function stringify(value: unknown): string {
   try {

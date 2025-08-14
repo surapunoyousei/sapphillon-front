@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { createMockVersionClient } from "@/lib/sapphillon-client.ts";
+import { createMockVersionClient } from "../lib/mock/sapphillon-client.ts";
 
 export function Home() {
   const client = createMockVersionClient();
