@@ -1,12 +1,5 @@
 import { useCallback, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/common/card.tsx";
 import { Button } from "@/components/common/button.tsx";
-import { Separator } from "@/components/common/separator.tsx";
 import { getBrowserOS } from "@/lib/browser-os.ts";
 import { createMockVersionClient } from "../lib/mock/sapphillon-client.ts";
 
@@ -63,11 +56,9 @@ export function Debug() {
         </div>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Floorp (BrowserOS) Communication</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
+      <div className="card bg-base-200/50 border border-base-300/20 shadow-lg">
+        <div className="card-body">
+          <h2 className="card-title">Floorp (BrowserOS) Communication</h2>
           <div className="flex gap-2">
             <Button size="sm" onClick={runFloorpCheck}>
               getAllContextData()
@@ -80,18 +71,16 @@ export function Debug() {
               Clear
             </Button>
           </div>
-          <Separator />
+          <div className="divider"></div>
           <pre className="bg-base-300/30 p-3 rounded text-xs whitespace-pre-wrap break-all min-h-24">
-            {floorpOutput || "(no output)"}
+                {floorpOutput || "(no output)"}
           </pre>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Sapphillon (gRPC) Requests</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
+      <div className="card bg-base-200/50 border border-base-300/20 shadow-lg">
+        <div className="card-body">
+          <h2 className="card-title">Sapphillon (gRPC) Requests</h2>
           <div className="flex gap-2">
             <Button size="sm" onClick={runSapphillonCheck}>
               VersionService.GetVersion (mock)
@@ -104,12 +93,12 @@ export function Debug() {
               Clear
             </Button>
           </div>
-          <Separator />
+          <div className="divider"></div>
           <pre className="bg-base-300/30 p-3 rounded text-xs whitespace-pre-wrap break-all min-h-24">
-            {sapphillonOutput || "(no output)"}
+                {sapphillonOutput || "(no output)"}
           </pre>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

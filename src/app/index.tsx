@@ -11,7 +11,13 @@ export function Home() {
       })).version?.version ?? "",
   });
 
-  if (isLoading) return <div>Home - Loading...</div>;
-  if (error) return <div>Home - Error</div>;
-  return <div>Home{data ? ` - ${data}` : ""}</div>;
+  return (
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <p>Welcome to your personalized dashboard. Widgets will be available here.</p>
+      <div>
+        <strong>API Version (Mock):</strong> {isLoading ? 'Loading...' : error ? 'Error' : data}
+      </div>
+    </div>
+  )
 }
