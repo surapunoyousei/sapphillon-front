@@ -24,6 +24,7 @@
     "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.1.10",
     "@tanstack/eslint-plugin-query": "npm:@tanstack/eslint-plugin-query@^5.83.1",
     "@tanstack/react-query": "npm:@tanstack/react-query@^5.84.2",
+    "dotenv": "npm:dotenv@^17.2.1",
     "vitest": "npm:vitest@^2",
     "@testing-library/react": "npm:@testing-library/react@^16",
     "@testing-library/jest-dom": "npm:@testing-library/jest-dom@^6",
@@ -41,6 +42,7 @@
     "tailwindcss": "npm:tailwindcss@^4.1.10",
     "vite": "npm:vite@^6.1.1",
     "zod": "npm:zod@^3.25.67",
-    "cmdk": "npm:cmdk@^1.0.0"
+    "cmdk": "npm:cmdk@^1.0.0",
+    "@google/generative-ai": "npm:@google/generative-ai@^0.15.0"
   }
 }
