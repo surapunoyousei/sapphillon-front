@@ -1,192 +1,237 @@
-import { Bell, Github, Moon, Search, Sun } from "lucide-react";
+import { Bell, Github, Moon, Search, Sun, X } from "lucide-react";
 import { Button } from "./common/button.tsx";
 import { useTheme } from "./theme-provider.tsx";
 import { Avatar, AvatarImage } from "./common/avatar.tsx";
 import { SidebarTrigger } from "./common/sidebar.tsx";
+import { useState } from "react";
 
+/**
+ * Header component that provides navigation, search, theme switching, and user menu
+ * Includes responsive design for mobile and desktop layouts with enhanced UX
+ */
 export function Header() {
   const { resolvedTheme, setTheme } = useTheme();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+  // Handle search functionality
+  const handleSearch = (query: string) => {
+    if (!query.trim()) return;
+    // TODO: Implement actual search functionality
+    console.log("Search query:", query);
+    setSearchQuery("");
+  };
+
+  // Handle mobile search modal
+  const handleMobileSearch = () => {
+    // TODO: Implement mobile search modal
+    console.log("Open mobile search modal");
+  };
+
+  // Clear search input
+  const clearSearch = () => {
+    setSearchQuery("");
+  };
 
   return (
     <header
-      className="navbar bg-base-200/50 border-b border-base-300/20 sticky top-0 z-40 backdrop-blur-sm"
+      className="navbar bg-base-200/50 border-b border-base-300/20 sticky top-0 z-40 backdrop-blur-sm shadow-sm"
       role="banner"
-      aria-label="メインナビゲーション"
+      aria-label="Main navigation"
     >
+      {/* Left section - Sidebar trigger only */}
       <div className="navbar-start">
         <SidebarTrigger />
-        <a
-          className="btn btn-ghost text-xl"
-          href="/"
-          aria-label="Floorp OSホームに戻る"
-        >
-          <img
-            src="/Floorp_Logo_OS_D_Dark.png"
-            alt="Floorp OS Logo"
-            className="w-48 h-12"
-            loading="eager"
-          />
-        </a>
       </div>
 
-      <div className="navbar-center hidden lg:flex">
-        <div className="form-control">
-          <div className="join">
+      {/* Center section - Enhanced search bar (desktop only) */}
+      <div className="navbar-center hidden lg:flex w-full max-w-2xl mx-auto">
+        <div className="form-control w-full relative">
+          <div
+            className={`join w-full transition-all duration-300 ${
+              isSearchFocused ? "ring-2 ring-primary/30 shadow-lg" : ""
+            }`}
+          >
             <input
               type="text"
-              placeholder="検索..."
-              className="input input-bordered input-sm join-item w-64"
-              aria-label="検索フィールド"
+              placeholder="Search Floorp OS..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="input input-bordered input-sm join-item w-full pr-12 focus:outline-none"
+              aria-label="Search field"
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  // 検索処理をここに実装
-                  console.log("検索:", e.currentTarget.value);
+                  handleSearch(searchQuery);
+                } else if (e.key === "Escape") {
+                  clearSearch();
+                  e.currentTarget.blur();
                 }
               }}
             />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="btn-square join-item"
-              aria-label="検索実行"
-              onClick={() => {
-                // 検索処理をここに実装
-                console.log("検索ボタンクリック");
-              }}
-            >
-              <Search size={16} />
-            </Button>
+            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="btn btn-ghost btn-xs btn-circle hover:bg-base-300/50"
+                  aria-label="Clear search"
+                >
+                  <X size={12} />
+                </button>
+              )}
+              <button
+                type="button"
+                aria-label="Execute search"
+                onClick={() => handleSearch(searchQuery)}
+                disabled={!searchQuery.trim()}
+              >
+                <Search size={16} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Right section - Action buttons and user menu */}
       <div className="navbar-end gap-1 sm:gap-2">
-        {/* モバイル検索ボタン */}
-        <div className="tooltip tooltip-bottom lg:hidden" data-tip="検索">
+        {/* Mobile search button - hidden on desktop */}
+        <div className="tooltip tooltip-bottom lg:hidden" data-tip="Search">
           <Button
             variant="ghost"
             size="sm"
-            className="btn-circle"
-            aria-label="検索を開く"
-            onClick={() => {
-              // モバイル検索モーダルを開く処理
-              console.log("モバイル検索を開く");
-            }}
+            className="btn-circle hover:bg-primary/10 transition-colors"
+            aria-label="Open search"
+            onClick={handleMobileSearch}
           >
             <Search size={18} />
           </Button>
         </div>
 
-        {/* テーマ切り替えボタン */}
+        {/* Theme toggle button with enhanced animation */}
         <div
           className="tooltip tooltip-bottom"
           data-tip={resolvedTheme === "dark"
-            ? "ライトモードに切り替え"
-            : "ダークモードに切り替え"}
+            ? "Switch to light mode"
+            : "Switch to dark mode"}
         >
           <Button
             variant="ghost"
             size="sm"
-            className="btn-circle"
+            className="btn-circle hover:bg-primary/10 transition-all duration-300 hover:scale-110"
             onClick={() =>
               setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-            aria-label={`${
-              resolvedTheme === "dark" ? "ライト" : "ダーク"
-            }モードに切り替え`}
+            aria-label={`Switch to ${
+              resolvedTheme === "dark" ? "light" : "dark"
+            } mode`}
           >
-            {resolvedTheme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+            {resolvedTheme === "dark"
+              ? <Sun size={18} className="text-yellow-500" />
+              : <Moon size={18} className="text-blue-500" />}
           </Button>
         </div>
 
-        {/* GitHubリンク */}
-        <div className="tooltip tooltip-bottom" data-tip="GitHubで見る">
+        {/* GitHub repository link with hover effect */}
+        <div className="tooltip tooltip-bottom" data-tip="View on GitHub">
           <a
             href="https://github.com/Floorp-Projects/Floorp"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="GitHubリポジトリを開く"
-            className="btn btn-ghost btn-sm btn-circle"
+            aria-label="Open GitHub repository"
+            className="btn btn-ghost btn-sm btn-circle hover:bg-primary/10 hover:scale-105 transition-all duration-200"
           >
             <Github size={18} />
           </a>
         </div>
 
-        {/* 通知ボタン */}
-        <div className="tooltip tooltip-bottom" data-tip="通知">
+        {/* Enhanced notifications button with indicator */}
+        <div className="tooltip tooltip-bottom" data-tip="Notifications">
           <Button
             variant="ghost"
             size="sm"
-            className="btn-circle"
-            aria-label="通知を表示"
+            className="btn-circle hover:bg-primary/10 transition-colors relative"
+            aria-label="Show notifications"
           >
             <div className="indicator">
               <Bell size={18} />
               <span
-                className="badge badge-xs badge-primary indicator-item animate-pulse"
-                aria-label="新しい通知があります"
+                className="badge badge-xs badge-primary indicator-item animate-pulse shadow-sm"
+                aria-label="You have new notifications"
               >
                 3
               </span>
             </div>
           </Button>
         </div>
-        {/* ユーザーメニュー */}
+
+        {/* Enhanced user profile dropdown menu */}
         <div className="dropdown dropdown-end">
           <div
             tabIndex={0}
             role="button"
-            className="btn btn-ghost btn-circle avatar hover:ring-2 hover:ring-primary/20 transition-all duration-200"
-            aria-label="ユーザーメニューを開く"
+            className="btn btn-ghost btn-circle avatar hover:ring-2 hover:ring-primary/30 transition-all duration-200 hover:scale-105"
+            aria-label="Open user menu"
             aria-haspopup="menu"
             aria-expanded="false"
           >
-            <Avatar className="w-8 h-8">
+            <Avatar className="w-8 h-8 ring-2 ring-base-300/50">
               <AvatarImage
                 src="https://avatars.githubusercontent.com/u/124599?v=4"
-                alt="ユーザーアバター"
+                alt="User avatar"
               />
             </Avatar>
           </div>
+
+          {/* Enhanced dropdown menu content */}
           <ul
             tabIndex={0}
-            className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-300/20"
+            className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow-xl bg-base-100/95 backdrop-blur-sm rounded-box w-56 border border-base-300/20"
             role="menu"
-            aria-label="ユーザーメニュー"
+            aria-label="User menu"
           >
+            <li className="menu-title">
+              <span className="text-xs text-base-content/60">User Menu</span>
+            </li>
             <li>
               <a
-                className="justify-between hover:bg-primary/10 transition-colors"
+                className="justify-between hover:bg-primary/10 transition-colors rounded-lg"
                 role="menuitem"
                 href="/profile"
               >
-                プロフィール
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-success rounded-full"></div>
+                  Profile
+                </div>
                 <span className="badge badge-success badge-xs">NEW</span>
               </a>
             </li>
             <li>
               <a
-                className="hover:bg-primary/10 transition-colors"
+                className="hover:bg-primary/10 transition-colors rounded-lg"
                 role="menuitem"
                 href="/settings"
               >
-                設定
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-info rounded-full"></div>
+                  Settings
+                </div>
               </a>
             </li>
             <li className="border-t border-base-300/20 mt-1 pt-1">
               <button
                 type="button"
-                className="text-error hover:bg-error/10 transition-colors w-full text-left"
+                className="text-error hover:bg-error/10 transition-colors w-full text-left rounded-lg flex items-center gap-2"
                 role="menuitem"
-                onClick={(e) => {
-                  e.preventDefault();
-                  // ログアウト処理をここに実装
-                  if (confirm("本当にログアウトしますか？")) {
-                    console.log("ログアウトが実行されました");
-                    // 実際のログアウト処理をここに実装
+                onClick={() => {
+                  if (confirm("Are you sure you want to logout?")) {
+                    // TODO: Implement actual logout functionality
+                    console.log("Logout executed");
                   }
                 }}
               >
-                ログアウト
+                <div className="w-2 h-2 bg-error rounded-full"></div>
+                Logout
               </button>
             </li>
           </ul>
