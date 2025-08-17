@@ -6,7 +6,7 @@ import { createMockVersionClient } from "../lib/mock/sapphillon-client.ts";
 function stringify(value: unknown): string {
   try {
     return JSON.stringify(value, null, 2);
-  } catch (_e) {
+  } catch {
     return String(value);
   }
 }

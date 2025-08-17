@@ -33,7 +33,7 @@
     "@types/react-dom": "npm:@types/react-dom@^19.0.4",
     "@vitejs/plugin-react": "npm:@vitejs/plugin-react@^4.3.4",
     "daisyui": "npm:daisyui@^5.0.43",
-    "lucide-react": "npm:lucide-react@^0.539.0",
+    "lucide-react": "npm:lucide-react@^0.475",
     "react": "npm:react@^19.0.0",
     "react-dom": "npm:react-dom@^19.0.0",
     "react-hook-form": "npm:react-hook-form@^7.58.1",
