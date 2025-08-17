@@ -6,21 +6,34 @@ import {
 } from "@/components/common/sidebar.tsx";
 import { NavItem } from "./nav-item.tsx";
 import { Activity, Bug, LayoutDashboard, Plug, Settings } from "lucide-react";
+import { useTheme } from "../theme-provider.tsx";
 
 /**
  * Main application sidebar component
  * Contains all navigation items and branding
  */
 export function AppSidebar() {
+  const { resolvedTheme, setTheme } = useTheme();
+
   return (
     <Sidebar className="bg-base-200 shadow-lg border-r border-base-300 min-w-[220px]">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-4 py-3">
-          <img
-            src="/Floorp_Logo_OS_C_Light.png"
-            alt="Sapphillon"
-            className="h-8 w-auto"
-          />
+          {resolvedTheme === "dark"
+            ? (
+              <img
+                src="/Floorp_Logo_OS_D_Dark.png"
+                alt="Sapphillon"
+                className="h-8 w-auto"
+              />
+            )
+            : (
+              <img
+                src="/Floorp_Logo_OS_C_Light.png"
+                alt="Sapphillon"
+                className="h-8 w-auto"
+              />
+            )}
         </div>
       </SidebarHeader>
 

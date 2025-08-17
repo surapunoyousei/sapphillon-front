@@ -11,7 +11,6 @@ export default defineConfig({
   ],
   resolve: {
     alias: [
-      // 本番ビルド時のみ Devtools をスタブに切替
       {
         find: "@tanstack/react-query-devtools",
         replacement: process.env.NODE_ENV === "production"

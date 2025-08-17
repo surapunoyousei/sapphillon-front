@@ -31,19 +31,17 @@ export function ThemeProvider({
   const root = globalThis.document.documentElement;
 
   useEffect(() => {
-    root.classList.remove("light", "dark");
-
     if (theme === "system") {
       const systemTheme = globalThis.matchMedia("(prefers-color-scheme: dark)")
           .matches
         ? "dark"
         : "light";
-      root.classList.add(systemTheme);
+      root.setAttribute("data-theme", systemTheme);
       setResolvedTheme(systemTheme);
       return;
     }
 
-    root.classList.add(theme);
+    root.setAttribute("data-theme", theme);
     setResolvedTheme(theme);
   }, [theme]);
 
