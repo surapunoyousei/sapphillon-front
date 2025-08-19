@@ -25,6 +25,7 @@ export * from "./common/switch.tsx";
 export * from "./ui/loading-spinner.tsx";
 export * from "./ui/error-boundary.tsx";
 export * from "./ui/status-badge.tsx";
+export * from "./ui/modal.tsx";
 
 // App-specific Components
 export * from "./app-background.tsx";

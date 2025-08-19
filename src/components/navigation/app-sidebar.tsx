@@ -13,10 +13,10 @@ import { useTheme } from "../theme-provider.tsx";
  * Contains all navigation items and branding
  */
 export function AppSidebar() {
-  const { resolvedTheme, setTheme } = useTheme();
+  const { resolvedTheme } = useTheme();
 
   return (
-    <Sidebar className="bg-base-200 shadow-lg border-r border-base-300 min-w-[220px]">
+    <Sidebar className="bg-base-200 min-w-[220px]">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-4 py-3">
           {resolvedTheme === "dark"
@@ -40,7 +40,10 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarMenu>
           {/* Main Navigation */}
-          <nav className="mt-2" aria-label="Main navigation">
+          <nav
+            className="flex flex-col mt-2 gap-2"
+            aria-label="Main navigation"
+          >
             <NavItem
               to="/"
               icon={<LayoutDashboard size={22} />}
@@ -63,7 +66,10 @@ export function AppSidebar() {
           <div className="my-3 border-t border-base-300" role="separator" />
 
           {/* Secondary Navigation */}
-          <nav aria-label="Secondary navigation">
+          <nav
+            className="flex flex-col mt-2 gap-2"
+            aria-label="Secondary navigation"
+          >
             <NavItem
               to="/settings"
               icon={<Settings size={22} />}

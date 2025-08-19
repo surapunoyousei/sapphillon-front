@@ -35,7 +35,7 @@ export function Header() {
 
   return (
     <header
-      className="navbar bg-base-200/50 border-b border-base-300/20 sticky top-0 z-40 backdrop-blur-sm shadow-sm"
+      className="navbar sticky top-0 z-40 backdrop-blur-sm border-b border-base-300 px-4 py-2"
       role="banner"
       aria-label="Main navigation"
     >

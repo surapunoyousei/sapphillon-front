@@ -1,7 +1,7 @@
 import { Activity } from "lucide-react";
 import { PagePlaceholder } from "@/components/layout/page-placeholder.tsx";
 
-export function Workflows() {
+export function WorkflowsManage() {
   return (
     <PagePlaceholder
       title="Workflows"

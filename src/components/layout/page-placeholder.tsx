@@ -30,7 +30,7 @@ export function PagePlaceholder({
   comingSoon = false,
 }: PagePlaceholderProps) {
   return (
-    <div className={cn("max-w-4xl mx-auto space-y-6", className)}>
+    <div className={cn("p-4 max-w-4xl mx-auto space-y-6", className)}>
       {/* Page Header */}
       <div className="flex items-center gap-4">
         {icon && (

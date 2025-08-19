@@ -4,7 +4,8 @@ import { Header } from "./components/header.tsx";
 import { AppSidebar } from "./components/navigation/app-sidebar.tsx";
 import { Home } from "./app/index.tsx";
 import { Debug } from "./app/debug.tsx";
-import { Workflows } from "./app/workflows.tsx";
+import { WorkflowsRoot } from "./app/workflows-root.tsx";
+import { WorkflowsManage } from "./app/workflows.tsx";
 import { Generate } from "./app/generate.tsx";
 import { Run } from "./app/run.tsx";
 import { EditWorkflow } from "./app/edit.tsx";
@@ -17,21 +18,21 @@ function App() {
       <AppBackground />
       <div className="flex min-h-screen w-full flex-row bg-base-100/80">
         <AppSidebar />
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-h-0">
           <Header />
-          <main className="flex-1 p-4">
+          <main className="flex-1 flex flex-col min-h-0">
             <Routes>
               <Route path="/" element={<Home />} />
-
-              {/* Workflow Routes */}
-              <Route path="/workflows" element={<Workflows />} />
-              <Route path="/workflows/generate" element={<Generate />} />
+              {/* Workflow Root with Tabs */}
+              <Route path="/workflows" element={<WorkflowsRoot />}>
+                <Route index element={<WorkflowsManage />} />
+                <Route path="generate" element={<Generate />} />
+              </Route>
+              {/* Deep workflow routes outside tab layout */}
               <Route path="/workflows/run/:id" element={<Run />} />
               <Route path="/workflows/edit/:id" element={<EditWorkflow />} />
-
               {/* Plugin Routes */}
               <Route path="/plugins" element={<Plugins />} />
-
               {/* Settings & Debug */}
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/debug" element={<Debug />} />
