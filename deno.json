@@ -19,6 +19,8 @@
   },
   "imports": {
     "@/": "./src/",
+    "@bufbuild/connect": "npm:@bufbuild/connect@^0.13.0",
+    "@bufbuild/connect-web": "npm:@bufbuild/connect-web@^0.13.0",
     "@bufbuild/protobuf": "npm:@bufbuild/protobuf@^2.6.3",
     "@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.5",
     "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.1.10",

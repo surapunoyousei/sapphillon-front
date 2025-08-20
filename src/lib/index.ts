@@ -7,4 +7,3 @@ export * from "./hooks/index.ts";
 
 // API and services
 export * from "./browser-os.ts";
-export * from "./mock/sapphillon-client.ts";
