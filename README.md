@@ -16,16 +16,32 @@ Sapphillon（Floorp OS）のフロントエンドです。`buf` で生成した 
 git submodule update --init --recursive
 ```
 
-## API 型定義の生成（buf）
+## API 型定義 & gRPC クライアント生成（buf）
 
-API 定義を更新したら、TS 型定義を再生成します。
+proto を更新 / 追加したら次で再生成します:
 
 ```sh
-cd src/sapphillon-front
-buf generate vendor/Sapphillon_API --template buf.gen.yaml
+deno task gen
 ```
 
-生成物は `src/sapphillon-front/src/gen` に出力されます。
+生成物は `src/gen` に出力されます。
+
+### サービスクライアント集約
+
+`src/lib/grpc-clients.ts` が全サービスの gRPC-Web クライアントを生成し `clients` をエクスポートします。
+新しい service を追加した場合:
+
+1. proto を追加 (サブモジュール更新など)
+2. `deno task gen`
+3. `grpc-clients.ts` に import と client を追加
+
+例:
+
+```ts
+import { NewService } from "@/gen/sapphillon/v1/new_service_pb";
+export const newClient = createClient(NewService, transport);
+export const clients = { ...clients, new: newClient }; // 既存定義を編集する形でも良い
+```
 
 ## 開発
 
@@ -72,10 +88,11 @@ deno task test:watch    # 監視実行
 - `src/components`: UI コンポーネント
 - `src/lib`:
   - `browser-os.ts`: Floorp 側の BrowserOS API アクセス
-  - `sapphillon-client.ts`: Sapphillon クライアント（現状モック）
+  - `grpc-clients.ts`: 生成された service に基づく gRPC-Web クライアント集約
+  - `sapphillon-client.ts`: 互換レイヤ (旧 import 用)
 - `src/gen`: `buf` 生成の TypeScript 型定義 / サービス定義
 - `vendor/Sapphillon_API`: API 定義（proto; Git サブモジュール）
 
 ## メモ
 
-- 将来的にバックエンド接続を行う際は、Connect Web Transport を導入し、`/debug` のモック呼び出しを実クライアントに差し替えます。
+- 現在は tonic_web に合わせ gRPC-Web transport を利用。Connect プロトコルを有効化する場合はサーバ側で適切な gateway / h2c を追加してください。

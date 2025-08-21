@@ -39,7 +39,7 @@ export function Debug() {
     try {
       const client = versionClient;
       const res = await client.getVersion({});
-      setSapphillonOutput(stringify(res));
+      setSapphillonOutput(res.version?.version ?? "null");
     } catch (err) {
       setErrorText(
         `Sapphillon error: ${String((err as Error)?.message ?? err)}`,

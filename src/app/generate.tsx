@@ -8,52 +8,86 @@ import {
   StopCircle,
   Trash2,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useGenerateWorkflowStream } from "@/lib/hooks/use-generate-workflow-stream.ts";
-import { useFixWorkflowStream } from "@/lib/hooks/use-fix-workflow-stream.ts";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils.ts";
-import type { FixWorkflowRequest } from "@/gen/sapphillon/v1/workflow_service_pb.ts";
+import {
+  FixWorkflowRequest,
+  FixWorkflowResponse,
+  GenerateWorkflowRequest,
+  GenerateWorkflowResponse,
+} from "@/gen/sapphillon/v1/workflow_service_pb.ts";
 import { Modal } from "@/components/ui/modal.tsx";
+import { workflowClient } from "@/lib/grpc-clients.ts";
+import { useStreamProgress } from "@/lib/hooks/use-stream-progress.ts";
+
+// ============================================================================
+// Types & Utility Functions
+// ============================================================================
 
 // --- Helpers --------------------------------------------------------------
-interface WorkflowStep {
-  id: string;
-  [k: string]: unknown;
+// 受信した Workflow オブジェクト内の最新コードを行単位に分割して表示するための型
+interface CodeLine {
+  number: number;
+  text: string;
 }
 
-function parseSteps(defText: string): WorkflowStep[] {
+interface WorkflowCodeJson {
+  codeRevision?: number;
+  code?: unknown;
+}
+interface WorkflowJson {
+  workflowCode?: unknown;
+}
+
+const serializeWorkflow = (w: unknown): string => {
+  if (!w) return "";
   try {
-    if (!defText) return [];
-    const parsed: unknown = JSON.parse(defText);
-    if (typeof parsed === "object" && parsed && "steps" in parsed) {
-      const stepsUnknown = (parsed as { steps?: unknown }).steps;
-      if (Array.isArray(stepsUnknown)) {
-        const filtered: WorkflowStep[] = [];
-        for (const s of stepsUnknown) {
-          if (
-            typeof s === "object" && s !== null &&
-            "id" in (s as Record<string, unknown>)
-          ) {
-            const rec = s as Record<string, unknown>;
-            const idVal = rec.id;
-            if (typeof idVal === "string") {
-              filtered.push({ id: idVal, ...rec });
-            }
-          }
-        }
-        return filtered;
-      }
-    }
-    return [];
+    return JSON.stringify(w, null, 2);
   } catch {
-    return [];
+    return String(w);
   }
+};
+
+function extractLatestWorkflowCode(workflowJson: string): string {
+  if (!workflowJson) return "";
+  try {
+    const parsed: unknown = JSON.parse(workflowJson);
+    if (!parsed || typeof parsed !== "object") return "";
+    const wf = parsed as WorkflowJson;
+    const codes = Array.isArray(wf.workflowCode)
+      ? wf.workflowCode.filter((c): c is WorkflowCodeJson =>
+        !!c && typeof c === "object"
+      )
+      : [];
+    if (!codes.length) return "";
+    let latest = codes[0];
+    for (const c of codes) {
+      if (
+        typeof c.codeRevision === "number" &&
+        (latest.codeRevision ?? -1) < c.codeRevision
+      ) latest = c;
+    }
+    return typeof latest.code === "string" ? latest.code : "";
+  } catch {
+    return "";
+  }
+}
+
+function codeToLines(code: string): CodeLine[] {
+  return code
+    ? code.replace(/\r\n?/g, "\n").split("\n").map((text, idx) => ({
+      number: idx + 1,
+      text,
+    }))
+    : [];
 }
 
 interface DiffLine {
   type: "same" | "added" | "removed";
   text: string;
 }
+
+// Simple line diff (replace-if-different). For more advanced diffing, introduce Myers algo later.
 function buildSimpleDiff(prev: string, next: string): DiffLine[] {
   if (!prev && !next) return [];
   const a = prev.split(/\r?\n/);
@@ -70,119 +104,405 @@ function buildSimpleDiff(prev: string, next: string): DiffLine[] {
       if (lb !== undefined) out.push({ type: "added", text: lb });
     }
   }
-  return out.slice(0, 800); // safety cap
+  return out.slice(0, 800);
 }
 
-// --- Main Component -------------------------------------------------------
-export function Generate() {
+// ============================================================================
+// Custom Hooks
+// ============================================================================
+
+interface UseWorkflowStreamsResult {
+  prompt: string;
+  setPrompt: (v: string) => void;
+  hasGenerated: boolean;
+  currentDefinition: string;
+  previousDefinition: string;
+  currentCode: string;
+  previousCode: string;
+  codeLines: CodeLine[];
+  diffLines: DiffLine[];
+  stepCount: number;
+  isGenerating: boolean;
+  isFixing: boolean;
+  errorGenerate?: string;
+  errorFix?: string;
+  initiate: () => void;
+  abortAll: () => void;
+  resetAll: () => void;
+  generateItems: GenerateWorkflowResponse[];
+  fixItems: FixWorkflowResponse[];
+  genDefinition: string;
+  fixDefinition: string;
+}
+
+function useWorkflowStreams(): UseWorkflowStreamsResult {
   const [prompt, setPrompt] = useState("");
-  const {
-    start,
-    abort,
-    reset: resetGenerate,
-    isStreaming,
-    currentDefinition: genDefinition,
-    responses,
-    error,
-  } = useGenerateWorkflowStream();
-  const {
-    start: startFix,
-    isStreaming: isFixing,
-    currentDefinition: fixDefinition,
-    responses: fixResponses,
-    error: fixError,
-    abort: abortFix,
-    reset: resetFix,
-  } = useFixWorkflowStream();
-  const [previewTab, setPreviewTab] = useState<
-    "steps" | "json" | "raw" | "diff"
-  >("steps");
-  const [autoScrollLog, setAutoScrollLog] = useState(true);
-  const [expandedLog, setExpandedLog] = useState(true);
-  const [leftRatio, setLeftRatio] = useState(0.55); // prompt area ratio in left column
-  const [discardOpen, setDiscardOpen] = useState(false);
-  const draggingRef = useRef(false);
-  const colRef = useRef<HTMLDivElement | null>(null);
 
-  // fixが存在すればそれを優先表示
-  const currentDefinition = fixDefinition || genDefinition;
+  const generate = useStreamProgress<GenerateWorkflowResponse>({
+    extractErrorMessage: (item) =>
+      item.status && item.status.code && item.status.code !== 0
+        ? item.status.message || "Generation error"
+        : undefined,
+  });
+  const fix = useStreamProgress<FixWorkflowResponse>({
+    extractErrorMessage: (item) =>
+      item.status && item.status.code && item.status.code !== 0
+        ? item.status.message || "Fix error"
+        : undefined,
+  });
 
-  const previousDefinition = responses.length > 1
-    ? responses[responses.length - 2].workflowDefinition
-    : "";
-  const steps = useMemo(() => parseSteps(currentDefinition), [
-    currentDefinition,
-  ]);
-  const stepCount = steps.length;
-  const formattedJSON = useMemo(() => {
-    try {
-      return currentDefinition
-        ? JSON.stringify(JSON.parse(currentDefinition), null, 2)
-        : "";
-    } catch {
-      return currentDefinition;
+  const genDefinition = useMemo(() => {
+    for (let i = generate.items.length - 1; i >= 0; i--) {
+      const w = generate.items[i].workflowDefinition;
+      if (w) return serializeWorkflow(w);
     }
-  }, [currentDefinition]);
-  const diffLines = useMemo(
-    () => buildSimpleDiff(previousDefinition, currentDefinition),
-    [previousDefinition, currentDefinition],
+    return "";
+  }, [generate.items]);
+
+  const fixDefinition = useMemo(() => {
+    for (let i = fix.items.length - 1; i >= 0; i--) {
+      const w = fix.items[i].fixedWorkflowDefinition;
+      if (w) return serializeWorkflow(w);
+    }
+    return "";
+  }, [fix.items]);
+
+  const hasGenerated = !!genDefinition;
+  const currentDefinition = fixDefinition || genDefinition;
+  const previousDefinition = generate.items.length > 1
+    ? serializeWorkflow(
+      generate.items[generate.items.length - 2].workflowDefinition,
+    )
+    : "";
+  const currentCode = useMemo(
+    () => extractLatestWorkflowCode(currentDefinition),
+    [currentDefinition],
   );
-  const hasGenerated = !!genDefinition; // 初回生成済判定は生成フック基準
+  const previousCode = useMemo(
+    () => extractLatestWorkflowCode(previousDefinition),
+    [previousDefinition],
+  );
+  const codeLines = useMemo(() => codeToLines(currentCode), [currentCode]);
+  const diffLines = useMemo(() => buildSimpleDiff(previousCode, currentCode), [
+    previousCode,
+    currentCode,
+  ]);
+  const stepCount = codeLines.length;
 
   const initiate = useCallback(() => {
-    if (prompt.trim()) {
-      if (!hasGenerated) {
-        start(prompt);
-      } else if (genDefinition) {
-        const fixReq: FixWorkflowRequest = {
-          workflowDefinition: genDefinition,
-          description: prompt,
-        } as FixWorkflowRequest;
-        startFix(fixReq);
-      }
+    if (!prompt.trim()) return;
+    if (!hasGenerated) {
+      generate.start(() =>
+        workflowClient.generateWorkflow({ prompt } as GenerateWorkflowRequest)
+      );
+    } else if (genDefinition) {
+      const fixReq = {
+        workflowDefinition: genDefinition,
+        description: prompt,
+      } as FixWorkflowRequest;
+      fix.start(() => workflowClient.fixWorkflow(fixReq));
     }
-  }, [prompt, start, startFix, hasGenerated, genDefinition]);
+  }, [prompt, hasGenerated, genDefinition, generate, fix]);
 
-  const resetWorkflow = useCallback(() => {
-    if (isStreaming || isFixing) {
-      abort();
-      abortFix();
-    }
-    resetGenerate();
-    resetFix();
+  const abortAll = useCallback(() => {
+    if (generate.isStreaming) generate.abort();
+    if (fix.isStreaming) fix.abort();
+  }, [generate, fix]);
+
+  const resetAll = useCallback(() => {
+    abortAll();
+    generate.reset();
+    fix.reset();
     setPrompt("");
-    setPreviewTab("steps");
-    setLeftRatio(0.55);
-  }, [abort, abortFix, isStreaming, isFixing, resetGenerate, resetFix]);
+  }, [abortAll, generate, fix]);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+  return {
+    prompt,
+    setPrompt,
+    hasGenerated,
+    currentDefinition,
+    previousDefinition,
+    currentCode,
+    previousCode,
+    codeLines,
+    diffLines,
+    stepCount,
+    isGenerating: generate.isStreaming,
+    isFixing: fix.isStreaming,
+    errorGenerate: generate.error ?? undefined,
+    errorFix: fix.error ?? undefined,
+    initiate,
+    abortAll,
+    resetAll,
+    generateItems: generate.items,
+    fixItems: fix.items,
+    genDefinition,
+    fixDefinition,
+  };
+}
+
+// ============================================================================
+// Presentational Sub Components (memoized)
+// ============================================================================
+
+interface PromptPanelProps {
+  prompt: string;
+  setPrompt: (v: string) => void;
+  autoScrollLog: boolean;
+  setAutoScrollLog: (v: boolean) => void;
+  hasGenerated: boolean;
+  isGenerating: boolean;
+  isFixing: boolean;
+  initiate: () => void;
+  abortAll: () => void;
+}
+const PromptPanel = memo(function PromptPanel(props: PromptPanelProps) {
+  const {
+    prompt,
+    setPrompt,
+    autoScrollLog,
+    setAutoScrollLog,
+    hasGenerated,
+    isGenerating,
+    isFixing,
+    initiate,
+    abortAll,
+  } = props;
+  return (
+    <form
+      onSubmit={(e) => {
         e.preventDefault();
         initiate();
-      }
-      if (e.key === "Escape" && (isStreaming || isFixing)) abort();
-    };
-    globalThis.addEventListener("keydown", h);
-    return () => globalThis.removeEventListener("keydown", h);
-  }, [initiate, abort, isStreaming, isFixing]);
+      }}
+      className="card bg-base-200/50 border border-base-300 shadow-sm flex flex-col min-h-0 mb-2 overflow-hidden flex-1"
+    >
+      <div className="card-body p-4 flex flex-col gap-3 min-h-0">
+        <div className="flex items-center justify-between">
+          <h2 className="card-title text-sm flex items-center gap-2">
+            <Sparkles size={14} /> プロンプト
+          </h2>
+          <label className="flex items-center gap-1 cursor-pointer select-none text-xs">
+            <input
+              type="checkbox"
+              className="checkbox checkbox-xs"
+              checked={autoScrollLog}
+              onChange={(e) => setAutoScrollLog(e.target.checked)}
+            />
+            <span>自動スクロール</span>
+          </label>
+        </div>
+        <div className="relative flex-1 min-h-0">
+          <textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="例: 天気を確認して雨なら通知するワークフローを作成"
+            className="textarea textarea-bordered font-mono resize-none w-full h-full leading-relaxed text-sm"
+          />
+          {isGenerating && !prompt && (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-base-content/40 text-xs">
+              ストリーミング中...
+            </div>
+          )}
+        </div>
+        <div className="flex justify-between items-center text-[11px] pt-1">
+          <span className="text-base-content/60">
+            Ctrl+Enter で生成 / Shift+Enter で改行
+          </span>
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={!prompt.trim() || isGenerating || isFixing}
+              className="btn btn-sm btn-primary gap-1"
+            >
+              <Play size={14} /> {hasGenerated ? "修正" : "生成"}
+            </button>
+            {(isGenerating || isFixing) && (
+              <button
+                type="button"
+                onClick={abortAll}
+                className="btn btn-sm btn-outline gap-1"
+              >
+                <StopCircle size={14} /> 停止
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </form>
+  );
+});
 
-  // Auto-scroll log
-  const logRef = useCallback((el: HTMLDivElement | null) => {
+interface StreamLogProps {
+  generateItems: GenerateWorkflowResponse[];
+  fixItems: FixWorkflowResponse[];
+  errorGenerate?: string;
+  errorFix?: string;
+  isGenerating: boolean;
+  isFixing: boolean;
+  autoScrollLog: boolean;
+  expanded: boolean;
+  onToggleExpand: () => void;
+}
+const StreamLog = memo(function StreamLog(props: StreamLogProps) {
+  const {
+    generateItems,
+    fixItems,
+    errorGenerate,
+    errorFix,
+    isGenerating,
+    isFixing,
+    autoScrollLog,
+    expanded,
+    onToggleExpand,
+  } = props;
+  const refSetter = useCallback((el: HTMLDivElement | null) => {
     if (el && autoScrollLog) {
       requestAnimationFrame(() => {
         el.scrollTop = el.scrollHeight;
       });
     }
-  }, [autoScrollLog, responses.length]);
+  }, [autoScrollLog, generateItems.length, fixItems.length]);
+  return (
+    <div className="card bg-base-200/50 border border-base-300 shadow-sm flex flex-col overflow-hidden flex-1">
+      <div className="card-body gap-3 p-4 flex flex-col min-h-0">
+        <div className="flex items-center justify-between shrink-0">
+          <h2 className="card-title text-sm flex items-center gap-2">
+            <ListTree size={14} /> ストリームログ
+          </h2>
+          <button
+            type="button"
+            onClick={onToggleExpand}
+            className="btn btn-ghost btn-xs"
+          >
+            {expanded ? "折りたたむ" : "展開"}
+          </button>
+        </div>
+        {expanded && (
+          <div
+            ref={refSetter}
+            className="space-y-2 overflow-auto text-[11px] font-mono pr-1 border border-base-300/40 rounded p-2 bg-base-300/20 flex-1"
+          >
+            {generateItems.map((r, i) => (
+              <div
+                key={i}
+                className="p-2 rounded bg-base-300/40 border border-base-300/50"
+              >
+                <div className="text-base-content/60 mb-1 flex items-center gap-2">
+                  <span className="badge badge-xs">{i + 1}</span>Partial {i + 1}
+                </div>
+                <pre className="whitespace-pre-wrap break-all leading-snug">{serializeWorkflow(r.workflowDefinition)}</pre>
+              </div>
+            ))}
+            {fixItems.map((r, i) => (
+              <div
+                key={"fix-" + i}
+                className="p-2 rounded bg-warning/20 border border-warning/40"
+              >
+                <div className="text-warning-content/70 mb-1 flex items-center gap-2">
+                  <span className="badge badge-xs badge-warning">
+                    {i + 1}
+                  </span>Fix Partial {i + 1}
+                </div>
+                <pre className="whitespace-pre-wrap break-all leading-snug">{serializeWorkflow(r.fixedWorkflowDefinition)}</pre>
+              </div>
+            ))}
+            {errorGenerate && <div className="text-error">{errorGenerate}</div>}
+            {errorFix && <div className="text-error">{errorFix}</div>}
+            {!generateItems.length && !isGenerating && !isFixing && (
+              <div className="text-base-content/50">
+                まだ生成は開始されていません。
+              </div>
+            )}
+            {isGenerating && (
+              <div className="text-primary animate-pulse">受信中...</div>
+            )}
+            {isFixing && (
+              <div className="text-warning animate-pulse">修正中...</div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
 
-  // Submit handler
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    initiate();
-  };
+interface StepsViewProps {
+  codeLines: CodeLine[];
+}
+const StepsView = memo(function StepsView({ codeLines }: StepsViewProps) {
+  if (!codeLines.length) {
+    return (
+      <div className="h-full flex items-center justify-center text-base-content/50 text-sm">
+        コードはまだありません。
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-2 overflow-auto h-full pr-1">
+      {codeLines.map((ln) => (
+        <div
+          key={ln.number}
+          className="group border border-base-300/60 bg-base-300/10 hover:bg-base-300/20 transition-colors rounded px-2 py-1 flex items-start gap-3 font-mono"
+        >
+          <div className="w-10 text-right select-none text-xs text-base-content/50 pr-1">
+            {ln.number}
+          </div>
+          <pre className="text-[11px] leading-snug whitespace-pre-wrap break-words flex-1">{ln.text || " "}</pre>
+        </div>
+      ))}
+    </div>
+  );
+});
 
+interface DiffViewProps {
+  diffLines: DiffLine[];
+}
+const DiffView = memo(function DiffView({ diffLines }: DiffViewProps) {
+  if (!diffLines.length) {
+    return <div className="text-base-content/50">差分はありません。</div>;
+  }
+  return (
+    <div className="h-full overflow-auto p-3 rounded bg-base-300/20 text-[11px] font-mono space-y-0.5">
+      {diffLines.map((l, i) => (
+        <div
+          key={i}
+          className={cn(
+            "px-2 py-0.5 rounded leading-snug break-all",
+            l.type === "added" && "bg-success/15 text-success-content",
+            l.type === "removed" &&
+              "bg-error/15 text-error-content line-through opacity-80",
+            l.type === "same" && "text-base-content/70",
+          )}
+        >
+          {l.type === "added" ? "+ " : l.type === "removed" ? "- " : "  "}
+          {l.text || " "}
+        </div>
+      ))}
+    </div>
+  );
+});
+
+// ============================================================================
+// Main Component
+// ============================================================================
+
+// --- Main Component -------------------------------------------------------
+export function Generate() {
+  // Core workflow streaming state & logic
+  const wf = useWorkflowStreams();
+
+  // UI local state
+  const [previewTab, setPreviewTab] = useState<
+    "steps" | "json" | "raw" | "diff"
+  >("steps");
+  const [autoScrollLog, setAutoScrollLog] = useState(true);
+  const [expandedLog, setExpandedLog] = useState(true);
+  const [promptHeightRatio, setPromptHeightRatio] = useState(0.55);
+  const [discardOpen, setDiscardOpen] = useState(false);
+
+  // Split drag handling
+  const draggingRef = useRef(false);
+  const colRef = useRef<HTMLDivElement | null>(null);
   const onDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     draggingRef.current = true;
@@ -192,8 +512,7 @@ export function Generate() {
       if (!draggingRef.current || !colRef.current) return;
       const rect = colRef.current.getBoundingClientRect();
       const y = e.clientY - rect.top;
-      const ratio = Math.min(0.85, Math.max(0.15, y / rect.height));
-      setLeftRatio(ratio);
+      setPromptHeightRatio(Math.min(0.85, Math.max(0.15, y / rect.height)));
     };
     const up = () => {
       draggingRef.current = false;
@@ -206,6 +525,19 @@ export function Generate() {
     };
   }, []);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        wf.initiate();
+      }
+      if (e.key === "Escape" && (wf.isGenerating || wf.isFixing)) wf.abortAll();
+    };
+    globalThis.addEventListener("keydown", h);
+    return () => globalThis.removeEventListener("keydown", h);
+  }, [wf]);
+
   return (
     <div className="flex flex-col h-full gap-3 min-h-0 px-0">
       <div className="flex flex-row gap-4 flex-1 min-h-0 overflow-hidden p-4">
@@ -214,76 +546,22 @@ export function Generate() {
           <div
             className="flex flex-col min-h-0 flex-1"
             style={{
-              gridTemplateRows: `${Math.round(leftRatio * 100)}% 4px ${
-                Math.round((1 - leftRatio) * 100)
+              gridTemplateRows: `${Math.round(promptHeightRatio * 100)}% 4px ${
+                Math.round((1 - promptHeightRatio) * 100)
               }%`,
             }}
           >
-            {/* Prompt panel */}
-            <form
-              onSubmit={handleSubmit}
-              className="card bg-base-200/50 border border-base-300 shadow-sm flex flex-col min-h-0 mb-2 overflow-hidden flex-1"
-              style={{ height: `${leftRatio * 100}%` }}
-            >
-              <div className="card-body p-4 flex flex-col gap-3 min-h-0">
-                <div className="flex items-center justify-between">
-                  <h2 className="card-title text-sm flex items-center gap-2">
-                    <Sparkles size={14} /> プロンプト
-                  </h2>
-                  <div className="flex gap-2 items-center text-xs">
-                    <label className="flex items-center gap-1 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        className="checkbox checkbox-xs"
-                        checked={autoScrollLog}
-                        onChange={(e) => setAutoScrollLog(e.target.checked)}
-                      />
-                      <span>自動スクロール</span>
-                    </label>
-                  </div>
-                </div>
-                {/* Textarea fills */}
-                <div className="relative flex-1 min-h-0">
-                  <textarea
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    placeholder="例: 天気を確認して雨なら通知するワークフローを作成"
-                    className="textarea textarea-bordered font-mono resize-none w-full h-full leading-relaxed text-sm"
-                  />
-                  {isStreaming && !prompt && (
-                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-base-content/40 text-xs">
-                      ストリーミング中...
-                    </div>
-                  )}
-                </div>
-                <div className="flex justify-between items-center text-[11px] pt-1">
-                  <span className="text-base-content/60">
-                    Ctrl+Enter で生成 / Shift+Enter で改行
-                  </span>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={initiate}
-                      disabled={!prompt.trim() || isStreaming || isFixing}
-                      className="btn btn-sm btn-primary gap-1"
-                    >
-                      <Play size={14} /> {hasGenerated ? "修正" : "生成"}
-                    </button>
-                    {(isStreaming || isFixing) && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          isStreaming ? abort() : abortFix();
-                        }}
-                        className="btn btn-sm btn-outline gap-1"
-                      >
-                        <StopCircle size={14} /> 停止
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </form>
+            <PromptPanel
+              prompt={wf.prompt}
+              setPrompt={wf.setPrompt}
+              autoScrollLog={autoScrollLog}
+              setAutoScrollLog={setAutoScrollLog}
+              hasGenerated={wf.hasGenerated}
+              isGenerating={wf.isGenerating}
+              isFixing={wf.isFixing}
+              initiate={wf.initiate}
+              abortAll={wf.abortAll}
+            />
 
             {/* Drag handle */}
             <div
@@ -295,62 +573,17 @@ export function Generate() {
               style={{ userSelect: "none" }}
             />
 
-            {/* Log panel */}
-            <div
-              className="card bg-base-200/50 border border-base-300 shadow-sm flex flex-col overflow-hidden flex-1"
-              style={{ height: `${(1 - leftRatio) * 100}%` }}
-            >
-              <div className="card-body gap-3 p-4 flex flex-col min-h-0">
-                <div className="flex items-center justify-between shrink-0">
-                  <h2 className="card-title text-sm flex items-center gap-2">
-                    <ListTree size={14} /> ストリームログ
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={() => setExpandedLog(!expandedLog)}
-                    className="btn btn-ghost btn-xs"
-                  >
-                    {expandedLog ? "折りたたむ" : "展開"}
-                  </button>
-                </div>
-                {expandedLog && (
-                  <div
-                    ref={logRef}
-                    className="space-y-2 overflow-auto text-[11px] font-mono pr-1 border border-base-300/40 rounded p-2 bg-base-300/20 flex-1"
-                  >
-                    {responses.map((r, i) => (
-                      <div
-                        key={i}
-                        className="p-2 rounded bg-base-300/40 border border-base-300/50"
-                      >
-                        <div className="text-base-content/60 mb-1 flex items-center gap-2">
-                          <span className="badge badge-xs">{i + 1}</span>Partial
-                          {" "}
-                          {i + 1}
-                        </div>
-                        <pre className="whitespace-pre-wrap break-all leading-snug">{r.workflowDefinition}</pre>
-                      </div>
-                    ))}
-                    {error && <div className="text-error">{error}</div>}
-                    {!responses.length && !isStreaming && (
-                      <div className="text-base-content/50">
-                        まだ生成は開始されていません。
-                      </div>
-                    )}
-                    {isStreaming && (
-                      <div className="text-primary animate-pulse">
-                        受信中...
-                      </div>
-                    )}
-                    {isFixing && (
-                      <div className="text-warning animate-pulse">
-                        修正中...
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
+            <StreamLog
+              generateItems={wf.generateItems}
+              fixItems={wf.fixItems}
+              errorGenerate={wf.errorGenerate}
+              errorFix={wf.errorFix}
+              isGenerating={wf.isGenerating}
+              isFixing={wf.isFixing}
+              autoScrollLog={autoScrollLog}
+              expanded={expandedLog}
+              onToggleExpand={() => setExpandedLog(!expandedLog)}
+            />
           </div>
         </div>
 
@@ -368,7 +601,7 @@ export function Generate() {
                     previewTab === "steps" && "tab-active font-medium",
                   )}
                 >
-                  ステップ ({stepCount})
+                  ステップ ({wf.stepCount})
                 </button>
                 <button
                   type="button"
@@ -405,13 +638,11 @@ export function Generate() {
                   <button
                     type="button"
                     onClick={() => {
-                      if (currentDefinition) {
-                        navigator.clipboard.writeText(
-                          currentDefinition,
-                        );
-                      }
+                      if (wf.currentDefinition) {navigator.clipboard.writeText(
+                          wf.currentDefinition,
+                        );}
                     }}
-                    disabled={!currentDefinition}
+                    disabled={!wf.currentDefinition}
                     className="btn btn-xs btn-ghost gap-1"
                   >
                     <Copy size={12} /> コピー
@@ -419,7 +650,7 @@ export function Generate() {
                   <button
                     type="button"
                     onClick={() => setPreviewTab("json")}
-                    disabled={!currentDefinition}
+                    disabled={!wf.currentDefinition}
                     className="btn btn-xs btn-outline gap-1"
                   >
                     <FileJson size={12} /> JSON
@@ -427,7 +658,7 @@ export function Generate() {
                   <button
                     type="button"
                     onClick={() => setPreviewTab("diff")}
-                    disabled={responses.length < 2}
+                    disabled={wf.generateItems.length < 2}
                     className="btn btn-xs btn-outline gap-1"
                   >
                     <DiffIcon size={12} /> Diff
@@ -435,7 +666,7 @@ export function Generate() {
                   <button
                     type="button"
                     onClick={() => setDiscardOpen(true)}
-                    disabled={!(genDefinition || fixDefinition)}
+                    disabled={!(wf.genDefinition || wf.fixDefinition)}
                     className="btn btn-xs btn-error btn-outline gap-1"
                     title="現在のワークフローを破棄"
                   >
@@ -447,74 +678,16 @@ export function Generate() {
               {/* 以下、currentDefinition利用部分は既存コードを維持 */}
               <div className="relative flex-1 overflow-hidden min-h-0">
                 {previewTab === "steps" && (
-                  <div className="space-y-2 overflow-auto h-full pr-1">
-                    {steps.length
-                      ? steps.map((s, i) => (
-                        <div
-                          key={s.id + i}
-                          className="group border border-base-300/60 bg-base-300/20 hover:bg-base-300/30 transition-colors rounded-md p-3 flex items-start gap-3"
-                        >
-                          <div className="w-6 h-6 rounded bg-primary/20 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
-                            {i + 1}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-sm flex items-center gap-2">
-                              <span>{s.id}</span>
-                              {i === steps.length - 1 &&
-                                (isStreaming || isFixing) && (
-                                <span className="badge badge-xs badge-outline">
-                                  updating...
-                                </span>
-                              )}
-                            </div>
-                            <pre className="text-[11px] mt-1 text-base-content/70 whitespace-pre-wrap break-words leading-tight">{JSON.stringify(s, null, 2)}</pre>
-                          </div>
-                        </div>
-                      ))
-                      : (
-                        <div className="h-full flex items-center justify-center text-base-content/50 text-sm">
-                          ステップはまだありません。
-                        </div>
-                      )}
-                  </div>
+                  <StepsView codeLines={wf.codeLines} />
                 )}
                 {previewTab === "json" && (
-                  <pre className="h-full overflow-auto p-3 rounded bg-base-300/20 text-xs font-mono whitespace-pre text-base-content/90">{formattedJSON || "(空)"}</pre>
+                  <pre className="h-full overflow-auto p-3 rounded bg-base-300/20 text-xs font-mono whitespace-pre text-base-content/90">{wf.currentDefinition || "(空)"}</pre>
                 )}
                 {previewTab === "raw" && (
-                  <pre className="h-full overflow-auto p-3 rounded bg-base-300/20 text-xs font-mono whitespace-pre-wrap break-all text-base-content/80">{currentDefinition || "(空)"}</pre>
+                  <pre className="h-full overflow-auto p-3 rounded bg-base-300/20 text-xs font-mono whitespace-pre-wrap break-all text-base-content/80">{wf.currentDefinition || "(空)"}</pre>
                 )}
-                {previewTab === "diff" && (
-                  <div className="h-full overflow-auto p-3 rounded bg-base-300/20 text-[11px] font-mono space-y-0.5">
-                    {diffLines.length
-                      ? diffLines.map((l, i) => (
-                        <div
-                          key={i}
-                          className={cn(
-                            "px-2 py-0.5 rounded leading-snug break-all",
-                            l.type === "added" &&
-                              "bg-success/15 text-success-content",
-                            l.type === "removed" &&
-                              "bg-error/15 text-error-content line-through opacity-80",
-                            l.type === "same" && "text-base-content/70",
-                          )}
-                        >
-                          {l.type === "added"
-                            ? "+ "
-                            : l.type === "removed"
-                            ? "- "
-                            : "  "}
-                          {l.text || " "}
-                        </div>
-                      ))
-                      : (
-                        <div className="text-base-content/50">
-                          差分はありません。
-                        </div>
-                      )}
-                  </div>
-                )}
-                {!currentDefinition && (isStreaming || isFixing) &&
+                {previewTab === "diff" && <DiffView diffLines={wf.diffLines} />}
+                {!wf.currentDefinition && (wf.isGenerating || wf.isFixing) &&
                   previewTab !== "diff" && (
                   <div className="absolute inset-0 flex items-center justify-center text-base-content/50 text-sm">
                     構築中...
@@ -523,21 +696,24 @@ export function Generate() {
               </div>
 
               <div className="pt-2 border-t border-base-300/40 text-[11px] flex items-center gap-4 text-base-content/60">
-                <span>Partials: {responses.length + fixResponses.length}</span>
-                <span>Steps: {stepCount}</span>
-                {isStreaming && (
+                <span>
+                  Partials: {wf.generateItems.length + wf.fixItems.length}
+                </span>
+                <span>Lines: {wf.stepCount}</span>
+                {wf.isGenerating && (
                   <span className="text-primary animate-pulse">
                     Streaming...
                   </span>
                 )}
-                {isFixing && (
-                  <span className="text-warning animate-pulse">
-                    Fixing...
-                  </span>
+                {wf.isFixing && (
+                  <span className="text-warning animate-pulse">Fixing...</span>
                 )}
-                {error && <span className="text-error">Error: {error}</span>}
-                {fixError && <span className="text-error">Fix: {fixError}
-                </span>}
+                {wf.errorGenerate && (
+                  <span className="text-error">Error: {wf.errorGenerate}</span>
+                )}
+                {wf.errorFix && (
+                  <span className="text-error">Fix: {wf.errorFix}</span>
+                )}
               </div>
             </div>
           </div>
@@ -562,7 +738,7 @@ export function Generate() {
               className="btn btn-error"
               data-autofocus
               onClick={() => {
-                resetWorkflow();
+                wf.resetAll();
                 setDiscardOpen(false);
               }}
             >
