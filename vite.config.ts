@@ -18,19 +18,5 @@ export default defineConfig({
   },
   server: {
     port: 8999,
-    proxy: {
-      // Proxy /api to backend to avoid CORS during development
-      "/api": {
-        target: "http://localhost:50051",
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path: string) => path.replace(/^\/api/, "/api"),
-      },
-    },
-  },
-  test: {
-    environment: "jsdom",
-    globals: true,
-    setupFiles: ["./vitest.setup.ts"],
   },
 });

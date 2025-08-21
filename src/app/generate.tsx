@@ -13,7 +13,7 @@ import { useGenerateWorkflowStream } from "@/lib/hooks/use-generate-workflow-str
 import { useFixWorkflowStream } from "@/lib/hooks/use-fix-workflow-stream.ts";
 import { cn } from "@/lib/utils.ts";
 import type { FixWorkflowRequest } from "@/gen/sapphillon/v1/workflow_service_pb.ts";
-import { Modal } from "@/components";
+import { Modal } from "@/components/ui/modal.tsx";
 
 // --- Helpers --------------------------------------------------------------
 interface WorkflowStep {

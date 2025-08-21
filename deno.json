@@ -5,7 +5,8 @@
     "preview": "deno run -A --node-modules-dir npm:vite preview",
     "serve": "deno run --allow-net --allow-read jsr:@std/http@1/file-server dist/",
     "test": "deno run -A --node-modules-dir npm:vitest run",
-    "test:watch": "deno run -A --node-modules-dir npm:vitest"
+    "test:watch": "deno run -A --node-modules-dir npm:vitest",
+    "gen": "buf generate ./vendor/Sapphillon_API --template ./buf.gen.yaml"
   },
   "compilerOptions": {
     "lib": [
@@ -19,13 +20,18 @@
   },
   "imports": {
     "@/": "./src/",
+    "@bufbuild/buf": "npm:@bufbuild/buf@^1.56.0",
     "@bufbuild/connect": "npm:@bufbuild/connect@^0.13.0",
     "@bufbuild/connect-web": "npm:@bufbuild/connect-web@^0.13.0",
-    "@bufbuild/protobuf": "npm:@bufbuild/protobuf@^2.6.3",
+    "@bufbuild/protobuf": "npm:@bufbuild/protobuf@^2.7.0",
+    "@bufbuild/protoc-gen-es": "npm:@bufbuild/protoc-gen-es@^2.7.0",
+    "@connectrpc/connect": "npm:@connectrpc/connect@^2.0.4",
+    "@connectrpc/connect-web": "npm:@connectrpc/connect-web@^2.0.4",
     "@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.5",
     "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.1.10",
     "@tanstack/eslint-plugin-query": "npm:@tanstack/eslint-plugin-query@^5.83.1",
     "@tanstack/react-query": "npm:@tanstack/react-query@^5.84.2",
+    "bufbuild": "npm:bufbuild@^0.2.0",
     "vitest": "npm:vitest@^2",
     "@testing-library/react": "npm:@testing-library/react@^16",
     "@testing-library/jest-dom": "npm:@testing-library/jest-dom@^6",

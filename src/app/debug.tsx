@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { Button } from "@/components/common/button.tsx";
 import { getBrowserOS } from "@/lib/browser-os.ts";
-import { createMockVersionClient } from "../lib/mock/sapphillon-client.ts";
+import { versionClient } from "../lib/sapphillon-client.ts";
 
 function stringify(value: unknown): string {
   try {
@@ -37,7 +37,7 @@ export function Debug() {
     setErrorText("");
     setSapphillonOutput("");
     try {
-      const client = createMockVersionClient();
+      const client = versionClient;
       const res = await client.getVersion({});
       setSapphillonOutput(stringify(res));
     } catch (err) {
