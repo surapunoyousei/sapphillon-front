@@ -9,8 +9,10 @@ import {
   Trash2,
 } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { QK } from "@/lib/query-keys.ts";
 import { cn } from "@/lib/utils.ts";
-import {
+import type {
   FixWorkflowRequest,
   FixWorkflowResponse,
   GenerateWorkflowRequest,
@@ -55,8 +57,8 @@ function extractLatestWorkflowCode(workflowJson: string): string {
     if (!parsed || typeof parsed !== "object") return "";
     const wf = parsed as WorkflowJson;
     const codes = Array.isArray(wf.workflowCode)
-      ? wf.workflowCode.filter((c): c is WorkflowCodeJson =>
-        !!c && typeof c === "object"
+      ? wf.workflowCode.filter(
+        (c): c is WorkflowCodeJson => !!c && typeof c === "object",
       )
       : [];
     if (!codes.length) return "";
@@ -65,7 +67,9 @@ function extractLatestWorkflowCode(workflowJson: string): string {
       if (
         typeof c.codeRevision === "number" &&
         (latest.codeRevision ?? -1) < c.codeRevision
-      ) latest = c;
+      ) {
+        latest = c;
+      }
     }
     return typeof latest.code === "string" ? latest.code : "";
   } catch {
@@ -75,10 +79,13 @@ function extractLatestWorkflowCode(workflowJson: string): string {
 
 function codeToLines(code: string): CodeLine[] {
   return code
-    ? code.replace(/\r\n?/g, "\n").split("\n").map((text, idx) => ({
-      number: idx + 1,
-      text,
-    }))
+    ? code
+      .replace(/\r\n?/g, "\n")
+      .split("\n")
+      .map((text, idx) => ({
+        number: idx + 1,
+        text,
+      }))
     : [];
 }
 
@@ -183,10 +190,10 @@ function useWorkflowStreams(): UseWorkflowStreamsResult {
     [previousDefinition],
   );
   const codeLines = useMemo(() => codeToLines(currentCode), [currentCode]);
-  const diffLines = useMemo(() => buildSimpleDiff(previousCode, currentCode), [
-    previousCode,
-    currentCode,
-  ]);
+  const diffLines = useMemo(
+    () => buildSimpleDiff(previousCode, currentCode),
+    [previousCode, currentCode],
+  );
   const stepCount = codeLines.length;
 
   const initiate = useCallback(() => {
@@ -355,13 +362,16 @@ const StreamLog = memo(function StreamLog(props: StreamLogProps) {
     expanded,
     onToggleExpand,
   } = props;
-  const refSetter = useCallback((el: HTMLDivElement | null) => {
-    if (el && autoScrollLog) {
-      requestAnimationFrame(() => {
-        el.scrollTop = el.scrollHeight;
-      });
-    }
-  }, [autoScrollLog, generateItems.length, fixItems.length]);
+  const refSetter = useCallback(
+    (el: HTMLDivElement | null) => {
+      if (el && autoScrollLog) {
+        requestAnimationFrame(() => {
+          el.scrollTop = el.scrollHeight;
+        });
+      }
+    },
+    [autoScrollLog, generateItems.length, fixItems.length],
+  );
   return (
     <div className="card bg-base-200/50 border border-base-300 shadow-sm flex flex-col overflow-hidden flex-1">
       <div className="card-body gap-3 p-4 flex flex-col min-h-0">
@@ -390,7 +400,9 @@ const StreamLog = memo(function StreamLog(props: StreamLogProps) {
                 <div className="text-base-content/60 mb-1 flex items-center gap-2">
                   <span className="badge badge-xs">{i + 1}</span>Partial {i + 1}
                 </div>
-                <pre className="whitespace-pre-wrap break-all leading-snug">{serializeWorkflow(r.workflowDefinition)}</pre>
+                <pre className="whitespace-pre-wrap break-all leading-snug">
+                  {serializeWorkflow(r.workflowDefinition)}
+                </pre>
               </div>
             ))}
             {fixItems.map((r, i) => (
@@ -399,11 +411,12 @@ const StreamLog = memo(function StreamLog(props: StreamLogProps) {
                 className="p-2 rounded bg-warning/20 border border-warning/40"
               >
                 <div className="text-warning-content/70 mb-1 flex items-center gap-2">
-                  <span className="badge badge-xs badge-warning">
-                    {i + 1}
-                  </span>Fix Partial {i + 1}
+                  <span className="badge badge-xs badge-warning">{i + 1}</span>
+                  Fix Partial {i + 1}
                 </div>
-                <pre className="whitespace-pre-wrap break-all leading-snug">{serializeWorkflow(r.fixedWorkflowDefinition)}</pre>
+                <pre className="whitespace-pre-wrap break-all leading-snug">
+                  {serializeWorkflow(r.fixedWorkflowDefinition)}
+                </pre>
               </div>
             ))}
             {errorGenerate && <div className="text-error">{errorGenerate}</div>}
@@ -447,7 +460,9 @@ const StepsView = memo(function StepsView({ codeLines }: StepsViewProps) {
           <div className="w-10 text-right select-none text-xs text-base-content/50 pr-1">
             {ln.number}
           </div>
-          <pre className="text-[11px] leading-snug whitespace-pre-wrap break-words flex-1">{ln.text || " "}</pre>
+          <pre className="text-[11px] leading-snug whitespace-pre-wrap break-words flex-1">
+            {ln.text || " "}
+          </pre>
         </div>
       ))}
     </div>
@@ -487,9 +502,19 @@ const DiffView = memo(function DiffView({ diffLines }: DiffViewProps) {
 // ============================================================================
 
 // --- Main Component -------------------------------------------------------
+// Workflow の最新定義を Query キャッシュへ反映する小さな hook
+function useLatestWorkflowCache(definition: string) {
+  const qc = useQueryClient();
+  useEffect(() => {
+    if (definition) {
+      qc.setQueryData(QK.workflow.latest(), definition);
+    }
+  }, [definition, qc]);
+}
+
 export function Generate() {
-  // Core workflow streaming state & logic
   const wf = useWorkflowStreams();
+  useLatestWorkflowCache(wf.currentDefinition);
 
   // UI local state
   const [previewTab, setPreviewTab] = useState<
@@ -547,7 +572,9 @@ export function Generate() {
             className="flex flex-col min-h-0 flex-1"
             style={{
               gridTemplateRows: `${Math.round(promptHeightRatio * 100)}% 4px ${
-                Math.round((1 - promptHeightRatio) * 100)
+                Math.round(
+                  (1 - promptHeightRatio) * 100,
+                )
               }%`,
             }}
           >
@@ -638,9 +665,9 @@ export function Generate() {
                   <button
                     type="button"
                     onClick={() => {
-                      if (wf.currentDefinition) {navigator.clipboard.writeText(
-                          wf.currentDefinition,
-                        );}
+                      if (wf.currentDefinition) {
+                        navigator.clipboard.writeText(wf.currentDefinition);
+                      }
                     }}
                     disabled={!wf.currentDefinition}
                     className="btn btn-xs btn-ghost gap-1"
@@ -681,13 +708,18 @@ export function Generate() {
                   <StepsView codeLines={wf.codeLines} />
                 )}
                 {previewTab === "json" && (
-                  <pre className="h-full overflow-auto p-3 rounded bg-base-300/20 text-xs font-mono whitespace-pre text-base-content/90">{wf.currentDefinition || "(空)"}</pre>
+                  <pre className="h-full overflow-auto p-3 rounded bg-base-300/20 text-xs font-mono whitespace-pre text-base-content/90">
+                    {wf.currentDefinition || "(空)"}
+                  </pre>
                 )}
                 {previewTab === "raw" && (
-                  <pre className="h-full overflow-auto p-3 rounded bg-base-300/20 text-xs font-mono whitespace-pre-wrap break-all text-base-content/80">{wf.currentDefinition || "(空)"}</pre>
+                  <pre className="h-full overflow-auto p-3 rounded bg-base-300/20 text-xs font-mono whitespace-pre-wrap break-all text-base-content/80">
+                    {wf.currentDefinition || "(空)"}
+                  </pre>
                 )}
                 {previewTab === "diff" && <DiffView diffLines={wf.diffLines} />}
-                {!wf.currentDefinition && (wf.isGenerating || wf.isFixing) &&
+                {!wf.currentDefinition &&
+                  (wf.isGenerating || wf.isFixing) &&
                   previewTab !== "diff" && (
                   <div className="absolute inset-0 flex items-center justify-center text-base-content/50 text-sm">
                     構築中...
@@ -748,8 +780,9 @@ export function Generate() {
         }
       >
         <p className="leading-relaxed text-sm">
-          現在の生成 /
-          修正結果とプロンプト内容をすべて初期化します。<br />この操作は元に戻せません。実行してよろしいですか？
+          現在の生成 / 修正結果とプロンプト内容をすべて初期化します。
+          <br />
+          この操作は元に戻せません。実行してよろしいですか？
         </p>
       </Modal>
     </div>
