@@ -12,7 +12,9 @@ import {
   Zap,
 } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils.ts";
+import { QK } from "@/lib/query-keys.ts";
 import type {
   FixWorkflowRequest,
   FixWorkflowResponse,
@@ -762,8 +764,13 @@ const DiffView = memo(function DiffView({ diffLines }: DiffViewProps) {
 
 // --- Main Component -------------------------------------------------------
 export function Generate() {
-  // Core workflow streaming state & logic
   const wf = useWorkflowStreams();
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (wf.currentDefinition) {
+      queryClient.setQueryData(QK.workflow.latest(), wf.currentDefinition);
+    }
+  }, [wf.currentDefinition, queryClient]);
 
   // UI local state
   const [previewTab, setPreviewTab] = useState<
