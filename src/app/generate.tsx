@@ -20,9 +20,12 @@ import type {
   FixWorkflowResponse,
   GenerateWorkflowRequest,
   GenerateWorkflowResponse,
+  RunWorkflowRequest,
+  RunWorkflowResponse,
 } from "@/gen/sapphillon/v1/workflow_service_pb.ts";
 import { Modal } from "@/components/ui/modal.tsx";
 import { workflowClient } from "@/lib/grpc-clients.ts";
+import { WorkflowResultType } from "@/gen/sapphillon/v1/workflow_pb.ts";
 import { useStreamProgress } from "@/lib/hooks/use-stream-progress.ts";
 
 // ============================================================================
@@ -780,6 +783,44 @@ export function Generate() {
   const [expandedLog, setExpandedLog] = useState(true);
   const [promptHeightRatio, setPromptHeightRatio] = useState(0.55);
   const [discardOpen, setDiscardOpen] = useState(false);
+  // --- Test Modal State ---
+  const [testOpen, setTestOpen] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<RunWorkflowResponse | null>(
+    null,
+  );
+  const [testError, setTestError] = useState<string | null>(null);
+
+  const runTest = useCallback(async () => {
+    if (!wf.currentDefinition) return;
+    setIsTesting(true);
+    setTestError(null);
+    setTestResult(null);
+    try {
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(wf.currentDefinition);
+      } catch (e) {
+        throw new Error(
+          "ワークフロー定義(JSON)のパースに失敗しました: " +
+            (e as Error).message,
+        );
+      }
+      // parsed は Workflow 型相当の構造であることを期待してそのまま渡す
+      const req = {
+        workflowDefinition: parsed as RunWorkflowRequest["workflowDefinition"],
+      } as RunWorkflowRequest;
+      const res = await workflowClient.runWorkflow(req);
+      setTestResult(res);
+      if (res.status && (res.status.code ?? 0) !== 0) {
+        setTestError(res.status.message || "テスト実行でエラーが発生しました");
+      }
+    } catch (e) {
+      setTestError((e as Error).message);
+    } finally {
+      setIsTesting(false);
+    }
+  }, [wf.currentDefinition]);
 
   // Split drag handling
   const draggingRef = useRef(false);
@@ -995,6 +1036,16 @@ export function Generate() {
                   >
                     <Trash2 size={12} />
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setTestOpen(true)}
+                    disabled={!wf.currentDefinition || wf.isGenerating ||
+                      wf.isFixing}
+                    className="btn btn-xs btn-accent btn-outline gap-1"
+                    title="ワークフローをテスト実行"
+                  >
+                    <Zap size={12} />
+                  </button>
                 </div>
               </div>
 
@@ -1115,6 +1166,202 @@ export function Generate() {
           <br />
           この操作は元に戻せません。実行してよろしいですか？
         </p>
+      </Modal>
+      <Modal
+        open={testOpen}
+        onClose={() => !isTesting && setTestOpen(false)}
+        title="ワークフローテスト実行"
+        size="lg"
+        actions={
+          <>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              disabled={isTesting}
+              onClick={() => setTestOpen(false)}
+            >
+              閉じる
+            </button>
+            <button
+              type="button"
+              className={cn("btn", isTesting ? "btn-disabled" : "btn-accent")}
+              disabled={isTesting}
+              onClick={runTest}
+              data-autofocus
+            >
+              {isTesting && (
+                <span className="loading loading-spinner loading-xs" />
+              )}
+              {isTesting ? "実行中..." : "テスト実行"}
+            </button>
+          </>
+        }
+      >
+        {!wf.currentDefinition && (
+          <div className="alert alert-warning text-sm">
+            <AlertCircle size={14} />{" "}
+            現在テスト可能なワークフロー定義がありません。
+          </div>
+        )}
+        {wf.currentDefinition && (
+          <div className="space-y-4">
+            <div className="text-xs text-base-content/70 leading-relaxed">
+              現在編集中のワークフローを試験的に実行し結果を確認します。思わぬ副作用が発生する可能性があります。
+            </div>
+            <div className="p-3 rounded border border-base-300/40 bg-base-300/10 max-h-40 overflow-auto text-[10px] font-mono whitespace-pre">
+              {wf.currentDefinition}
+            </div>
+            <div className="border-t border-base-300/40 pt-3 space-y-3">
+              {isTesting && (
+                <div className="flex items-center gap-2 text-accent">
+                  <span className="loading loading-spinner loading-sm" />
+                  <span className="text-sm font-medium">テスト実行中...</span>
+                </div>
+              )}
+              {testError && (
+                <div className="alert alert-error text-xs">
+                  <AlertCircle size={12} /> {testError}
+                </div>
+              )}
+              {testResult && !testError && (() => {
+                const wr = testResult.workflowResult;
+                const status = testResult.status;
+                const isFailure = wr?.resultType === WorkflowResultType.FAILURE;
+                const resultTypeLabel =
+                  wr?.resultType === WorkflowResultType.FAILURE
+                    ? "FAILURE"
+                    : wr?.resultType === WorkflowResultType.SUCCESS_UNSPECIFIED
+                    ? "SUCCESS"
+                    : "(unknown)";
+                const ranAtSeconds = ((): number | null => {
+                  if (!wr?.ranAt) return null;
+                  const r: unknown = wr.ranAt;
+                  if (r && typeof r === "object" && "seconds" in r) {
+                    const val = (r as { seconds?: string | number }).seconds;
+                    if (typeof val === "string" || typeof val === "number") {
+                      const num = Number(val);
+                      if (!Number.isNaN(num)) return num;
+                    }
+                  }
+                  return null;
+                })();
+                const ranAt = ranAtSeconds !== null
+                  ? new Date(ranAtSeconds * 1000).toLocaleString()
+                  : "-";
+                return (
+                  <div className="space-y-3">
+                    <div
+                      className={cn(
+                        "flex items-center gap-2 text-sm font-medium",
+                        isFailure ? "text-error" : "text-success",
+                      )}
+                    >
+                      {isFailure
+                        ? <AlertCircle size={14} />
+                        : <CheckCircle2 size={14} />}
+                      実行{isFailure ? "失敗" : "完了"}
+                      <span
+                        className={cn(
+                          "badge badge-xs",
+                          isFailure ? "badge-error" : "badge-success",
+                        )}
+                      >
+                        {resultTypeLabel}
+                      </span>
+                      {typeof wr?.exitCode === "number" && (
+                        <span className="text-xs opacity-70">
+                          exit: {wr.exitCode}
+                        </span>
+                      )}
+                    </div>
+                    {status && (status.code ?? 0) !== 0 && (
+                      <div className="alert alert-error text-xs">
+                        <AlertCircle size={12} /> Status Error:{" "}
+                        {status.message || status.code}
+                      </div>
+                    )}
+                    <div className="grid grid-cols-2 gap-3 text-[11px]">
+                      <div className="space-y-1">
+                        <div className="text-base-content/50 uppercase tracking-wide text-[10px]">
+                          Result ID
+                        </div>
+                        <div className="font-mono break-all text-base-content/80">
+                          {wr?.id || "-"}
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="text-base-content/50 uppercase tracking-wide text-[10px]">
+                          Ran At
+                        </div>
+                        <div className="font-mono text-base-content/80">
+                          {ranAt}
+                        </div>
+                      </div>
+                      <div className="space-y-1 col-span-2">
+                        <div className="text-base-content/50 uppercase tracking-wide text-[10px]">
+                          Display Name
+                        </div>
+                        <div className="font-mono text-base-content/80 break-all">
+                          {wr?.displayName || "-"}
+                        </div>
+                      </div>
+                      <div className="space-y-1 col-span-2">
+                        <div className="text-base-content/50 uppercase tracking-wide text-[10px]">
+                          Description
+                        </div>
+                        <div className="text-base-content/80 whitespace-pre-wrap break-words text-[11px]">
+                          {wr?.description || "-"}
+                        </div>
+                      </div>
+                      <div className="space-y-1 col-span-2">
+                        <div className="text-base-content/50 uppercase tracking-wide text-[10px] flex items-center justify-between">
+                          <span>Raw Result</span>
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-xs"
+                            onClick={() => {
+                              try {
+                                navigator.clipboard.writeText(wr?.result || "");
+                              } catch {
+                                // Clipboard 書き込み失敗は UI 上致命的ではないため無視
+                              }
+                            }}
+                          >
+                            <Copy size={10} />
+                          </button>
+                        </div>
+                        <div
+                          className={cn(
+                            "p-3 rounded border font-mono max-h-40 overflow-auto whitespace-pre-wrap break-words",
+                            isFailure
+                              ? "border-error/30 bg-error/10"
+                              : "border-success/30 bg-success/10",
+                          )}
+                        >
+                          {wr?.result || "(empty)"}
+                        </div>
+                      </div>
+                    </div>
+                    <details className="text-[11px]">
+                      <summary className="cursor-pointer mb-1 opacity-70 hover:opacity-100 transition">
+                        レスポンス全体(JSON)
+                      </summary>
+                      <div className="p-2 rounded border border-base-300/40 bg-base-300/10 font-mono max-h-48 overflow-auto whitespace-pre-wrap break-all">
+                        {(() => {
+                          try {
+                            return JSON.stringify(testResult, null, 2);
+                          } catch {
+                            return String(testResult);
+                          }
+                        })()}
+                      </div>
+                    </details>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );
