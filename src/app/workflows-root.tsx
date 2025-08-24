@@ -47,9 +47,9 @@ export function WorkflowsRoot() {
   const isManage = location.pathname === "/workflows";
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
+    <div className="flex flex-col h-full">
       {/* Subheader bar (stretch full width to align with Header) */}
-      <div className="sticky top-14 z-30">
+      <div className="sticky z-30 flex-shrink-0">
         <nav
           ref={containerRef}
           role="tablist"
@@ -111,7 +111,10 @@ export function WorkflowsRoot() {
           />
         </nav>
       </div>
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div
+        className="flex-1 overflow-hidden"
+        style={{ height: "calc(100vh - 96px)" }}
+      >
         <Outlet />
       </div>
     </div>

@@ -16,11 +16,11 @@ function App() {
   return (
     <Router>
       <AppBackground />
-      <div className="flex min-h-screen w-full flex-row bg-base-100/80">
+      <div className="flex h-screen w-full flex-row bg-base-100/80">
         <AppSidebar />
-        <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 flex flex-col h-full overflow-hidden">
           <Header />
-          <main className="flex-1 flex flex-col min-h-0">
+          <main className="flex-1 flex flex-col h-full overflow-hidden">
             <Routes>
               <Route path="/" element={<Home />} />
               {/* Workflow Root with Tabs */}
