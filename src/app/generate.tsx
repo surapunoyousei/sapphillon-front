@@ -481,69 +481,47 @@ const StreamLog = memo(function StreamLog(props: StreamLogProps) {
             ref={refSetter}
             className="space-y-3 overflow-auto text-xs font-mono pr-1 border border-base-300/40 rounded-lg p-3 bg-base-300/10 flex-1 min-h-0 backdrop-blur-sm"
           >
-            {generateItems.map((r, i) => (
+            {generateItems.map((_r, i) => (
               <div
                 key={i}
-                className="group p-3 rounded-lg bg-gradient-to-r from-base-300/30 to-base-300/20 border border-base-300/40 hover:border-primary/30 transition-all duration-200"
+                className="group p-3 rounded-lg bg-gradient-to-r from-success/10 to-success/5 border border-success/30 hover:border-success/50 transition-all duration-200"
               >
-                <div className="text-base-content/70 mb-2 flex items-center justify-between">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 size={12} className="text-success" />
-                    <span className="badge badge-success badge-xs">
-                      生成 {i + 1}
+                    <CheckCircle2 size={14} className="text-success" />
+                    <span className="badge badge-success badge-sm">
+                      生成完了 {i + 1}
                     </span>
-                    <span className="text-xs">Partial Response</span>
+                    <span className="text-sm font-medium text-success">
+                      ワークフロー生成成功
+                    </span>
                   </div>
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        navigator.clipboard.writeText(
-                          serializeWorkflow(r.workflowDefinition),
-                        )}
-                      className="btn btn-ghost btn-xs"
-                      title="コピー"
-                    >
-                      <Copy size={10} />
-                    </button>
+                  <div className="text-xs text-success/70">
+                    {new Date().toLocaleTimeString()}
                   </div>
                 </div>
-                <pre className="whitespace-pre-wrap break-all leading-relaxed text-base-content/80 bg-base-100/50 p-2 rounded border border-base-300/20 max-h-40 overflow-auto">
-                  {serializeWorkflow(r.workflowDefinition)}
-                </pre>
               </div>
             ))}
 
-            {fixItems.map((r, i) => (
+            {fixItems.map((_r, i) => (
               <div
                 key={"fix-" + i}
                 className="group p-3 rounded-lg bg-gradient-to-r from-warning/10 to-warning/5 border border-warning/30 hover:border-warning/50 transition-all duration-200"
               >
-                <div className="text-warning-content/80 mb-2 flex items-center justify-between">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Zap size={12} className="text-warning" />
-                    <span className="badge badge-warning badge-xs">
-                      修正 {i + 1}
+                    <Zap size={14} className="text-warning" />
+                    <span className="badge badge-warning badge-sm">
+                      修正完了 {i + 1}
                     </span>
-                    <span className="text-xs">Fix Response</span>
+                    <span className="text-sm font-medium text-warning">
+                      ワークフロー修正成功
+                    </span>
                   </div>
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        navigator.clipboard.writeText(
-                          serializeWorkflow(r.fixedWorkflowDefinition),
-                        )}
-                      className="btn btn-ghost btn-xs"
-                      title="コピー"
-                    >
-                      <Copy size={10} />
-                    </button>
+                  <div className="text-xs text-warning/70">
+                    {new Date().toLocaleTimeString()}
                   </div>
                 </div>
-                <pre className="whitespace-pre-wrap break-all leading-relaxed text-base-content/80 bg-base-100/50 p-2 rounded border border-base-300/20 max-h-40 overflow-auto">
-                  {serializeWorkflow(r.fixedWorkflowDefinition)}
-                </pre>
               </div>
             ))}
 
