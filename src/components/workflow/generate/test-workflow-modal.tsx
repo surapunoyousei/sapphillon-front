@@ -66,14 +66,6 @@ export function TestWorkflowModal(
         <>
           <button
             type="button"
-            className="btn btn-ghost"
-            disabled={isTesting}
-            onClick={() => onClose()}
-          >
-            閉じる
-          </button>
-          <button
-            type="button"
             className={cn("btn", isTesting ? "btn-disabled" : "btn-accent")}
             disabled={isTesting}
             onClick={runTest}

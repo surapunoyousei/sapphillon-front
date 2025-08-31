@@ -67,16 +67,6 @@ export const PromptPanel = memo(function PromptPanel(props: PromptPanelProps) {
             )}
             disabled={isProcessing}
           />
-          {isProcessing && (
-            <div className="pointer-events-none absolute top-2 right-2">
-              <div className="flex items-center gap-2 px-2 py-1 bg-primary/10 rounded-md border border-primary/20">
-                <Zap size={12} className="text-primary animate-pulse" />
-                <span className="text-xs text-primary font-medium">
-                  {currentAction}中...
-                </span>
-              </div>
-            </div>
-          )}
         </div>
         <div className="flex justify-between items-center text-xs pt-2 border-t border-base-300/30 flex-shrink-0">
           <div className="flex items-center gap-3 text-base-content/60">
@@ -87,7 +77,8 @@ export const PromptPanel = memo(function PromptPanel(props: PromptPanelProps) {
             </span>
             <span className="text-base-content/40">|</span>
             <span className="flex items-center gap-1">
-              <kbd className="kbd kbd-xs">Shift
+              <kbd className="kbd kbd-xs">
+                Shift
               </kbd>+<kbd className="kbd kbd-xs">Enter</kbd> で改行
             </span>
           </div>

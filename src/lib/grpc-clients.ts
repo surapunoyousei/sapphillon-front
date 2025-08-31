@@ -9,7 +9,6 @@ import type { Interceptor } from "@connectrpc/connect";
 import { VersionService } from "@/gen/sapphillon/v1/version_pb.ts";
 import { WorkflowService } from "@/gen/sapphillon/v1/workflow_service_pb.ts";
 
-// Base URL は環境変数 (Vite) を優先 (型安全化のため minimal 定義)
 interface EnvLike {
   [k: string]: unknown;
 }
