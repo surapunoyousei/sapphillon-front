@@ -80,8 +80,6 @@ export interface BrowserOSAPI {
     instanceId: string,
     selector: string,
   ): Promise<boolean>;
-  /** Sleep helper. */
-  wsWait(ms: number): Promise<void>;
 
   // Tab Manager (Visible tabs)
   /** Open a new visible tab and return its instanceId (Tab Manager). */
