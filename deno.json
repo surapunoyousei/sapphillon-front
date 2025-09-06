@@ -6,7 +6,7 @@
     "serve": "deno run --allow-net --allow-read jsr:@std/http@1/file-server dist/",
     "test": "deno run -A --node-modules-dir npm:vitest run",
     "test:watch": "deno run -A --node-modules-dir npm:vitest",
-    "gen": "buf generate ./vendor/Sapphillon_API --template ./buf.gen.yaml"
+    "gen": "buf generate ./vendor/Sapphillon_API --template ./buf.gen.yaml && buf generate ./vendor/Floorp_API --template ./buf.gen.yaml"
   },
   "compilerOptions": {
     "lib": [

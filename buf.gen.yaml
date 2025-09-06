@@ -9,3 +9,7 @@ plugins:
     include_imports: true
     # Add more plugin options here
     opt: target=ts
+  # Also generate Connect RPC service bindings for convenience (optional)
+  - remote: buf.build/connectrpc/es:v1.5.0
+    out: src/gen
+    include_imports: true
