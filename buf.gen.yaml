@@ -13,3 +13,4 @@ plugins:
   - remote: buf.build/connectrpc/es:v1.5.0
     out: src/gen
     include_imports: true
+    opt: target=ts
