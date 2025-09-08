@@ -134,7 +134,38 @@ export function TestResultView({ result, error }: Props) {
         <div className="p-2 rounded border border-base-300/40 bg-base-300/10 font-mono max-h-48 overflow-auto whitespace-pre-wrap break-all">
           {(() => {
             try {
-              return JSON.stringify(result, null, 2);
+              const toPlain = (obj: unknown): unknown => {
+                if (obj && typeof obj === "object") {
+                  const anyObj = obj as any;
+                  // protobuf messages often have toObject() to get a plain JS object
+                  if (typeof anyObj.toObject === "function") {
+                    try {
+                      return anyObj.toObject();
+                    } catch {
+                      // fallthrough
+                    }
+                  }
+                }
+                return obj;
+              };
+
+              const replacer = (_k: string, v: any) => {
+                if (v instanceof Uint8Array) return Array.from(v);
+                // protobuf Long-like objects often have toNumber/toString
+                if (
+                  v && typeof v === "object" && typeof v.toNumber === "function"
+                ) {
+                  try {
+                    return v.toNumber();
+                  } catch {
+                    return String(v);
+                  }
+                }
+                return v;
+              };
+
+              const plain = toPlain(result);
+              return JSON.stringify(plain, replacer, 2);
             } catch {
               return String(result);
             }

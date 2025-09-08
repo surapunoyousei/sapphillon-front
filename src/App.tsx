@@ -11,8 +11,19 @@ import { Run } from "./app/run.tsx";
 import { EditWorkflow } from "./app/edit.tsx";
 import { Plugins } from "./app/plugins.tsx";
 import { Settings as SettingsPage } from "./app/settings.tsx";
+import { useEffect } from "react";
+import { startBrowserBridgeResponder } from "@/lib/browser-bridge.ts";
+import { browserInfoGetAllContextData } from "@/lib/floorp-plugins.ts";
 
 function App() {
+  useEffect(() => {
+    startBrowserBridgeResponder();
+    console.log(
+      "browserInfoGetAllContextData",
+      browserInfoGetAllContextData({ historyLimit: 5 }),
+    );
+  }, []);
+
   return (
     <Router>
       <AppBackground />

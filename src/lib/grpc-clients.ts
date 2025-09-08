@@ -2,7 +2,7 @@
 // 現在の全 proto Service についてクライアントを生成してまとめてエクスポートします。
 // 新しい service を追加したら proto 更新 -> `deno task gen` -> ここに import & client 追加。
 
-import { createClient, ConnectError } from "@connectrpc/connect";
+import { ConnectError, createClient } from "@connectrpc/connect";
 import { createGrpcWebTransport } from "@connectrpc/connect-web";
 import type { Interceptor } from "@connectrpc/connect";
 
@@ -16,10 +16,7 @@ interface ImportMetaLike {
   env?: EnvLike;
 }
 const im = import.meta as unknown as ImportMetaLike;
-const baseUrl =
-  typeof im.env?.VITE_GRPC_BASE_URL === "string"
-    ? (im.env!.VITE_GRPC_BASE_URL as string)
-    : "http://localhost:50051";
+const baseUrl = "http://127.0.0.1:50051";
 
 export const transport = createGrpcWebTransport({ baseUrl });
 
@@ -32,8 +29,7 @@ export function requestIdInterceptor(headerKey = "x-request-id"): Interceptor {
   return (next) => (req) => {
     // Connect のヘッダはヘッダマップ (req.header) で操作できる
     try {
-      const id =
-        globalThis.crypto?.randomUUID?.() ||
+      const id = globalThis.crypto?.randomUUID?.() ||
         Math.random().toString(36).slice(2);
       if (!req.header.has(headerKey)) {
         req.header.set(headerKey, id);
@@ -47,7 +43,7 @@ export function requestIdInterceptor(headerKey = "x-request-id"): Interceptor {
 
 // 2. 任意メタデータ挿入 (遅延評価)
 export function metadataInterceptor(
-  getters: Record<string, () => string | undefined>
+  getters: Record<string, () => string | undefined>,
 ): Interceptor {
   return (next) => (req) => {
     for (const [k, fn] of Object.entries(getters)) {

@@ -22,37 +22,39 @@ import {
   BrowserInfoService,
   type GetAllContextDataRequest,
   type GetAllContextDataResponse,
-} from "@/gen/sapphillon/v1/browser_info_pb.ts";
+} from "@/gen/browser_info_pb.ts";
 
 // tab_manager
 import {
-  TabManagerService as TabManagerServiceApi,
   type CreateInstanceRequest as TM_CreateInstanceRequest,
   type CreateInstanceResponse as TM_CreateInstanceResponse,
+  type GetHTMLRequest as TM_GetHTMLRequest,
+  type GetHTMLResponse as TM_GetHTMLResponse,
   type ListTabsRequest as TM_ListTabsRequest,
   type ListTabsResponse as TM_ListTabsResponse,
   type NavigateRequest as TM_NavigateRequest,
   type NavigateResponse as TM_NavigateResponse,
-  type GetHTMLRequest as TM_GetHTMLRequest,
-  type GetHTMLResponse as TM_GetHTMLResponse,
-} from "@/gen/sapphillon/v1/tab_manager_pb.ts";
+  TabManagerService as TabManagerServiceApi,
+} from "@/gen/tab_manager_pb.ts";
 
 // webscraper (package: sapphillon.v1.floorpWebscraper)
 // Note: Current proto defines service name as TabManagerService in its package.
 // We alias it locally as WebscraperService.
 import {
-  TabManagerService as WebscraperServiceApi,
   type CreateInstanceRequest as WS_CreateInstanceRequest,
   type CreateInstanceResponse as WS_CreateInstanceResponse,
   type GetHTMLRequest as WS_GetHTMLRequest,
   type GetHTMLResponse as WS_GetHTMLResponse,
-} from "@/gen/sapphillon/v1/webscraper_pb.ts";
+  TabManagerService as WebscraperServiceApi,
+} from "@/gen/webscraper_pb.ts";
 
 // -----------------------------
 // Types
 // -----------------------------
 
-export type JsonValue = null | boolean | number | string | JsonValue[] | { [k: string]: JsonValue };
+export type JsonValue = null | boolean | number | string | JsonValue[] | {
+  [k: string]: JsonValue;
+};
 
 export interface BrowserContextDataJson extends Record<string, unknown> {}
 
@@ -83,11 +85,18 @@ export async function browserInfoGetAllContextData(input?: {
   raw: GetAllContextDataResponse;
   parsed: BrowserContextDataJson | null;
 }> {
-  const req: GetAllContextDataRequest = {} as Message as GetAllContextDataRequest;
+  const req: GetAllContextDataRequest =
+    {} as Message as GetAllContextDataRequest;
   if (input && (input.historyLimit != null || input.downloadLimit != null)) {
-    req.params = {} as Message as NonNullable<GetAllContextDataRequest["params"]>;
-    if (input.historyLimit != null) req.params.historyLimit = input.historyLimit;
-    if (input.downloadLimit != null) req.params.downloadLimit = input.downloadLimit;
+    req.params = {} as Message as NonNullable<
+      GetAllContextDataRequest["params"]
+    >;
+    if (input.historyLimit != null) {
+      req.params.historyLimit = input.historyLimit;
+    }
+    if (input.downloadLimit != null) {
+      req.params.downloadLimit = input.downloadLimit;
+    }
   }
   const res = await browserInfoClient().getAllContextData(req);
   let parsed: BrowserContextDataJson | null = null;
@@ -105,13 +114,18 @@ export async function browserInfoGetAllContextData(input?: {
 // TabManager wrappers
 // -----------------------------
 
-export async function tabManagerCreateInstance(url: string, opts?: { inBackground?: boolean }): Promise<{
+export async function tabManagerCreateInstance(
+  url: string,
+  opts?: { inBackground?: boolean },
+): Promise<{
   instanceId: string;
   raw: TM_CreateInstanceResponse;
 }> {
   const req: TM_CreateInstanceRequest = {
     url,
-    options: opts?.inBackground != null ? { inBackground: opts.inBackground } : undefined,
+    options: opts?.inBackground != null
+      ? { inBackground: opts.inBackground }
+      : undefined,
   } as TM_CreateInstanceRequest;
   const res = await tabManagerClient().createInstance(req);
   return { instanceId: res.instanceId, raw: res };
@@ -122,12 +136,17 @@ export async function tabManagerListTabs(): Promise<TM_ListTabsResponse> {
   return await tabManagerClient().listTabs(req);
 }
 
-export async function tabManagerNavigate(instanceId: string, url: string): Promise<TM_NavigateResponse> {
+export async function tabManagerNavigate(
+  instanceId: string,
+  url: string,
+): Promise<TM_NavigateResponse> {
   const req: TM_NavigateRequest = { instanceId, url } as TM_NavigateRequest;
   return await tabManagerClient().navigate(req);
 }
 
-export async function tabManagerGetHTML(instanceId: string): Promise<string | null> {
+export async function tabManagerGetHTML(
+  instanceId: string,
+): Promise<string | null> {
   const req: TM_GetHTMLRequest = { instanceId } as TM_GetHTMLRequest;
   const res: TM_GetHTMLResponse = await tabManagerClient().getHTML(req);
   return res.html ?? null;
@@ -137,19 +156,26 @@ export async function tabManagerGetHTML(instanceId: string): Promise<string | nu
 // Webscraper wrappers
 // -----------------------------
 
-export async function webscraperCreateInstance(url: string, opts?: { inBackground?: boolean }): Promise<{
+export async function webscraperCreateInstance(
+  url: string,
+  opts?: { inBackground?: boolean },
+): Promise<{
   instanceId: string;
   raw: WS_CreateInstanceResponse;
 }> {
   const req: WS_CreateInstanceRequest = {
     url,
-    options: opts?.inBackground != null ? { inBackground: opts.inBackground } : undefined,
+    options: opts?.inBackground != null
+      ? { inBackground: opts.inBackground }
+      : undefined,
   } as WS_CreateInstanceRequest;
   const res = await webscraperClient().createInstance(req);
   return { instanceId: res.instanceId, raw: res };
 }
 
-export async function webscraperGetHTML(instanceId: string): Promise<string | null> {
+export async function webscraperGetHTML(
+  instanceId: string,
+): Promise<string | null> {
   const req: WS_GetHTMLRequest = { instanceId } as WS_GetHTMLRequest;
   const res: WS_GetHTMLResponse = await webscraperClient().getHTML(req);
   return res.html ?? null;
@@ -161,4 +187,3 @@ export async function webscraperGetHTML(instanceId: string): Promise<string | nu
 // import { browserInfoGetAllContextData, tabManagerListTabs } from "./floorp-plugins.ts";
 // const info = await browserInfoGetAllContextData({ historyLimit: 10 });
 // const tabs = await tabManagerListTabs();
-

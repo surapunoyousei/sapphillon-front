@@ -1,0 +1,44 @@
+// Copyright 2025 Yuta Takahashi
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package sapphillon.v1.browserBridge;
+
+message SubscribeRequestsRequest {}
+
+message BridgeRequest {
+  string id = 1;
+  string method = 2;
+  string args_json = 3;
+  int64 deadline_unix_ms = 4;
+}
+
+message CompleteRequest {
+  string id = 1;
+  bool success = 2;
+  optional string result_json = 3;
+  optional string error_message = 4;
+}
+
+message CompleteResponse {
+  bool accepted = 1;
+  optional string message = 2;
+}
+
+service BrowserBridge {
+  rpc SubscribeRequests(SubscribeRequestsRequest) returns (stream BridgeRequest);
+  rpc Complete(CompleteRequest) returns (CompleteResponse);
+  rpc WaitForRequest(SubscribeRequestsRequest) returns (BridgeRequest);
+}
