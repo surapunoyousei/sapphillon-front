@@ -1,4 +1,11 @@
-import { LuInfo, LuSparkles, LuWrench, LuPlay, LuPlugZap } from "react-icons/lu";
+import {
+  LuHouse,
+  LuInfo,
+  LuPlay,
+  LuPlugZap,
+  LuSparkles,
+  LuWrench,
+} from "react-icons/lu";
 
 export type AppRoute = {
   path: string;
@@ -8,7 +15,7 @@ export type AppRoute = {
 };
 
 export const routes: AppRoute[] = [
-  { path: "/home", key: "home", label: "Home", icon: LuInfo },
+  { path: "/home", key: "home", label: "Home", icon: LuHouse },
   { path: "/generate", key: "generate", label: "Generate", icon: LuSparkles },
   { path: "/fix", key: "fix", label: "Fix", icon: LuWrench },
   { path: "/run", key: "run", label: "Run", icon: LuPlay },

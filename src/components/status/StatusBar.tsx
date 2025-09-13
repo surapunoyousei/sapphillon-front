@@ -23,7 +23,7 @@ export function StatusBar() {
       align="center"
       gap={3}
     >
-      <Text>Floorp OS Components:</Text>
+      <Text>Core System Status:</Text>
       <Badge
         colorPalette={grpc === "connected"
           ? "green"
