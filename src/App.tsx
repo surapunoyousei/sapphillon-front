@@ -1,34 +1,30 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import "./App.css";
+import { AppShell } from "@/components/layout/AppShell";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { HomePage } from "@/pages/Home";
 
 function App() {
-  const [count, setCount] = useState(0);
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <AppShell>
+      <Routes>
+        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/generate" element={<PageBox title="Generate" />} />
+        <Route path="/fix" element={<PageBox title="Fix" />} />
+        <Route path="/run" element={<PageBox title="Run" />} />
+        <Route path="/plugins" element={<PageBox title="Plugins" />} />
+        <Route path="/about" element={<PageBox title="About" />} />
+      </Routes>
+    </AppShell>
+  );
+}
+
+import { Box, Text } from "@chakra-ui/react";
+function PageBox({ title }: { title: string }) {
+  return (
+    <Box borderWidth="1px" rounded="md" p={4}>
+      <Text fontWeight="medium">{title}</Text>
+      <Text color="fg.muted">Mock content for {title} page.</Text>
+    </Box>
   );
 }
 
