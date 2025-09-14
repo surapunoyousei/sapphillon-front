@@ -1,2 +1,1 @@
-export { useColorMode } from "./color-mode";
-
+export { useColorMode, type ColorMode } from "./color-mode-context";

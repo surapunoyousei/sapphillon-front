@@ -11,6 +11,8 @@ describe("cn", () => {
   });
 
   it("skips falsy values", () => {
-    expect(cn("a", false, null, undefined, 0 && "x")).toBe("a");
+    const maybe = 0; // keep falsy without constant binary expression
+    const val = maybe ? "x" : false;
+    expect(cn("a", false, null, undefined, val)).toBe("a");
   });
 });

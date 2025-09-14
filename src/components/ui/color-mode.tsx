@@ -4,16 +4,11 @@ import type { IconButtonProps, SpanProps } from "@chakra-ui/react";
 import { ClientOnly, IconButton, Skeleton, Span } from "@chakra-ui/react";
 import * as React from "react";
 import { LuMoon, LuSun } from "react-icons/lu";
-
-export type ColorMode = "light" | "dark";
-
-type Ctx = {
-  colorMode: ColorMode;
-  setColorMode: (mode: ColorMode) => void;
-  toggleColorMode: () => void;
-};
-
-const ColorModeCtx = React.createContext<Ctx | null>(null);
+import {
+  type ColorMode,
+  ColorModeCtx,
+  useColorMode,
+} from "./color-mode-context";
 
 function applyRootClass(mode: ColorMode) {
   if (typeof document === "undefined") return;
@@ -36,11 +31,14 @@ function getInitialMode(): ColorMode {
   } catch {
     /* ignore */
   }
-  const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+  const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)")
+    .matches;
   return prefersDark ? "dark" : "light";
 }
 
-export function ColorModeProvider({ children }: { children?: React.ReactNode }) {
+export function ColorModeProvider(
+  { children }: { children?: React.ReactNode },
+) {
   const [mode, setMode] = React.useState<ColorMode>(getInitialMode);
 
   React.useEffect(() => {
@@ -52,22 +50,18 @@ export function ColorModeProvider({ children }: { children?: React.ReactNode }) 
     }
   }, [mode]);
 
-  const value = React.useMemo<Ctx>(
+  const value = React.useMemo(
     () => ({
       colorMode: mode,
       setColorMode: setMode,
-      toggleColorMode: () => setMode((m) => (m === "dark" ? "light" : "dark")),
+      toggleColorMode: () =>
+        setMode((m: ColorMode) => (m === "dark" ? "light" : "dark")),
     }),
     [mode],
   );
 
-  return <ColorModeCtx.Provider value={value}>{children}</ColorModeCtx.Provider>;
-}
-
-export function useColorMode(): Ctx {
-  const ctx = React.useContext(ColorModeCtx);
-  if (!ctx) throw new Error("useColorMode must be used within ColorModeProvider");
-  return ctx;
+  return <ColorModeCtx.Provider value={value}>{children}
+  </ColorModeCtx.Provider>;
 }
 
 export function ColorModeIcon() {

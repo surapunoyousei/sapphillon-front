@@ -56,7 +56,7 @@ export function RunPanel(
           </Badge>
           <Button size="sm" onClick={onRun} disabled={!latestDefinition}>
             <HStack>
-              <Box as={LuPlay} css={{ width: 16, height: 16 }} />
+              <Box as={LuPlay} css={{ width: 6, height: 6 }} />
               <Text>Run</Text>
             </HStack>
           </Button>

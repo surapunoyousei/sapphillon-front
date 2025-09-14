@@ -5,7 +5,7 @@ export interface WorkflowStep {
   pluginName: string;
   functionName: string;
   description: string;
-  arguments: Record<string, any>;
+  arguments: Record<string, unknown>;
   resourceAccess: {
     type: ResourceType;
     path: string;

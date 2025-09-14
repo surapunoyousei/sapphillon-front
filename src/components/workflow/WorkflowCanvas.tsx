@@ -16,7 +16,11 @@ type SimpleStep = {
 type SimpleWorkflow = { id?: string; steps: SimpleStep[] };
 
 // Simple linear layout: one node per row, connected top-to-bottom
-function layoutNodes(steps: SimpleStep[], nodeSize: { w: number; h: number }, gapY: number) {
+function layoutNodes(
+  steps: SimpleStep[],
+  nodeSize: { w: number; h: number },
+  gapY: number,
+) {
   const nodes = steps.map((step, i) => ({
     id: step.id,
     step,
@@ -39,7 +43,9 @@ export const WorkflowCanvas: React.FC<Props> = ({ workflow }) => {
   // Pan/zoom state
   const [scale, setScale] = React.useState(1);
   const [offset, setOffset] = React.useState<Point>({ x: 20, y: 20 });
-  const draggingRef = React.useRef<{ active: boolean; start: Point; origin: Point }>({
+  const draggingRef = React.useRef<
+    { active: boolean; start: Point; origin: Point }
+  >({
     active: false,
     start: { x: 0, y: 0 },
     origin: { x: 0, y: 0 },
@@ -82,8 +88,10 @@ export const WorkflowCanvas: React.FC<Props> = ({ workflow }) => {
     // Read colors from computed styles so it matches theme
     const cs = getComputedStyle(container);
     const stroke = cs.color || "#2D3748"; // fallback slate-700
-    const nodeFill = cs.getPropertyValue("--chakra-colors-bg").trim() || "#FFFFFF";
-    const textColor = cs.getPropertyValue("--chakra-colors-fg").trim() || stroke;
+    const nodeFill = cs.getPropertyValue("--chakra-colors-bg").trim() ||
+      "#FFFFFF";
+    const textColor = cs.getPropertyValue("--chakra-colors-fg").trim() ||
+      stroke;
 
     ctx.save();
     ctx.scale(dpr, dpr);
@@ -125,7 +133,17 @@ export const WorkflowCanvas: React.FC<Props> = ({ workflow }) => {
 
     // Draw nodes
     for (const n of nodes) {
-      drawNode(ctx, n.step, n.x, n.y, nodeW, nodeH, nodeFill, textColor, stroke);
+      drawNode(
+        ctx,
+        n.step,
+        n.x,
+        n.y,
+        nodeW,
+        nodeH,
+        nodeFill,
+        textColor,
+        stroke,
+      );
     }
 
     ctx.restore();
@@ -172,7 +190,10 @@ export const WorkflowCanvas: React.FC<Props> = ({ workflow }) => {
     const pos: Point = { x: e.clientX - rect.left, y: e.clientY - rect.top };
     const dx = pos.x - draggingRef.current.start.x;
     const dy = pos.y - draggingRef.current.start.y;
-    setOffset({ x: draggingRef.current.origin.x + dx, y: draggingRef.current.origin.y + dy });
+    setOffset({
+      x: draggingRef.current.origin.x + dx,
+      y: draggingRef.current.origin.y + dy,
+    });
   };
 
   const onMouseUp = () => {
@@ -188,7 +209,15 @@ export const WorkflowCanvas: React.FC<Props> = ({ workflow }) => {
   const stepsCount = normalizeWorkflow(workflow).steps.length;
 
   return (
-    <Box ref={containerRef} position="relative" h="full" w="full" bg="bg.subtle" rounded="md" overflow="hidden">
+    <Box
+      ref={containerRef}
+      position="relative"
+      h="full"
+      w="full"
+      bg="bg.subtle"
+      rounded="md"
+      overflow="hidden"
+    >
       {stepsCount === 0 && (
         <Center position="absolute" inset={0} pointerEvents="none">
           <Text color="fg.muted">No workflow yet</Text>
@@ -304,7 +333,12 @@ function drawNode(
   ctx.restore();
 }
 
-function drawArrowHead(ctx: CanvasRenderingContext2D, tip: Point, from: Point, size: number) {
+function drawArrowHead(
+  ctx: CanvasRenderingContext2D,
+  tip: Point,
+  from: Point,
+  size: number,
+) {
   const angle = Math.atan2(tip.y - from.y, tip.x - from.x);
   const a1 = angle + Math.PI * 0.85;
   const a2 = angle - Math.PI * 0.85;
@@ -354,7 +388,10 @@ function wrapText(
     }
   }
   if (lines.length < maxLines && line) lines.push(line);
-  if (lines.length === maxLines && (words.length > 0 || ctx.measureText(line).width > maxWidth)) {
+  if (
+    lines.length === maxLines &&
+    (words.length > 0 || ctx.measureText(line).width > maxWidth)
+  ) {
     const last = lines[lines.length - 1];
     let ell = last;
     while (ctx.measureText(`${ell}…`).width > maxWidth && ell.length > 0) {
@@ -380,26 +417,33 @@ function normalizeWorkflow(input: unknown): SimpleWorkflow {
   if (!input || typeof input !== "object") return { steps: [] };
 
   // Case A: Already in SimpleWorkflow shape (src/types/workflow)
-  const wf = input as any;
+  const wf = input as Record<string, unknown>;
   if (Array.isArray(wf.steps)) {
-    const steps: SimpleStep[] = wf.steps.map((s: any, i: number) => ({
-      id: String(s?.id ?? i + 1),
-      pluginName: String(s?.pluginName ?? "plugin"),
-      functionName: String(s?.functionName ?? "function"),
-      description: String(s?.description ?? ""),
-      resourceAccess: Array.isArray(s?.resourceAccess) ? s.resourceAccess : [],
-    }));
+    const steps: SimpleStep[] = (wf.steps as unknown[]).map((s, i: number) => {
+      const so = (s ?? {}) as Record<string, unknown>;
+      const resourceAccess = Array.isArray(so.resourceAccess)
+        ? (so.resourceAccess as Array<{ type?: string; path?: string }>)
+        : [];
+      return {
+        id: String(so.id ?? i + 1),
+        pluginName: String(so.pluginName ?? "plugin"),
+        functionName: String(so.functionName ?? "function"),
+        description: String(so.description ?? ""),
+        resourceAccess,
+      };
+    });
     return { id: String(wf?.id ?? ""), steps };
   }
 
   // Case B: Proto-generated sapphillon.v1.Workflow (workflow_pb)
   // We will try to derive steps from the latest workflowCode[0].pluginFunctionIds
   // and the pluginPackages list for names, if present.
-  const codeList: any[] = Array.isArray((wf as any).workflowCode)
-    ? (wf as any).workflowCode
+  const codeList: unknown[] = Array.isArray(wf.workflowCode)
+    ? (wf.workflowCode as unknown[])
     : [];
-  const pluginFunctionIds: string[] = Array.isArray(codeList?.[0]?.pluginFunctionIds)
-    ? codeList[0].pluginFunctionIds
+  const first = (codeList[0] ?? {}) as Record<string, unknown>;
+  const pluginFunctionIds: string[] = Array.isArray(first.pluginFunctionIds)
+    ? (first.pluginFunctionIds as string[])
     : [];
   const steps: SimpleStep[] = pluginFunctionIds.map((fid, i) => {
     // Try to split by '.' to get plugin and function
@@ -418,12 +462,14 @@ function normalizeWorkflow(input: unknown): SimpleWorkflow {
   // If still empty, create one node from displayName/description as a placeholder
   if (steps.length === 0) {
     steps.push({
-      id: String((wf as any).id ?? "1"),
-      pluginName: String((wf as any).displayName ?? "Workflow"),
+      id: String((wf as Record<string, unknown>).id ?? "1"),
+      pluginName: String(
+        (wf as Record<string, unknown>).displayName ?? "Workflow",
+      ),
       functionName: "definition",
-      description: String((wf as any).description ?? ""),
+      description: String((wf as Record<string, unknown>).description ?? ""),
       resourceAccess: [],
     });
   }
-  return { id: String((wf as any).id ?? ""), steps };
+  return { id: String((wf as Record<string, unknown>).id ?? ""), steps };
 }
