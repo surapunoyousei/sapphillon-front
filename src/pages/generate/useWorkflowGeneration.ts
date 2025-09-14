@@ -41,7 +41,7 @@ export function useWorkflowGeneration() {
           setLatest(msg);
           append({ kind: "message", payload: msg });
         }
-        append({ kind: "done" });
+        append({ kind: "done", payload: { stage: "generate" } });
       } catch (e) {
         if ((e as Error).name === "AbortError") return;
         append({ kind: "error", payload: e });
@@ -64,10 +64,13 @@ export function useWorkflowGeneration() {
   const runLatest = React.useCallback(async () => {
     if (!latest?.workflowDefinition) return;
     try {
+      append({ kind: "message", payload: { stage: "run", status: "start" } });
       const res = await clients.workflow.runWorkflow({
         workflowDefinition: latest.workflowDefinition,
       });
       setRunRes(res);
+      append({ kind: "message", payload: res });
+      append({ kind: "done", payload: { stage: "run" } });
     } catch (e) {
       append({ kind: "error", payload: e });
     }

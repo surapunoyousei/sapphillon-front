@@ -35,8 +35,8 @@ export function RunPanel(
   return (
     <VStack
       align="stretch"
-      gap={2}
-      p={3}
+      gap={1}
+      p={2}
       borderWidth="1px"
       bg="bg"
       rounded="md"
