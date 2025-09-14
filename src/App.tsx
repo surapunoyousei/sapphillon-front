@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { HomePage } from "@/pages/Home";
+import { HomePage } from "@/pages/home/Home";
+import { GeneratePage } from "@/pages/generate/GeneratePage";
 
 function App() {
   return (
@@ -8,7 +9,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<HomePage />} />
-        <Route path="/generate" element={<PageBox title="Generate" />} />
+        <Route path="/generate" element={<GeneratePage />} />
         <Route path="/fix" element={<PageBox title="Fix" />} />
         <Route path="/run" element={<PageBox title="Run" />} />
         <Route path="/plugins" element={<PageBox title="Plugins" />} />

@@ -16,12 +16,20 @@ interface ImportMetaLike {
   env?: EnvLike;
 }
 const im = import.meta as unknown as ImportMetaLike;
-// Prefer explicit base URL. If not set, default to direct backend on :9000/grpc
-export const BASE_URL = "http://localhost:50051"
+
+// Resolve base URL in order of preference:
+// 1) VITE_GRPC_BASE_URL (e.g. http://localhost:50051)
+// 2) window.__SAPPHILLON_GRPC_BASE__ (debug hook)
+// 3) fallback http://localhost:50051
+export const BASE_URL = "http://localhost:50051";
 
 // Toggle grpc-web binary/json via env (defaults to binary)
-const BIN_ENV = (im.env?.VITE_GRPC_WEB_USE_BINARY as string | undefined)?.toLowerCase?.();
-const USE_BINARY = BIN_ENV ? !(BIN_ENV === "false" || BIN_ENV === "0" || BIN_ENV === "no") : true;
+const BIN_ENV = (
+  im.env?.VITE_GRPC_WEB_USE_BINARY as string | undefined
+)?.toLowerCase?.();
+const USE_BINARY = BIN_ENV
+  ? !(BIN_ENV === "false" || BIN_ENV === "0" || BIN_ENV === "no")
+  : true;
 
 // Do not export a raw transport without interceptors to avoid divergent behavior.
 
@@ -70,12 +78,10 @@ export function loggingInterceptor(): Interceptor {
     try {
       const res = await next(req);
       const ms = (performance.now() - start).toFixed(1);
-      // eslint-disable-next-line no-console
       console.debug(`[gRPC] ✅ ${fullName} (${ms} ms)`);
       return res;
     } catch (e) {
       const ms = (performance.now() - start).toFixed(1);
-      // eslint-disable-next-line no-console
       console.error(`[gRPC] ❌ ${fullName} (${ms} ms)`, e);
       throw e;
     }
@@ -117,6 +123,7 @@ export function withInterceptors(...custom: Interceptor[]) {
   // createGrpcWebTransport を再構築 (interceptors は transport 作成時に設定)
   const t = createGrpcWebTransport({
     baseUrl: BASE_URL,
+    useBinaryFormat: USE_BINARY,
     interceptors: buildInterceptors(custom),
   });
   return {
