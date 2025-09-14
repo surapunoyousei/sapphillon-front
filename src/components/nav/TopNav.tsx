@@ -1,4 +1,4 @@
-import { Box, HStack, Image, Kbd, Spacer, Text } from "@chakra-ui/react";
+﻿import { Box, HStack, Image, Kbd, Spacer, Text } from "@chakra-ui/react";
 import { ColorModeButton } from "@/components/ui/color-mode";
 import { useColorMode } from "@/components/ui/use-color-mode";
 
@@ -22,6 +22,8 @@ export function TopNav({ onOpenOmni }: { onOpenOmni?: () => void }) {
       gap={3}
       position="relative"
       borderBottomWidth="1px"
+      borderBottomColor="border"
+      bg="bg.panel"
     >
       <HStack gap={2}>
         <Image
@@ -54,8 +56,13 @@ export function TopNav({ onOpenOmni }: { onOpenOmni?: () => void }) {
           py={2}
           rounded="md"
           borderWidth="1px"
+          borderColor="border"
           bg="bg"
           cursor="text"
+          transitionProperty="colors, shadow"
+          transitionDuration="normal"
+          _hover={{ bg: "bg.subtle" }}
+          _focusVisible={{ outline: "2px solid", outlineColor: "accent.focusRing", outlineOffset: "2px" }}
         >
           <HStack justify="space-between" color="fg.muted">
             <Text fontSize="sm">Search or run…</Text>

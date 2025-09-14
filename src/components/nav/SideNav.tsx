@@ -24,6 +24,11 @@ function NavItem({ to, label, Icon }: { to: string; label: string; Icon: React.C
           gap={3}
           bg={isActive ? "bg.subtle" : undefined}
           color={isActive ? "fg" : "fg.muted"}
+          borderInlineStartWidth="2px"
+          borderInlineStartColor={isActive ? "accent.focusRing" : "transparent"}
+          transitionProperty="colors, shadow"
+          transitionDuration="normal"
+          _hover={{ bg: isActive ? "bg.subtle" : "bg.subtle" }}
         >
           <Box as={Icon} css={{ width: 18, height: 18 }} />
           <Text>{label}</Text>

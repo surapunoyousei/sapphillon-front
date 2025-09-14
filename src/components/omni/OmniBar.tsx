@@ -64,7 +64,7 @@ export function OmniBar({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
               autoFocus
               size="lg"
               placeholder="Search commands, navigate, or ask…"
-              value={query}
+              placeholder="Search commands, navigate, or ask…"
               onChange={(e) => {
                 setQuery(e.target.value);
                 setActive(0);
@@ -92,7 +92,6 @@ export function OmniBar({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
               <HStack>
                 <Kbd>↑</Kbd>
                 <Kbd>↓</Kbd>
-                <Text>to navigate</Text>
               </HStack>
               <HStack>
                 <Kbd>Enter</Kbd>

@@ -18,6 +18,8 @@ export function StatusBar() {
       px={4}
       py={2}
       borderTopWidth="1px"
+      borderTopColor="border"
+      bg="bg.panel"
       color="fg.muted"
       fontSize="sm"
       align="center"

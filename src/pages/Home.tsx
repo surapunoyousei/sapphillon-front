@@ -28,7 +28,7 @@ export function HomePage() {
         {/* ChatGPT-like hero */}
         <VStack gap={3} textAlign="center">
           <Heading size="2xl">
-            あなたが今やりたいことを代わりに実行・発見するエージェント
+            あなたが今やりたいことを代わりに実行する統合プラットフォーム
           </Heading>
           <Text color="fg.muted">
             Floorp OS が、命令をあなたのように安全に実行し、結果を報告します。
@@ -55,19 +55,27 @@ export function HomePage() {
 
         {/* Quick actions */}
         <HStack gap={3} justify="center">
-          <Button onClick={() => navigate("/generate")} colorPalette="blue">
+          <Button onClick={() => navigate("/generate")} variant="surface">
             <HStack>
-              <Box as={LuSparkles} css={{ width: 18, height: 18 }} />
+              <Box
+                as={LuSparkles}
+                color="accent.fg"
+                css={{ width: 18, height: 18 }}
+              />
               <Text>Generate</Text>
             </HStack>
           </Button>
-          <Button onClick={() => navigate("/run")} colorPalette="green">
+          <Button onClick={() => navigate("/run")} variant="surface">
             <HStack>
-              <Box as={LuPlay} css={{ width: 18, height: 18 }} />
+              <Box
+                as={LuPlay}
+                color="accent.fg"
+                css={{ width: 18, height: 18 }}
+              />
               <Text>Run</Text>
             </HStack>
           </Button>
-          <Button onClick={() => navigate("/plugins")} colorPalette="purple">
+          <Button onClick={() => navigate("/plugins")} colorPalette="floorp">
             <HStack>
               <Box as={LuPlugZap} css={{ width: 18, height: 18 }} />
               <Text>Plugins</Text>
