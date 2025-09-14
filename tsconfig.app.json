@@ -29,6 +29,8 @@
     }
   },
   "include": [
-    "src"
+    "src",
+    "!src/**/*.test.*",
+    "!src/**/*.spec.*"
   ]
 }
