@@ -79,7 +79,7 @@ export function HomePage() {
         <Box w="full" borderWidth="1px" rounded="md" p={3}>
           <HStack gap={6} wrap="wrap">
             <HStack gap={2}>
-              <Text color="fg.muted">Core System Status:</Text>
+              <Text color="fg.muted">Automotor Status</Text>
               <Badge
                 colorPalette={status === "connected"
                   ? "green"

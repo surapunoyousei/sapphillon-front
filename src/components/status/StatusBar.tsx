@@ -23,7 +23,7 @@ export function StatusBar() {
       align="center"
       gap={3}
     >
-      <Text>Core System Status:</Text>
+      <Text>Automotor Status</Text>
       <Badge
         colorPalette={grpc === "connected"
           ? "green"

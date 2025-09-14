@@ -2,21 +2,73 @@
 
 import type { IconButtonProps, SpanProps } from "@chakra-ui/react";
 import { ClientOnly, IconButton, Skeleton, Span } from "@chakra-ui/react";
-import { ThemeProvider } from "next-themes";
-import type { ThemeProviderProps } from "next-themes";
 import * as React from "react";
 import { LuMoon, LuSun } from "react-icons/lu";
-import { useColorMode } from "./use-color-mode";
-
-export type ColorModeProviderProps = ThemeProviderProps;
-
-export function ColorModeProvider(props: ColorModeProviderProps) {
-  return (
-    <ThemeProvider attribute="class" disableTransitionOnChange {...props} />
-  );
-}
 
 export type ColorMode = "light" | "dark";
+
+type Ctx = {
+  colorMode: ColorMode;
+  setColorMode: (mode: ColorMode) => void;
+  toggleColorMode: () => void;
+};
+
+const ColorModeCtx = React.createContext<Ctx | null>(null);
+
+function applyRootClass(mode: ColorMode) {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  root.classList.add("chakra-theme");
+  root.classList.remove(mode === "dark" ? "light" : "dark");
+  root.classList.add(mode);
+  try {
+    root.style.colorScheme = mode;
+  } catch {
+    /* noop */
+  }
+}
+
+function getInitialMode(): ColorMode {
+  if (typeof window === "undefined") return "light";
+  try {
+    const stored = window.localStorage.getItem("sapphillon-theme");
+    if (stored === "light" || stored === "dark") return stored;
+  } catch {
+    /* ignore */
+  }
+  const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+  return prefersDark ? "dark" : "light";
+}
+
+export function ColorModeProvider({ children }: { children?: React.ReactNode }) {
+  const [mode, setMode] = React.useState<ColorMode>(getInitialMode);
+
+  React.useEffect(() => {
+    applyRootClass(mode);
+    try {
+      window.localStorage.setItem("sapphillon-theme", mode);
+    } catch {
+      /* ignore */
+    }
+  }, [mode]);
+
+  const value = React.useMemo<Ctx>(
+    () => ({
+      colorMode: mode,
+      setColorMode: setMode,
+      toggleColorMode: () => setMode((m) => (m === "dark" ? "light" : "dark")),
+    }),
+    [mode],
+  );
+
+  return <ColorModeCtx.Provider value={value}>{children}</ColorModeCtx.Provider>;
+}
+
+export function useColorMode(): Ctx {
+  const ctx = React.useContext(ColorModeCtx);
+  if (!ctx) throw new Error("useColorMode must be used within ColorModeProvider");
+  return ctx;
+}
 
 export function ColorModeIcon() {
   const { colorMode } = useColorMode();
