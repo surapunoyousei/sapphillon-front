@@ -8,6 +8,15 @@ importers:
 
   .:
     dependencies:
+      '@babel/parser':
+        specifier: ^7.28.4
+        version: 7.28.4
+      '@babel/traverse':
+        specifier: ^7.28.4
+        version: 7.28.4
+      '@babel/types':
+        specifier: ^7.28.4
+        version: 7.28.4
       '@bufbuild/protobuf':
         specifier: ^2.8.0
         version: 2.8.0
@@ -26,6 +35,15 @@ importers:
       '@emotion/react':
         specifier: ^11.14.0
         version: 11.14.0(@types/react@19.1.13)(react@19.1.1)
+      '@types/babel__parser':
+        specifier: ^7.1.5
+        version: 7.1.5
+      '@types/babel__traverse':
+        specifier: ^7.28.0
+        version: 7.28.0
+      acorn:
+        specifier: ^8.15.0
+        version: 8.15.0
       react:
         specifier: ^19.1.1
         version: 19.1.1
@@ -51,6 +69,9 @@ importers:
       '@testing-library/user-event':
         specifier: ^14.6.1
         version: 14.6.1(@testing-library/dom@10.4.1)
+      '@types/acorn':
+        specifier: ^4.0.6
+        version: 4.0.6
       '@types/node':
         specifier: ^22.9.0
         version: 22.18.3
@@ -840,6 +861,9 @@ packages:
     peerDependencies:
       '@testing-library/dom': '>=7.21.4'
 
+  '@types/acorn@4.0.6':
+    resolution: {integrity: sha512-veQTnWP+1D/xbxVrPC3zHnCZRjSrKfhbMUlEA43iMZLu7EsnTtkJklIuwrCPbOi8YkvDQAiW05VQQFvvz9oieQ==}
+
   '@types/aria-query@5.0.4':
     resolution: {integrity: sha512-rfT93uj5s0PRL7EzccGMs3brplhcrghnDoV26NqKhCAS1hVo+WdNsPvE/yb6ilfr5hi2MEk6d5EWJTKdxg8jVw==}
 
@@ -848,6 +872,10 @@ packages:
 
   '@types/babel__generator@7.27.0':
     resolution: {integrity: sha512-ufFd2Xi92OAVPYsy+P4n7/U7e68fex0+Ee8gSG9KX7eo084CWiQ4sdxktvdl0bOPupXtVJPY19zk6EwWqUQ8lg==}
+
+  '@types/babel__parser@7.1.5':
+    resolution: {integrity: sha512-yyWPJg3KawM9ydArmt2q+UE6dhy0usfXNB1yxDv0gE27KbZXeFCDtqR2L4jdVxXqq7I9tvkL9zuSY/ZVgF6fXQ==}
+    deprecated: This is a stub types definition. @babel/parser provides its own type definitions, so you do not need this installed.
 
   '@types/babel__template@7.4.4':
     resolution: {integrity: sha512-h/NUaSyG5EyxBIp8YRxo4RMe2/qQgvyowRwVMzhYhBCONbW8PUsg4lkFMrhgZhUe5z3L3MiLDuvyJ/CaPa2A8A==}
@@ -3198,6 +3226,10 @@ snapshots:
     dependencies:
       '@testing-library/dom': 10.4.1
 
+  '@types/acorn@4.0.6':
+    dependencies:
+      '@types/estree': 1.0.8
+
   '@types/aria-query@5.0.4': {}
 
   '@types/babel__core@7.20.5':
@@ -3211,6 +3243,10 @@ snapshots:
   '@types/babel__generator@7.27.0':
     dependencies:
       '@babel/types': 7.28.4
+
+  '@types/babel__parser@7.1.5':
+    dependencies:
+      '@babel/parser': 7.28.4
 
   '@types/babel__template@7.4.4':
     dependencies:

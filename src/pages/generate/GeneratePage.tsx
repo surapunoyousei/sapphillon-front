@@ -5,7 +5,7 @@ import { PluginsPanel } from "./PluginsPanel";
 import { RunPanel } from "./RunPanel";
 import { usePaneLayout } from "./usePaneLayout";
 import { useWorkflowGeneration } from "./useWorkflowGeneration";
-import WorkflowCanvas from "../../components/workflow/WorkflowCanvas";
+import { WorkflowCanvas } from "../../components/workflow/WorkflowCanvas";
 
 export function GeneratePage() {
   const [prompt, setPrompt] = React.useState("");
@@ -68,7 +68,7 @@ export function GeneratePage() {
               overflow="hidden"
             >
               <HStack justify="space-between" mb={1}>
-                <Text fontWeight="medium">Latest Definition</Text>
+                <Text fontWeight="medium">Workflow Steps</Text>
               </HStack>
               <Box
                 minH={0}
@@ -78,7 +78,9 @@ export function GeneratePage() {
                 bg="bg.subtle"
                 overflow="hidden"
               >
-                <WorkflowCanvas workflow={latest?.workflowDefinition ?? null} />
+                {latest?.workflowDefinition && (
+                  <WorkflowCanvas workflow={latest.workflowDefinition} />
+                )}
               </Box>
             </VStack>
           </VStack>
