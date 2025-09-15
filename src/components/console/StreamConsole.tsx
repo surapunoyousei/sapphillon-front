@@ -1,5 +1,6 @@
 import React from "react";
-import { Badge, Box, Code, HStack, Text, VStack } from "@chakra-ui/react";
+import { Badge, Box, HStack, Text, Tooltip, VStack } from "@chakra-ui/react";
+import { Portal } from "@chakra-ui/react";
 // icons removed to avoid bundle size / naming issues; using badge + border colors
 
 export type GenerationEvent = {
@@ -11,18 +12,24 @@ export type GenerationEvent = {
 type Props = { events: GenerationEvent[]; streaming: boolean };
 
 export const StreamConsole: React.FC<Props> = ({ events, streaming }) => {
-  const [autoScroll, setAutoScroll] = React.useState(true);
+  // 初期表示は上端に固定（ターミナルと同様）。ユーザーが最下部に到達したら追従を再開
+  const [autoScroll, setAutoScroll] = React.useState(false);
   const viewportRef = React.useRef<HTMLDivElement | null>(null);
-  const visible = events;
+  const visible = React.useMemo(() => {
+    return [...events].sort((a, b) => a.t - b.t);
+  }, [events]);
+
+  // マウント時に必ず最上部に固定（ブラウザが以前のスクロール位置を保持しているケース対策）
+  React.useLayoutEffect(() => {
+    const el = viewportRef.current;
+    if (el) el.scrollTop = 0;
+  }, []);
 
   // Auto scroll behavior
   React.useEffect(() => {
     const el = viewportRef.current;
     if (!el) return;
-    const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 24;
-    if (autoScroll && nearBottom) {
-      el.scrollTop = el.scrollHeight;
-    }
+    if (autoScroll) el.scrollTop = el.scrollHeight;
   }, [visible, autoScroll]);
 
   const onScroll = () => {
@@ -45,6 +52,7 @@ export const StreamConsole: React.FC<Props> = ({ events, streaming }) => {
         onScroll={onScroll}
         pr={1}
         fontFamily="mono"
+        css={{ overflowAnchor: "none" }}
       >
         {visible.length === 0
           ? (
@@ -70,10 +78,11 @@ function LogRow({ e, index }: { e: GenerationEvent; index: number }) {
   const meta = kindMeta(e);
   const summary = summarize(e);
   const payload = stringifyPayload(e.payload);
+  const inline = payload ? inlineSnippet(payload, 100) : "";
   return (
     <Box
       px={2}
-      py={1.5}
+      py={1}
       borderBottomWidth="1px"
       borderColor="border"
       bg={index % 2 === 1 ? "bg.subtle" : undefined}
@@ -88,33 +97,81 @@ function LogRow({ e, index }: { e: GenerationEvent; index: number }) {
         w="1.5px"
         bg={meta.border}
       />
-      <HStack gap={2} align="start">
-        <Badge colorPalette={meta.palette} flexShrink={0}>
+      <HStack gap={1} align="center">
+        <Badge
+          colorPalette={meta.palette}
+          flexShrink={0}
+          fontSize="10px"
+          px={1}
+          py={0}
+        >
           {e.kind}
         </Badge>
-        <Text fontSize="sm" color="fg.muted" flexShrink={0} w="84px">
+        <Text fontSize="xs" color="fg.muted" flexShrink={0} w="72px">
           {fmtTime(e.t)}
         </Text>
         <Box flex={1} minW={0}>
-          <Text fontSize="sm" css={{ wordBreak: "break-word" }}>{summary}</Text>
-          {payload && (
-            <details>
-              <summary>
-                <Text as="span" fontSize="xs" color="fg.muted">details</Text>
-              </summary>
-              <Code
-                as="pre"
-                display="block"
-                p={2}
-                fontSize="xs"
-                whiteSpace="pre-wrap"
-                css={{ overflowWrap: "anywhere" }}
-                overflowX="auto"
+          {payload
+            ? (
+              <Tooltip.Root
+                openDelay={300}
+                closeDelay={100}
+                positioning={{ placement: "top-start" }}
               >
-                {payload}
-              </Code>
-            </details>
-          )}
+                <Tooltip.Trigger asChild>
+                  <Text
+                    fontSize="sm"
+                    css={{
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {summary}
+                    {inline && (
+                      <Text as="span" fontFamily="mono" color="fg.muted">
+                        — {inline}
+                      </Text>
+                    )}
+                  </Text>
+                </Tooltip.Trigger>
+                <Portal>
+                  <Tooltip.Positioner>
+                    <Tooltip.Content
+                      maxW="90vw"
+                      maxH="50vh"
+                      overflow="auto"
+                      p={2}
+                      fontSize="xs"
+                      zIndex={1700}
+                    >
+                      <Tooltip.Arrow />
+                      <Box
+                        as="pre"
+                        m={0}
+                        whiteSpace="pre-wrap"
+                        css={{ overflowWrap: "anywhere" }}
+                        fontFamily="mono"
+                      >
+                        {payload}
+                      </Box>
+                    </Tooltip.Content>
+                  </Tooltip.Positioner>
+                </Portal>
+              </Tooltip.Root>
+            )
+            : (
+              <Text
+                fontSize="sm"
+                css={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {summary}
+              </Text>
+            )}
         </Box>
       </HStack>
     </Box>
@@ -177,7 +234,7 @@ function toRows(events: GenerationEvent[]): Row[] {
 
 function SeparatorRow({ label }: { label: string }) {
   return (
-    <HStack align="center" my={1} px={1} color="fg.muted">
+    <HStack align="center" my={0.5} px={1} color="fg.muted">
       <Box flex="1" borderTopWidth="1px" borderColor="border" />
       <Text fontSize="xs" px={2} whiteSpace="nowrap">{label}</Text>
       <Box flex="1" borderTopWidth="1px" borderColor="border" />
@@ -266,6 +323,12 @@ function stringifyPayload(p: unknown): string {
 function fmtTime(t: number) {
   const d = new Date(t);
   return d.toLocaleTimeString();
+}
+
+function inlineSnippet(s: string, max = 100): string {
+  // 改行や連続空白を 1 つのスペースに畳み、指定長で省略
+  const oneLine = s.replace(/\s+/g, " ").trim();
+  return oneLine.length > max ? oneLine.slice(0, max) + "…" : oneLine;
 }
 
 export default StreamConsole;
