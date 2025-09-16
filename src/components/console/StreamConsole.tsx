@@ -216,6 +216,46 @@ function toRows(events: GenerationEvent[]): Row[] {
       ) {
         rows.push({ type: "sep", label: "Run started" });
       }
+
+      if (p && typeof p === "object" && "workflowResult" in p) {
+        const wr = (p as Record<string, unknown>).workflowResult as unknown;
+        if (
+          wr && typeof wr === "object" &&
+          "result" in (wr as Record<string, unknown>)
+        ) {
+          const resultVal = (wr as Record<string, unknown>).result as unknown;
+          if (typeof resultVal === "string" && /\r?\n/.test(resultVal)) {
+            const lines = resultVal.replaceAll("\r\n", "\n").split("\n");
+            for (let i = 0; i < lines.length; i++) {
+              const line = lines[i];
+              if (line.trim() === "") continue;
+              const lineEvent: GenerationEvent = {
+                t: e.t + i * 1e-9,
+                kind: e.kind,
+                payload: line,
+              };
+              rows.push({ type: "log", event: lineEvent });
+            }
+            continue;
+          }
+        }
+      }
+
+      // message のペイロードが文字列で複数行なら、各行に分割（空白行はスキップ）
+      if (typeof p === "string" && /\r?\n/.test(p)) {
+        const lines = p.replaceAll("\r\n", "\n").split("\n");
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          if (line.trim() === "") continue;
+          const lineEvent: GenerationEvent = {
+            t: e.t + i * 1e-9,
+            kind: e.kind,
+            payload: line,
+          };
+          rows.push({ type: "log", event: lineEvent });
+        }
+        continue;
+      }
     }
     if (e.kind === "done") {
       const payload = e.payload as unknown;
@@ -311,13 +351,131 @@ function summarize(e: GenerationEvent): string {
 
 function stringifyPayload(p: unknown): string {
   if (p == null) return "";
-  if (p instanceof Error) return p.stack || p.message || String(p);
   if (typeof p === "string") return p;
-  try {
-    return JSON.stringify(p, null, 2);
-  } catch {
-    return String(p);
+  if (p instanceof Error) {
+    return p.stack || p.message || String(p);
   }
+
+  // React SyntheticEvent のような循環参照オブジェクトの簡易表現
+  if (p && typeof p === "object") {
+    const anyP = p as Record<string, unknown>;
+    if (
+      "nativeEvent" in anyP && typeof anyP["nativeEvent"] === "object" &&
+      "isDefaultPrevented" in anyP
+    ) {
+      const type = typeof anyP["type"] === "string" ? anyP["type"] : "unknown";
+      return `[SyntheticEvent type=${String(type)}]`;
+    }
+  }
+
+  // protobuf / gRPC 生成物などで toJSON/toJsonString/toObject を持つケースを優先
+  try {
+    if (p && typeof p === "object") {
+      const anyP = p as Record<string, unknown> & {
+        toJsonString?: (opts?: unknown) => unknown;
+        toJSON?: () => unknown;
+        toObject?: () => unknown;
+      };
+      if (typeof anyP.toJsonString === "function") {
+        try {
+          // 一部実装は prettySpaces オプションを受け取る
+          return String(anyP.toJsonString({ prettySpaces: 2 }));
+        } catch {
+          // ignore
+          return String(anyP.toJsonString?.());
+        }
+      }
+      if (typeof anyP.toJSON === "function") {
+        try {
+          return JSON.stringify(anyP, null, 2);
+        } catch {
+          // ignore
+          try {
+            return JSON.stringify(anyP.toJSON(), null, 2);
+          } catch {
+            // ignore
+          }
+        }
+      }
+      if (typeof anyP.toObject === "function") {
+        try {
+          return JSON.stringify(anyP.toObject(), null, 2);
+        } catch {
+          // ignore
+        }
+      }
+    }
+  } catch {
+    // ignore — 下の safeStringify にフォールバック
+  }
+
+  // それ以外は安全な JSON 化（循環参照/特殊型対応）を試みる
+  try {
+    return safeStringify(p, 2);
+  } catch {
+    // 最後の砦として toString にフォールバック（[object Object] の可能性は残るがほぼ到達しない）
+    try {
+      return String(p);
+    } catch {
+      return "[Unserializable]";
+    }
+  }
+}
+
+function safeStringify(value: unknown, space = 2): string {
+  const seen = new WeakSet<object>();
+
+  const isDomNode = (v: unknown) => {
+    // Node が未定義な環境（SSR等）を考慮
+    const NodeCtor: typeof Node | undefined =
+      (globalThis as unknown as { Node?: typeof Node }).Node;
+    return !!NodeCtor && v instanceof NodeCtor;
+  };
+
+  const replacer = (_key: string, val: unknown) => {
+    // 原始型や null はそのまま
+    if (val === null) return val;
+    const t = typeof val;
+    if (t === "string" || t === "number" || t === "boolean") return val;
+
+    if (t === "bigint") return String(val as bigint);
+    if (t === "symbol") return String(val as symbol);
+    if (t === "function") {
+      const fnName = (val as { name?: unknown }).name;
+      const nameStr = typeof fnName === "string" && fnName ? `: ${fnName}` : "";
+      return `[Function${nameStr}]`;
+    }
+
+    if (val instanceof Error) {
+      return { name: val.name, message: val.message, stack: val.stack };
+    }
+    if (val instanceof Date) return val.toISOString();
+    if (val instanceof RegExp) return val.toString();
+    if (typeof Map !== "undefined" && val instanceof Map) {
+      return Object.fromEntries(
+        Array.from((val as Map<unknown, unknown>).entries()),
+      );
+    }
+    if (typeof Set !== "undefined" && val instanceof Set) {
+      return Array.from((val as Set<unknown>).values());
+    }
+    if (isDomNode(val)) {
+      try {
+        return `[Node ${(val as { nodeName?: unknown }).nodeName ?? "?"}]`;
+      } catch {
+        return `[Node]`;
+      }
+    }
+
+    if (t === "object") {
+      const obj = val as object;
+      if (seen.has(obj)) return "[Circular]";
+      seen.add(obj);
+    }
+    return val;
+  };
+
+  return JSON.stringify(value, replacer, space);
 }
 
 function fmtTime(t: number) {
