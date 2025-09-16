@@ -1,7 +1,9 @@
 import type { Workflow } from "@/gen/sapphillon/v1/workflow_pb";
-import { Box, Code, Text, VStack } from "@chakra-ui/react";
+import { Box, Button, ButtonGroup, Code, Text, VStack } from "@chakra-ui/react";
 import generate from "@babel/generator";
 import * as parser from "@babel/parser";
+import traverse from "@babel/traverse";
+import * as t from "@babel/types";
 import type {
   ExpressionStatement,
   ForInStatement,
@@ -640,6 +642,7 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [viewMode, setViewMode] = useState<"steps" | "code">("steps");
   const dragStartRef = useRef({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -675,7 +678,222 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
     }
   }, [latestCode]);
 
+  // Strip TypeScript syntax and render raw JavaScript for the latest code
+  const rawJsCode = useMemo(() => {
+    if (!latestCode) return "";
+    try {
+      const ast = parser.parse(latestCode, {
+        sourceType: "module",
+        plugins: ["typescript"],
+      });
+
+      const removeTypeFromPattern = (
+        pattern: t.PatternLike | t.LVal | t.TSParameterProperty,
+      ) => {
+        if ((pattern as t.TSParameterProperty).type === "TSParameterProperty") {
+          // unwrap parameter property
+          // handled in visitor
+          return;
+        }
+        if ((pattern as t.Identifier).type === "Identifier") {
+          const id = pattern as t.Identifier;
+          if (id.typeAnnotation) {
+            // narrow and delete optional annotation
+            delete (id as t.Identifier & {
+              typeAnnotation?: t.TSTypeAnnotation;
+            }).typeAnnotation;
+          }
+          return;
+        }
+        if ((pattern as t.AssignmentPattern).type === "AssignmentPattern") {
+          const ap = pattern as t.AssignmentPattern;
+          // left side could be Identifier or pattern
+          removeTypeFromPattern(ap.left);
+          return;
+        }
+        if ((pattern as t.ObjectPattern).type === "ObjectPattern") {
+          const op = pattern as t.ObjectPattern;
+          op.properties.forEach((prop) => {
+            if (prop.type === "ObjectProperty") {
+              // value is PatternLike
+              removeTypeFromPattern(prop.value as t.PatternLike);
+            } else if (prop.type === "RestElement") {
+              removeTypeFromPattern(prop.argument);
+            }
+          });
+          return;
+        }
+        if ((pattern as t.ArrayPattern).type === "ArrayPattern") {
+          const ap = pattern as t.ArrayPattern;
+          ap.elements.forEach((el) => {
+            if (!el) return;
+            if (el.type === "RestElement") {
+              removeTypeFromPattern(el.argument);
+            } else if (el.type === "Identifier") {
+              if (el.typeAnnotation) {
+                delete (el as t.Identifier & {
+                  typeAnnotation?: t.TSTypeAnnotation;
+                }).typeAnnotation;
+              }
+            } else if (el.type === "AssignmentPattern") {
+              removeTypeFromPattern(el.left);
+            }
+          });
+        }
+      };
+
+      traverse(ast, {
+        // Remove type-only declarations
+        TSInterfaceDeclaration(path) {
+          path.remove();
+        },
+        TSTypeAliasDeclaration(path) {
+          path.remove();
+        },
+        TSModuleDeclaration(path) {
+          path.remove();
+        },
+        TSEnumDeclaration(path) {
+          // For simplicity, drop enums (optional: could transform to const objects)
+          path.remove();
+        },
+        TSImportEqualsDeclaration(path) {
+          path.remove();
+        },
+        // Unwrap as/assert/satisfies
+        TSAsExpression(path) {
+          path.replaceWith(path.node.expression as t.Expression);
+        },
+        TSTypeAssertion(path) {
+          path.replaceWith(path.node.expression as t.Expression);
+        },
+        TSSatisfiesExpression(path) {
+          path.replaceWith(path.node.expression as t.Expression);
+        },
+        // Clean function signatures
+        Function(path) {
+          const n = path.node as
+            | t.FunctionDeclaration
+            | t.FunctionExpression
+            | t.ArrowFunctionExpression
+            | t.ObjectMethod
+            | t.ClassMethod
+            | t.ClassPrivateMethod;
+          // remove generics / return types
+          if (
+            (n as
+              | t.FunctionDeclaration
+              | t.FunctionExpression
+              | t.ArrowFunctionExpression).typeParameters
+          ) {
+            delete (n as t.FunctionDeclaration & {
+              typeParameters?: t.TSTypeParameterDeclaration;
+            }).typeParameters;
+          }
+          if (
+            (n as
+              | t.FunctionDeclaration
+              | t.FunctionExpression
+              | t.ArrowFunctionExpression).returnType
+          ) {
+            delete (n as t.FunctionDeclaration & {
+              returnType?: t.TSTypeAnnotation;
+            }).returnType;
+          }
+          // params
+          (n.params ?? []).forEach((p) => {
+            if (
+              p.type === "Identifier" ||
+              p.type === "AssignmentPattern" ||
+              p.type === "ObjectPattern" ||
+              p.type === "ArrayPattern" ||
+              p.type === "RestElement" ||
+              p.type === "TSParameterProperty"
+            ) {
+              removeTypeFromPattern(
+                p as t.PatternLike | t.LVal | t.TSParameterProperty,
+              );
+            }
+          });
+        },
+        // Class fields and methods
+        ClassProperty(path) {
+          const n = path.node as t.ClassProperty;
+          if (
+            (n as t.ClassProperty & { typeAnnotation?: t.TSTypeAnnotation })
+              .typeAnnotation
+          ) {
+            delete (n as t.ClassProperty & {
+              typeAnnotation?: t.TSTypeAnnotation;
+            }).typeAnnotation;
+          }
+          if ((n as t.ClassProperty & { definite?: boolean }).definite) {
+            delete (n as t.ClassProperty & { definite?: boolean }).definite;
+          }
+          if ((n as t.ClassProperty & { declare?: boolean }).declare) {
+            delete (n as t.ClassProperty & { declare?: boolean }).declare;
+          }
+        },
+        TSParameterProperty(path) {
+          path.replaceWith(
+            path.node.parameter as
+              | t.Identifier
+              | t.AssignmentPattern
+              | t.RestElement,
+          );
+        },
+        Identifier(path) {
+          const id = path.node as t.Identifier & {
+            typeAnnotation?: t.TSTypeAnnotation;
+          };
+          if (id.typeAnnotation) delete id.typeAnnotation;
+        },
+        // Imports/exports: drop type-only
+        ImportDeclaration(path) {
+          const n = path.node as t.ImportDeclaration & {
+            importKind?: "type" | "value";
+          };
+          if (n.importKind === "type") {
+            path.remove();
+            return;
+          }
+          if (n.specifiers && n.specifiers.length) {
+            n.specifiers = n.specifiers.filter(
+              (s) =>
+                (s as t.ImportSpecifier & { importKind?: "type" | "value" })
+                  .importKind !== "type",
+            );
+            if (n.specifiers.length === 0) path.remove();
+          }
+        },
+        ExportNamedDeclaration(path) {
+          const n = path.node as t.ExportNamedDeclaration & {
+            exportKind?: "type" | "value";
+          };
+          if (n.exportKind === "type") {
+            path.remove();
+          }
+        },
+      });
+
+      // Generate JavaScript
+      const generator =
+        ((generate as unknown) as { default?: typeof generate }).default ??
+          generate;
+      const { code } = generator(ast, {
+        comments: false,
+        compact: false,
+        concise: false,
+      });
+      return code as string;
+    } catch {
+      // Fallback to original code
+      return latestCode;
+    }
+  }, [latestCode]);
+
   const handleMouseDown = (e: MouseEvent<HTMLDivElement>) => {
+    if (viewMode !== "steps") return;
     setIsDragging(true);
     dragStartRef.current = {
       x: 0, // No horizontal movement
@@ -706,11 +924,11 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
   };
 
   const handleWheel = (e: WheelEvent<HTMLDivElement>) => {
-    e.preventDefault();
-
-    // For vertical flow, just scroll vertically without zoom
-    const newY = position.y - e.deltaY;
-    setPosition({ x: 0, y: newY });
+    if (viewMode === "steps") {
+      e.preventDefault();
+      const newY = position.y - e.deltaY;
+      setPosition({ x: 0, y: newY });
+    }
   };
 
   return (
@@ -728,11 +946,30 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
       onMouseUp={handleMouseUpOrLeave}
       onMouseLeave={handleMouseUpOrLeave}
       onWheel={handleWheel}
-      cursor="grab"
+      cursor={viewMode === "steps" ? "grab" : "auto"}
       position="relative"
       bg="white"
       _dark={{ bg: "gray.950" }}
     >
+      {/* View toggle */}
+      <Box position="absolute" top={2} right={2} zIndex={2}>
+        <ButtonGroup size="xs" attached variant="outline">
+          <Button
+            onClick={() => setViewMode("steps")}
+            colorPalette={viewMode === "steps" ? "blue" : undefined}
+            variant={viewMode === "steps" ? "solid" : "outline"}
+          >
+            Steps
+          </Button>
+          <Button
+            onClick={() => setViewMode("code")}
+            colorPalette={viewMode === "code" ? "blue" : undefined}
+            variant={viewMode === "code" ? "solid" : "outline"}
+          >
+            Code
+          </Button>
+        </ButtonGroup>
+      </Box>
       {/* Light mode grid pattern */}
       <Box
         position="absolute"
@@ -770,35 +1007,44 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
         }}
       />
 
-      <Box
-        style={{
-          position: "absolute",
-          width: "100%",
-          transform: `translateY(${position.y}px)`,
-          transition: isDragging ? "none" : "transform 0.08s ease-out",
-          zIndex: 1,
-        }}
-      >
-        {/* Render based on memoized parsing result */}
-        {!latestCode
-          ? <Text>No code available to display.</Text>
-          : parseError
-          ? (
-            <Box p={4} color="red.500" whiteSpace="pre-wrap">
-              <Text fontWeight="bold">Error parsing workflow code:</Text>
-              <Code colorScheme="red">{parseError.message}</Code>
-            </Box>
-          )
-          : workflowBody
-          ? (
-            <VStack align="stretch" gap={1.5} w="100%" py={3} px={3}>
-              {workflowBody.map((statement, index) => (
-                <AstNode key={index} node={statement} depth={0} />
-              ))}
-            </VStack>
-          )
-          : <Text>`workflow()` function not found.</Text>}
-      </Box>
+      {viewMode === "steps" && (
+        <Box
+          style={{
+            position: "absolute",
+            width: "100%",
+            transform: `translateY(${position.y}px)`,
+            transition: isDragging ? "none" : "transform 0.08s ease-out",
+            zIndex: 1,
+          }}
+        >
+          {!latestCode
+            ? <Text>No code available to display.</Text>
+            : parseError
+            ? (
+              <Box p={4} color="red.500" whiteSpace="pre-wrap">
+                <Text fontWeight="bold">Error parsing workflow code:</Text>
+                <Code colorScheme="red">{parseError.message}</Code>
+              </Box>
+            )
+            : workflowBody
+            ? (
+              <VStack align="stretch" gap={1.5} w="100%" py={3} px={3}>
+                {workflowBody.map((statement, index) => (
+                  <AstNode key={index} node={statement} depth={0} />
+                ))}
+              </VStack>
+            )
+            : <Text>`workflow()` function not found.</Text>}
+        </Box>
+      )}
+
+      {viewMode === "code" && (
+        <Box position="absolute" inset={0} overflow="auto" zIndex={1} p={3}>
+          <Box as="pre" fontFamily="mono" fontSize="sm" m={0} whiteSpace="pre">
+            {rawJsCode}
+          </Box>
+        </Box>
+      )}
     </Box>
   );
 };
