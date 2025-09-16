@@ -1,11 +1,22 @@
 import React from "react";
-import { Box, HStack, Separator, Text, VStack } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Dialog,
+  HStack,
+  IconButton,
+  Separator,
+  Text,
+  useDisclosure,
+  VStack,
+} from "@chakra-ui/react";
 import { PromptPanel } from "./PromptPanel";
 import { PluginsPanel } from "./PluginsPanel";
 import { RunPanel } from "./RunPanel";
 import { usePaneLayout } from "./usePaneLayout";
 import { useWorkflowGeneration } from "./useWorkflowGeneration";
 import { WorkflowCanvas } from "../../components/workflow/WorkflowCanvas";
+import { LuExpand, LuNetwork } from "react-icons/lu";
 
 export function GeneratePage() {
   const [prompt, setPrompt] = React.useState("");
@@ -19,6 +30,7 @@ export function GeneratePage() {
   } = usePaneLayout();
   const { streaming, events, latest, runRes, start, stop, runLatest } =
     useWorkflowGeneration();
+  const { open, onOpen, onClose } = useDisclosure();
 
   const onStart = React.useCallback(() => start(prompt), [start, prompt]);
 
@@ -69,6 +81,15 @@ export function GeneratePage() {
             >
               <HStack justify="space-between" mb={1}>
                 <Text fontWeight="medium">Workflow Steps</Text>
+                <IconButton
+                  aria-label="Expand workflow"
+                  size="sm"
+                  variant="ghost"
+                  onClick={onOpen}
+                  disabled={!latest?.workflowDefinition}
+                >
+                  <LuExpand />
+                </IconButton>
               </HStack>
               <Box
                 minH={0}
@@ -130,6 +151,39 @@ export function GeneratePage() {
           onRun={runLatest}
         />
       </Box>
+
+      <Dialog.Root
+        open={open}
+        onOpenChange={(e) => !e.open && onClose()}
+        size="xl"
+      >
+        <Dialog.Backdrop />
+        <Dialog.Positioner>
+          <Dialog.Content>
+            <Dialog.Header>
+              <HStack>
+                <LuNetwork />
+                <Text fontWeight="medium">Workflow</Text>
+              </HStack>
+            </Dialog.Header>
+            <Dialog.CloseTrigger />
+            <Dialog.Body
+              minH="70vh"
+              p={0}
+              padding={4}
+              display="flex"
+              flexDir="column"
+            >
+              {latest?.workflowDefinition && (
+                <WorkflowCanvas workflow={latest.workflowDefinition} />
+              )}
+            </Dialog.Body>
+            <Dialog.Footer>
+              <Button onClick={onClose}>Close</Button>
+            </Dialog.Footer>
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Dialog.Root>
     </Box>
   );
 }

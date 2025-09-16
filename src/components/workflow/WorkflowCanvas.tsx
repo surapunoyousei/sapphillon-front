@@ -18,13 +18,7 @@ import type {
   VariableDeclaration,
   WhileStatement,
 } from "@babel/types";
-import React, {
-  type MouseEvent,
-  useMemo,
-  useRef,
-  useState,
-  type WheelEvent,
-} from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
   LuChevronDown,
   LuChevronRight,
@@ -370,7 +364,7 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
       );
       return (
         <NodeContainer
-          title={`Variable: ${varDecl.kind}`}
+          title="変数を準備"
           icon={<LuVariable size={16} />}
           type="action"
           summary={summary}
@@ -387,7 +381,7 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
       const summary = oneLine(`return ${generateCode(returnStmt.argument)}`);
       return (
         <NodeContainer
-          title="Return"
+          title="結果を返す"
           icon={<LuCornerDownLeft size={16} />}
           type="action"
           summary={summary}
@@ -417,7 +411,7 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
         const summary = `${fn}(…)  args=${callExpr.arguments?.length || 0}`;
         return (
           <NodeContainer
-            title={`Function Call`}
+            title="ツールを実行"
             icon={<LuSettings size={16} />}
             type="action"
             summary={summary}
@@ -431,7 +425,7 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
       const summary = oneLine(generateCode(expr.expression));
       return (
         <NodeContainer
-          title="Expression"
+          title="処理を実行"
           icon={<LuZap size={16} />}
           type="action"
           summary={summary}
@@ -458,7 +452,7 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
       const summary = oneLine(`if (${generateCode(ifStmt.test)})`);
       return (
         <NodeContainer
-          title="Conditional"
+          title="条件分岐"
           icon={<LuGitBranch size={16} />}
           type="condition"
           summary={summary}
@@ -470,13 +464,13 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
             <BodyRenderer
               body={ifStmt.consequent}
               depth={depth + 1}
-              label="Then"
+              label="もし合致した場合"
             />
             {ifStmt.alternate && (
               <BodyRenderer
                 body={ifStmt.alternate}
                 depth={depth + 1}
-                label="Else"
+                label="合致しなかった場合"
               />
             )}
           </VStack>
@@ -486,15 +480,12 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
     case "ForInStatement":
     case "ForOfStatement": {
       const loopStmt = node as ForInStatement | ForOfStatement;
-      const loopType = loopStmt.type === "ForInStatement"
-        ? "For...In"
-        : "For...Of";
       const summary = oneLine(
         `${generateCode(loopStmt.left)} in/of ${generateCode(loopStmt.right)}`,
       );
       return (
         <NodeContainer
-          title={`${loopType} Loop`}
+          title="繰り返し"
           icon={<LuRepeat size={16} />}
           type="loop"
           summary={summary}
@@ -502,7 +493,11 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
           defaultCollapsed={depth > 0}
           palette="blue"
         >
-          <BodyRenderer body={loopStmt.body} depth={depth + 1} label="Loop" />
+          <BodyRenderer
+            body={loopStmt.body}
+            depth={depth + 1}
+            label="繰り返し処理"
+          />
         </NodeContainer>
       );
     }
@@ -511,7 +506,7 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
       const summary = oneLine(`while (${generateCode(whileStmt.test)})`);
       return (
         <NodeContainer
-          title="While Loop"
+          title="繰り返し"
           icon={<LuRepeat size={16} />}
           type="loop"
           summary={summary}
@@ -519,7 +514,11 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
           defaultCollapsed={depth > 0}
           palette="blue"
         >
-          <BodyRenderer body={whileStmt.body} depth={depth + 1} label="Loop" />
+          <BodyRenderer
+            body={whileStmt.body}
+            depth={depth + 1}
+            label="繰り返し処理"
+          />
         </NodeContainer>
       );
     }
@@ -532,7 +531,7 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
       );
       return (
         <NodeContainer
-          title="For Loop"
+          title="繰り返し"
           icon={<LuRepeat size={16} />}
           type="loop"
           summary={summary}
@@ -540,7 +539,11 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
           defaultCollapsed={depth > 0}
           palette="blue"
         >
-          <BodyRenderer body={forStmt.body} depth={depth + 1} label="Loop" />
+          <BodyRenderer
+            body={forStmt.body}
+            depth={depth + 1}
+            label="繰り返し処理"
+          />
         </NodeContainer>
       );
     }
@@ -560,7 +563,7 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
       const summary = oneLine("try … catch");
       return (
         <NodeContainer
-          title="Error Handling"
+          title="エラー処理"
           icon={<LuShield size={16} />}
           type="error"
           summary={summary}
@@ -572,13 +575,13 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
             <BodyRenderer
               body={tryStmt.block.body}
               depth={depth + 1}
-              label="Try"
+              label="通常実行"
             />
             {tryStmt.handler && tryStmt.handler.body && (
               <BodyRenderer
                 body={tryStmt.handler.body.body}
                 depth={depth + 1}
-                label={`Catch (${
+                label={`エラーが発生した場合 (${
                   oneLine(generateCode(tryStmt.handler.param), 24)
                 })`}
               />
@@ -605,7 +608,7 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
     default:
       return (
         <NodeContainer
-          title={`Statement: ${node.type}`}
+          title={`不明な処理: ${node.type}`}
           icon={<LuCircle size={16} />}
           type="action"
           summary={oneLine(generateCode(node))}
@@ -619,63 +622,8 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
 export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
   workflow,
 }) => {
-  const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
   const [viewMode, setViewMode] = useState<"steps" | "code">("steps");
-  const dragStartRef = useRef({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const boundsRef = useRef<{ minY: number; maxY: number }>({
-    minY: 0,
-    maxY: 0,
-  });
-
-  // 計測してスクロール上下限を更新
-  const recomputeBounds = React.useCallback(() => {
-    const container = containerRef.current;
-    const content = contentRef.current;
-    if (!container || !content) {
-      boundsRef.current = { minY: 0, maxY: 0 };
-      return;
-    }
-    const containerH = container.clientHeight;
-    const contentH = content.offsetHeight; // transform の影響を受けない高さ
-    const maxY = 0;
-    const minY = Math.min(0, containerH - contentH);
-    boundsRef.current = { minY, maxY };
-    // 現在位置を境界内に収める
-    setPosition((pos) => {
-      const y = Math.max(minY, Math.min(maxY, pos.y));
-      return y === pos.y ? pos : { ...pos, y };
-    });
-  }, []);
-
-  React.useEffect(() => {
-    if (viewMode !== "steps") return; // steps モードのみ計測
-    recomputeBounds();
-    const container = containerRef.current;
-    const content = contentRef.current;
-    if (!container || !content) return;
-    let ro: ResizeObserver | undefined;
-    try {
-      ro = new ResizeObserver(() => recomputeBounds());
-      ro.observe(container);
-      ro.observe(content);
-    } catch {
-      // ResizeObserver 未対応環境ではウィンドウリサイズで代替
-      const onResize = () => recomputeBounds();
-      window.addEventListener("resize", onResize);
-      return () => window.removeEventListener("resize", onResize);
-    }
-    return () => {
-      ro?.disconnect();
-    };
-  }, [viewMode, recomputeBounds]);
-
-  const clampY = React.useCallback((y: number) => {
-    const { minY, maxY } = boundsRef.current;
-    return Math.max(minY, Math.min(maxY, y));
-  }, []);
 
   const latestCode = workflow.workflowCode[workflow.workflowCode.length - 1]
     ?.code;
@@ -923,82 +871,15 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
     }
   }, [latestCode]);
 
-  const handleMouseDown = (e: MouseEvent<HTMLDivElement>) => {
-    if (viewMode !== "steps") return;
-    setIsDragging(true);
-    dragStartRef.current = {
-      x: 0, // No horizontal movement
-      y: e.clientY - position.y,
-    };
-    if (containerRef.current) {
-      containerRef.current.style.cursor = "grabbing";
-      containerRef.current.style.userSelect = "none";
-    }
-  };
-
-  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || viewMode !== "steps") return;
-
-    requestAnimationFrame(() => {
-      // Only allow vertical movement for vertical flow
-      const next = e.clientY - dragStartRef.current.y;
-      setPosition({ x: 0, y: clampY(next) });
-    });
-  };
-
-  const handleMouseUpOrLeave = () => {
-    setIsDragging(false);
-    if (containerRef.current) {
-      containerRef.current.style.cursor = "grab";
-      containerRef.current.style.userSelect = "auto";
-    }
-  };
-
-  const handleWheel = (e: WheelEvent<HTMLDivElement>) => {
-    if (viewMode !== "steps") return;
-    e.preventDefault();
-    const newY = position.y - e.deltaY;
-    setPosition({ x: 0, y: clampY(newY) });
-  };
-
   return (
     <Box
       ref={containerRef}
-      borderWidth="1px"
-      borderRadius="md"
       h="100%"
       w="100%"
-      overflow="hidden"
-      overflowY={viewMode === "steps" ? "auto" : "hidden"}
-      overflowX="hidden"
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUpOrLeave}
-      onMouseLeave={handleMouseUpOrLeave}
-      onWheel={handleWheel}
-      cursor={viewMode === "steps" ? "grab" : "default"}
+      flex={1}
       position="relative"
       bg="bg"
     >
-      {/* View toggle */}
-      <Box position="absolute" top={2} right={2} zIndex={2}>
-        <ButtonGroup size="xs" attached variant="outline">
-          <Button
-            onClick={() => setViewMode("steps")}
-            colorPalette={viewMode === "steps" ? "blue" : undefined}
-            variant={viewMode === "steps" ? "solid" : "outline"}
-          >
-            Steps
-          </Button>
-          <Button
-            onClick={() => setViewMode("code")}
-            colorPalette={viewMode === "code" ? "blue" : undefined}
-            variant={viewMode === "code" ? "solid" : "outline"}
-          >
-            Code
-          </Button>
-        </ButtonGroup>
-      </Box>
       {/* Light mode grid pattern */}
       <Box
         position="absolute"
@@ -1036,45 +917,57 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
         }}
       />
 
-      {viewMode === "steps" && (
-        <Box
-          style={{
-            position: "absolute",
-            width: "100%",
-            transform: `translateY(${position.y}px)`,
-            transition: isDragging ? "none" : "transform 0.08s ease-out",
-            zIndex: 1,
-          }}
-          ref={contentRef}
-        >
-          {!latestCode
-            ? <Text>No code available to display.</Text>
-            : parseError
-            ? (
-              <Box p={4} color="red.500" whiteSpace="pre-wrap">
-                <Text fontWeight="bold">Error parsing workflow code:</Text>
-                <Code colorScheme="red">{parseError.message}</Code>
-              </Box>
-            )
-            : workflowBody
-            ? (
-              <VStack align="stretch" gap={1.5} w="100%" py={3} px={3}>
-                {workflowBody.map((statement, index) => (
-                  <AstNode key={index} node={statement} depth={0} />
-                ))}
-              </VStack>
-            )
-            : <Text>`workflow()` function not found.</Text>}
-        </Box>
-      )}
+      {/* Content */}
+      <Box position="absolute" inset={0} overflow="auto" zIndex={1}>
+        {viewMode === "steps" && (
+          <>
+            {!latestCode
+              ? <Text>No code available to display.</Text>
+              : parseError
+              ? (
+                <Box p={4} color="red.500" whiteSpace="pre-wrap">
+                  <Text fontWeight="bold">Error parsing workflow code:</Text>
+                  <Code colorScheme="red">{parseError.message}</Code>
+                </Box>
+              )
+              : workflowBody
+              ? (
+                <VStack align="stretch" gap={1.5} w="100%" p={3} pb="80px">
+                  {workflowBody.map((statement, index) => (
+                    <AstNode key={index} node={statement} depth={0} />
+                  ))}
+                </VStack>
+              )
+              : <Text>`workflow()` function not found.</Text>}
+          </>
+        )}
 
-      {viewMode === "code" && (
-        <Box position="absolute" inset={0} overflow="auto" zIndex={1} p={3}>
-          <Box as="pre" fontFamily="mono" fontSize="sm" m={0} whiteSpace="pre">
+        {viewMode === "code" && (
+          <Box as="pre" fontFamily="mono" fontSize="sm" m={0} p={3}>
             {rawJsCode}
           </Box>
-        </Box>
-      )}
+        )}
+      </Box>
+
+      {/* View toggle */}
+      <Box position="absolute" top={2} right={2} zIndex={2}>
+        <ButtonGroup size="xs" attached variant="outline">
+          <Button
+            onClick={() => setViewMode("steps")}
+            colorScheme={viewMode === "steps" ? "blue" : "gray"}
+            variant={viewMode === "steps" ? "solid" : "outline"}
+          >
+            Steps
+          </Button>
+          <Button
+            onClick={() => setViewMode("code")}
+            colorScheme={viewMode === "code" ? "blue" : "gray"}
+            variant={viewMode === "code" ? "solid" : "outline"}
+          >
+            Code
+          </Button>
+        </ButtonGroup>
+      </Box>
     </Box>
   );
 };
