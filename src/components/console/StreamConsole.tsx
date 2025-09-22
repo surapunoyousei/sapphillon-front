@@ -1,5 +1,14 @@
 import React from "react";
-import { Badge, Box, HStack, Text, Tooltip, VStack } from "@chakra-ui/react";
+import {
+  Badge,
+  Box,
+  Button,
+  HStack,
+  Text,
+  Tooltip,
+  VStack,
+} from "@chakra-ui/react";
+import { LuCheck, LuClipboard } from "react-icons/lu";
 import { Portal } from "@chakra-ui/react";
 // icons removed to avoid bundle size / naming issues; using badge + border colors
 
@@ -79,6 +88,37 @@ function LogRow({ e, index }: { e: GenerationEvent; index: number }) {
   const summary = summarize(e);
   const payload = stringifyPayload(e.payload);
   const inline = payload ? inlineSnippet(payload, 100) : "";
+  const copyText = payload ?? summary;
+  const [copied, setCopied] = React.useState(false);
+  const timeoutRef = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleCopy = React.useCallback(async () => {
+    if (!copyText) return;
+    if (typeof navigator === "undefined" || !navigator.clipboard?.writeText) {
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(copyText);
+      setCopied(true);
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = window.setTimeout(() => {
+        setCopied(false);
+      }, 1500);
+    } catch {
+      setCopied(false);
+    }
+  }, [copyText]);
+
   return (
     <Box
       px={2}
@@ -173,6 +213,36 @@ function LogRow({ e, index }: { e: GenerationEvent; index: number }) {
               </Text>
             )}
         </Box>
+        <Tooltip.Root
+          open={copied ? true : undefined}
+          positioning={{ placement: "top" }}
+          openDelay={0}
+          closeDelay={copied ? 600 : 100}
+        >
+          <Tooltip.Trigger asChild>
+            <Button
+              size="xs"
+              variant="ghost"
+              onClick={handleCopy}
+              disabled={!copyText}
+              aria-label={copied ? "Copied" : "Copy"}
+            >
+              <Box
+                as={copied ? LuCheck : LuClipboard}
+                aria-hidden="true"
+                css={{ width: 4, height: 4 }}
+              />
+            </Button>
+          </Tooltip.Trigger>
+          <Portal>
+            <Tooltip.Positioner>
+              <Tooltip.Content fontSize="xs">
+                <Tooltip.Arrow />
+                {copied ? "Copied" : "Copy"}
+              </Tooltip.Content>
+            </Tooltip.Positioner>
+          </Portal>
+        </Tooltip.Root>
       </HStack>
     </Box>
   );

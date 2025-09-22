@@ -66,7 +66,10 @@ export function useWorkflowGeneration() {
     try {
       append({ kind: "message", payload: { stage: "run", status: "start" } });
       const res = await clients.workflow.runWorkflow({
-        workflowDefinition: latest.workflowDefinition,
+        source: {
+          case: "workflowDefinition",
+          value: latest.workflowDefinition,
+        },
       });
       setRunRes(res);
       append({ kind: "message", payload: res });

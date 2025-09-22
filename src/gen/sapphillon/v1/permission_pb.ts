@@ -34,21 +34,21 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file sapphillon/v1/permission.proto.
  */
 export const file_sapphillon_v1_permission: GenFile = /*@__PURE__*/
-  fileDesc("Ch5zYXBwaGlsbG9uL3YxL3Blcm1pc3Npb24ucHJvdG8SDXNhcHBoaWxsb24udjEiuwEKClBlcm1pc3Npb24SFAoMZGlzcGxheV9uYW1lGAEgASgJEhMKC2Rlc2NyaXB0aW9uGAIgASgJEjYKD3Blcm1pc3Npb25fdHlwZRgDIAEoDjIdLnNhcHBoaWxsb24udjEuUGVybWlzc2lvblR5cGUSEAoIcmVzb3VyY2UYBCADKAkSOAoQcGVybWlzc2lvbl9sZXZlbBgFIAEoDjIeLnNhcHBoaWxsb24udjEuUGVybWlzc2lvbkxldmVsKoMBCg5QZXJtaXNzaW9uVHlwZRIfChtQRVJNSVNTSU9OX1RZUEVfVU5TUEVDSUZJRUQQABIYChRQRVJNSVNTSU9OX1RZUEVfUkVBRBABEhkKFVBFUk1JU1NJT05fVFlQRV9XUklURRACEhsKF1BFUk1JU1NJT05fVFlQRV9FWEVDVVRFEAMqigEKD1Blcm1pc3Npb25MZXZlbBIgChxQRVJNSVNTSU9OX0xFVkVMX1VOU1BFQ0lGSUVEEAASGwoXUEVSTUlTU0lPTl9MRVZFTF9NRURJVU0QARIZChVQRVJNSVNTSU9OX0xFVkVMX0hJR0gQAhIdChlQRVJNSVNTSU9OX0xFVkVMX0NSSVRJQ0FMEANiBnByb3RvMw");
+  fileDesc("Ch5zYXBwaGlsbG9uL3YxL3Blcm1pc3Npb24ucHJvdG8SDXNhcHBoaWxsb24udjEiuwEKClBlcm1pc3Npb24SFAoMZGlzcGxheV9uYW1lGAEgASgJEhMKC2Rlc2NyaXB0aW9uGAIgASgJEjYKD3Blcm1pc3Npb25fdHlwZRgDIAEoDjIdLnNhcHBoaWxsb24udjEuUGVybWlzc2lvblR5cGUSEAoIcmVzb3VyY2UYBCADKAkSOAoQcGVybWlzc2lvbl9sZXZlbBgFIAEoDjIeLnNhcHBoaWxsb24udjEuUGVybWlzc2lvbkxldmVsIl8KEUFsbG93ZWRQZXJtaXNzaW9uEhoKEnBsdWdpbl9mdW5jdGlvbl9pZBgBIAEoCRIuCgtwZXJtaXNzaW9ucxgCIAMoCzIZLnNhcHBoaWxsb24udjEuUGVybWlzc2lvbiqwAgoOUGVybWlzc2lvblR5cGUSHwobUEVSTUlTU0lPTl9UWVBFX1VOU1BFQ0lGSUVEEAASGwoXUEVSTUlTU0lPTl9UWVBFX0VYRUNVVEUQAxIjCh9QRVJNSVNTSU9OX1RZUEVfRklMRVNZU1RFTV9SRUFEEAQSJAogUEVSTUlTU0lPTl9UWVBFX0ZJTEVTWVNURU1fV1JJVEUQBRIeChpQRVJNSVNTSU9OX1RZUEVfTkVUX0FDQ0VTUxAGEh0KGVBFUk1JU1NJT05fVFlQRV9BTExPV19NQ1AQBxIdChlQRVJNSVNTSU9OX1RZUEVfQUxMT1dfQUxMEAgiBAgBEAEiBAgCEAIqFFBFUk1JU1NJT05fVFlQRV9SRUFEKhVQRVJNSVNTSU9OX1RZUEVfV1JJVEUqigEKD1Blcm1pc3Npb25MZXZlbBIgChxQRVJNSVNTSU9OX0xFVkVMX1VOU1BFQ0lGSUVEEAASGwoXUEVSTUlTU0lPTl9MRVZFTF9NRURJVU0QARIZChVQRVJNSVNTSU9OX0xFVkVMX0hJR0gQAhIdChlQRVJNSVNTSU9OX0xFVkVMX0NSSVRJQ0FMEANiBnByb3RvMw");
 
 /**
  * Describes a single permission requirement or grant for a specific resource.
  * Usage:
  * - Include in APIs (e.g., workflow or plugin definitions) to declare needed permissions.
  * - Use in policy evaluation to check whether a caller is authorized.
- * 
+ *
  * Fields:
  * - display_name: Human-readable name shown in UIs (e.g., "Read File").
  * - description: Longer explanation of the permission's purpose.
  * - permission_type: Action category (read, write, execute).
  * - resource: Resource identifiers this permission applies to. Free-form in v1.
  * - permission_level: Sensitivity level to inform review and approval.
- * 
+ *
  * Example:
  *   Permission {
  *     display_name: "Execute Workflow"
@@ -57,7 +57,7 @@ export const file_sapphillon_v1_permission: GenFile = /*@__PURE__*/
  *     resource: ["workflows/etl_daily"]
  *     permission_level: PERMISSION_LEVEL_HIGH
  *   }
- * 
+ *
  * Field behavior notes:
  * - display_name: Recommended.
  * - description: Recommended.
@@ -119,12 +119,63 @@ export const PermissionSchema: GenMessage<Permission> = /*@__PURE__*/
   messageDesc(file_sapphillon_v1_permission, 0);
 
 /**
+ * Represents a set of permissions granted to a specific plugin function.
+ * This message pairs a plugin function identifier with the list of permissions
+ * that callers are allowed to exercise when invoking that function.
+ *
+ * Fields:
+ * - plugin_function_id: Identifier of the plugin function to which the permissions apply.
+ *   Format: typically "package.function" or the plugin's internal function id. When used
+ *   within a WorkflowCode, this id should match an entry in WorkflowCode.plugin_function_ids.
+ * - permissions: The specific Permission values that are allowed for the given function.
+ *   These should be as narrow as possible to adhere to the principle of least privilege.
+ *   Example: granting only Permission{ resource: "secrets/my-secret", action: READ }
+ *
+ * Notes:
+ * - An AllowedPermission entry grants the listed permissions to code executing that
+ *   plugin function; it does not automatically grant permissions to other plugin functions.
+ * - Duplicates in permissions are allowed but have no extra effect; treat the list as a set.
+ *
+ * @generated from message sapphillon.v1.AllowedPermission
+ */
+export type AllowedPermission = Message<"sapphillon.v1.AllowedPermission"> & {
+  /**
+   * Identifier of the plugin function this permission set applies to.
+   * This must correspond to a function exposed by one of the plugin packages listed
+   * in WorkflowCode.plugin_packages or to a function id present in WorkflowCode.plugin_function_ids.
+   *
+   * @generated from field: string plugin_function_id = 1;
+   */
+  pluginFunctionId: string;
+
+  /**
+   * Permissions that are allowed when invoking the specified plugin function.
+   * Prefer specific Permission.resource and Permission.action combinations to minimize scope.
+   * Example:
+   *   permissions: [ { resource: "secrets/my-secret", action: READ } ]
+   *
+   * @generated from field: repeated sapphillon.v1.Permission permissions = 2;
+   */
+  permissions: Permission[];
+};
+
+/**
+ * Describes the message sapphillon.v1.AllowedPermission.
+ * Use `create(AllowedPermissionSchema)` to create a new message.
+ */
+export const AllowedPermissionSchema: GenMessage<AllowedPermission> = /*@__PURE__*/
+  messageDesc(file_sapphillon_v1_permission, 1);
+
+/**
  * Enumerates the type of action a permission authorizes.
  * Values:
  * - PERMISSION_TYPE_UNSPECIFIED: Default value. Do not use.
- * - PERMISSION_TYPE_READ: Grants read-only access to the resource.
- * - PERMISSION_TYPE_WRITE: Grants write or modify access to the resource.
  * - PERMISSION_TYPE_EXECUTE: Grants ability to execute or invoke the resource (e.g., run a workflow).
+ * - PERMISSION_TYPE_FILESYSTEM_READ: Grants read-only access to the file system.
+ * - PERMISSION_TYPE_FILESYSTEM_WRITE: Grants write or modify access to the file system.
+ * - PERMISSION_TYPE_NET_ACCESS: Grants network access.
+ * - PERMISSION_TYPE_ALLOW_MCP: Grants permission to use the MCP AI service.
+ * - PERMISSION_TYPE_ALLOW_ALL: Grants all permissions. Use with caution.
  *
  * @generated from enum sapphillon.v1.PermissionType
  */
@@ -137,25 +188,46 @@ export enum PermissionType {
   UNSPECIFIED = 0,
 
   /**
-   * Grants read-only access to the resource (e.g., fetch, list, inspect).
-   *
-   * @generated from enum value: PERMISSION_TYPE_READ = 1;
-   */
-  READ = 1,
-
-  /**
-   * Grants write or modify access to the resource (e.g., create, update, delete).
-   *
-   * @generated from enum value: PERMISSION_TYPE_WRITE = 2;
-   */
-  WRITE = 2,
-
-  /**
    * Grants ability to execute or invoke the resource (e.g., run, trigger).
    *
    * @generated from enum value: PERMISSION_TYPE_EXECUTE = 3;
    */
   EXECUTE = 3,
+
+  /**
+   * Grants read-only access to the file system.
+   *
+   * @generated from enum value: PERMISSION_TYPE_FILESYSTEM_READ = 4;
+   */
+  FILESYSTEM_READ = 4,
+
+  /**
+   * Grants write or modify access to the file system.
+   *
+   * @generated from enum value: PERMISSION_TYPE_FILESYSTEM_WRITE = 5;
+   */
+  FILESYSTEM_WRITE = 5,
+
+  /**
+   * Grants network access.
+   *
+   * @generated from enum value: PERMISSION_TYPE_NET_ACCESS = 6;
+   */
+  NET_ACCESS = 6,
+
+  /**
+   * Grants permission to use the MCP AI service.
+   *
+   * @generated from enum value: PERMISSION_TYPE_ALLOW_MCP = 7;
+   */
+  ALLOW_MCP = 7,
+
+  /**
+   * Grants all permissions. Use with caution.
+   *
+   * @generated from enum value: PERMISSION_TYPE_ALLOW_ALL = 8;
+   */
+  ALLOW_ALL = 8,
 }
 
 /**

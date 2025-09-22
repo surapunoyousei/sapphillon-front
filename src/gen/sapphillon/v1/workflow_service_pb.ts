@@ -16,11 +16,13 @@
 // @generated from file sapphillon/v1/workflow_service.proto (package sapphillon.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
-import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import type { GenEnum, GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import type { FieldMask } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_field_mask } from "@bufbuild/protobuf/wkt";
 import type { Status } from "../../google/rpc/status_pb";
 import { file_google_rpc_status } from "../../google/rpc/status_pb";
-import type { Workflow, WorkflowResult } from "./workflow_pb";
+import type { Workflow, WorkflowLanguage, WorkflowResult } from "./workflow_pb";
 import { file_sapphillon_v1_workflow } from "./workflow_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -28,7 +30,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file sapphillon/v1/workflow_service.proto.
  */
 export const file_sapphillon_v1_workflow_service: GenFile = /*@__PURE__*/
-  fileDesc("CiRzYXBwaGlsbG9uL3YxL3dvcmtmbG93X3NlcnZpY2UucHJvdG8SDXNhcHBoaWxsb24udjEiKQoXR2VuZXJhdGVXb3JrZmxvd1JlcXVlc3QSDgoGcHJvbXB0GAEgASgJInQKGEdlbmVyYXRlV29ya2Zsb3dSZXNwb25zZRI0ChN3b3JrZmxvd19kZWZpbml0aW9uGAEgASgLMhcuc2FwcGhpbGxvbi52MS5Xb3JrZmxvdxIiCgZzdGF0dXMYAiABKAsyEi5nb29nbGUucnBjLlN0YXR1cyJGChJGaXhXb3JrZmxvd1JlcXVlc3QSGwoTd29ya2Zsb3dfZGVmaW5pdGlvbhgBIAEoCRITCgtkZXNjcmlwdGlvbhgCIAEoCSKNAQoTRml4V29ya2Zsb3dSZXNwb25zZRI6ChlmaXhlZF93b3JrZmxvd19kZWZpbml0aW9uGAEgASgLMhcuc2FwcGhpbGxvbi52MS5Xb3JrZmxvdxIWCg5jaGFuZ2Vfc3VtbWFyeRgCIAEoCRIiCgZzdGF0dXMYAyABKAsyEi5nb29nbGUucnBjLlN0YXR1cyJKChJSdW5Xb3JrZmxvd1JlcXVlc3QSNAoTd29ya2Zsb3dfZGVmaW5pdGlvbhgBIAEoCzIXLnNhcHBoaWxsb24udjEuV29ya2Zsb3cicQoTUnVuV29ya2Zsb3dSZXNwb25zZRI2Cg93b3JrZmxvd19yZXN1bHQYASABKAsyHS5zYXBwaGlsbG9uLnYxLldvcmtmbG93UmVzdWx0EiIKBnN0YXR1cxgCIAEoCzISLmdvb2dsZS5ycGMuU3RhdHVzMqYCCg9Xb3JrZmxvd1NlcnZpY2USZQoQR2VuZXJhdGVXb3JrZmxvdxImLnNhcHBoaWxsb24udjEuR2VuZXJhdGVXb3JrZmxvd1JlcXVlc3QaJy5zYXBwaGlsbG9uLnYxLkdlbmVyYXRlV29ya2Zsb3dSZXNwb25zZTABElYKC0ZpeFdvcmtmbG93EiEuc2FwcGhpbGxvbi52MS5GaXhXb3JrZmxvd1JlcXVlc3QaIi5zYXBwaGlsbG9uLnYxLkZpeFdvcmtmbG93UmVzcG9uc2UwARJUCgtSdW5Xb3JrZmxvdxIhLnNhcHBoaWxsb24udjEuUnVuV29ya2Zsb3dSZXF1ZXN0GiIuc2FwcGhpbGxvbi52MS5SdW5Xb3JrZmxvd1Jlc3BvbnNlYgZwcm90bzM", [file_google_rpc_status, file_sapphillon_v1_workflow]);
+  fileDesc("CiRzYXBwaGlsbG9uL3YxL3dvcmtmbG93X3NlcnZpY2UucHJvdG8SDXNhcHBoaWxsb24udjEiKQoXR2VuZXJhdGVXb3JrZmxvd1JlcXVlc3QSDgoGcHJvbXB0GAEgASgJInQKGEdlbmVyYXRlV29ya2Zsb3dSZXNwb25zZRI0ChN3b3JrZmxvd19kZWZpbml0aW9uGAEgASgLMhcuc2FwcGhpbGxvbi52MS5Xb3JrZmxvdxIiCgZzdGF0dXMYAiABKAsyEi5nb29nbGUucnBjLlN0YXR1cyJGChJGaXhXb3JrZmxvd1JlcXVlc3QSGwoTd29ya2Zsb3dfZGVmaW5pdGlvbhgBIAEoCRITCgtkZXNjcmlwdGlvbhgCIAEoCSKNAQoTRml4V29ya2Zsb3dSZXNwb25zZRI6ChlmaXhlZF93b3JrZmxvd19kZWZpbml0aW9uGAEgASgLMhcuc2FwcGhpbGxvbi52MS5Xb3JrZmxvdxIWCg5jaGFuZ2Vfc3VtbWFyeRgCIAEoCRIiCgZzdGF0dXMYAyABKAsyEi5nb29nbGUucnBjLlN0YXR1cyKKAQoSUnVuV29ya2Zsb3dSZXF1ZXN0EjIKBWJ5X2lkGAEgASgLMiEuc2FwcGhpbGxvbi52MS5Xb3JrZmxvd1NvdXJjZUJ5SWRIABI2ChN3b3JrZmxvd19kZWZpbml0aW9uGAIgASgLMhcuc2FwcGhpbGxvbi52MS5Xb3JrZmxvd0gAQggKBnNvdXJjZSJDChJXb3JrZmxvd1NvdXJjZUJ5SWQSEwoLd29ya2Zsb3dfaWQYASABKAkSGAoQd29ya2Zsb3dfY29kZV9pZBgCIAEoCSJxChNSdW5Xb3JrZmxvd1Jlc3BvbnNlEjYKD3dvcmtmbG93X3Jlc3VsdBgBIAEoCzIdLnNhcHBoaWxsb24udjEuV29ya2Zsb3dSZXN1bHQSIgoGc3RhdHVzGAIgASgLMhIuZ29vZ2xlLnJwYy5TdGF0dXMiKQoSR2V0V29ya2Zsb3dSZXF1ZXN0EhMKC3dvcmtmbG93X2lkGAEgASgJImQKE0dldFdvcmtmbG93UmVzcG9uc2USKQoId29ya2Zsb3cYASABKAsyFy5zYXBwaGlsbG9uLnYxLldvcmtmbG93EiIKBnN0YXR1cxgCIAEoCzISLmdvb2dsZS5ycGMuU3RhdHVzImcKE0xpc3RXb3JrZmxvd3NGaWx0ZXISFAoMZGlzcGxheV9uYW1lGAEgASgJEjoKEXdvcmtmbG93X2xhbmd1YWdlGAIgASgOMh8uc2FwcGhpbGxvbi52MS5Xb3JrZmxvd0xhbmd1YWdlIlIKDU9yZGVyQnlDbGF1c2USDQoFZmllbGQYASABKAkSMgoJZGlyZWN0aW9uGAIgASgOMh8uc2FwcGhpbGxvbi52MS5PcmRlckJ5RGlyZWN0aW9uIqEBChRMaXN0V29ya2Zsb3dzUmVxdWVzdBIRCglwYWdlX3NpemUYASABKAUSEgoKcGFnZV90b2tlbhgCIAEoCRIyCgZmaWx0ZXIYAyABKAsyIi5zYXBwaGlsbG9uLnYxLkxpc3RXb3JrZmxvd3NGaWx0ZXISLgoIb3JkZXJfYnkYBCADKAsyHC5zYXBwaGlsbG9uLnYxLk9yZGVyQnlDbGF1c2UigAEKFUxpc3RXb3JrZmxvd3NSZXNwb25zZRIqCgl3b3JrZmxvd3MYASADKAsyFy5zYXBwaGlsbG9uLnYxLldvcmtmbG93EhcKD25leHRfcGFnZV90b2tlbhgCIAEoCRIiCgZzdGF0dXMYAyABKAsyEi5nb29nbGUucnBjLlN0YXR1cyJzChVVcGRhdGVXb3JrZmxvd1JlcXVlc3QSKQoId29ya2Zsb3cYASABKAsyFy5zYXBwaGlsbG9uLnYxLldvcmtmbG93Ei8KC3VwZGF0ZV9tYXNrGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFzayJnChZVcGRhdGVXb3JrZmxvd1Jlc3BvbnNlEikKCHdvcmtmbG93GAEgASgLMhcuc2FwcGhpbGxvbi52MS5Xb3JrZmxvdxIiCgZzdGF0dXMYAiABKAsyEi5nb29nbGUucnBjLlN0YXR1cyIsChVEZWxldGVXb3JrZmxvd1JlcXVlc3QSEwoLd29ya2Zsb3dfaWQYASABKAkiGAoWRGVsZXRlV29ya2Zsb3dSZXNwb25zZSpvChBPcmRlckJ5RGlyZWN0aW9uEiIKHk9SREVSX0JZX0RJUkVDVElPTl9VTlNQRUNJRklFRBAAEhoKFk9SREVSX0JZX0RJUkVDVElPTl9BU0MQARIbChdPUkRFUl9CWV9ESVJFQ1RJT05fREVTQxACMpYFCg9Xb3JrZmxvd1NlcnZpY2USZQoQR2VuZXJhdGVXb3JrZmxvdxImLnNhcHBoaWxsb24udjEuR2VuZXJhdGVXb3JrZmxvd1JlcXVlc3QaJy5zYXBwaGlsbG9uLnYxLkdlbmVyYXRlV29ya2Zsb3dSZXNwb25zZTABElYKC0ZpeFdvcmtmbG93EiEuc2FwcGhpbGxvbi52MS5GaXhXb3JrZmxvd1JlcXVlc3QaIi5zYXBwaGlsbG9uLnYxLkZpeFdvcmtmbG93UmVzcG9uc2UwARJUCgtSdW5Xb3JrZmxvdxIhLnNhcHBoaWxsb24udjEuUnVuV29ya2Zsb3dSZXF1ZXN0GiIuc2FwcGhpbGxvbi52MS5SdW5Xb3JrZmxvd1Jlc3BvbnNlElQKC0dldFdvcmtmbG93EiEuc2FwcGhpbGxvbi52MS5HZXRXb3JrZmxvd1JlcXVlc3QaIi5zYXBwaGlsbG9uLnYxLkdldFdvcmtmbG93UmVzcG9uc2USWgoNTGlzdFdvcmtmbG93cxIjLnNhcHBoaWxsb24udjEuTGlzdFdvcmtmbG93c1JlcXVlc3QaJC5zYXBwaGlsbG9uLnYxLkxpc3RXb3JrZmxvd3NSZXNwb25zZRJdCg5VcGRhdGVXb3JrZmxvdxIkLnNhcHBoaWxsb24udjEuVXBkYXRlV29ya2Zsb3dSZXF1ZXN0GiUuc2FwcGhpbGxvbi52MS5VcGRhdGVXb3JrZmxvd1Jlc3BvbnNlEl0KDkRlbGV0ZVdvcmtmbG93EiQuc2FwcGhpbGxvbi52MS5EZWxldGVXb3JrZmxvd1JlcXVlc3QaJS5zYXBwaGlsbG9uLnYxLkRlbGV0ZVdvcmtmbG93UmVzcG9uc2ViBnByb3RvMw", [file_google_protobuf_field_mask, file_google_rpc_status, file_sapphillon_v1_workflow]);
 
 /**
  * Request to generate a workflow from a natural language prompt.
@@ -154,18 +156,31 @@ export const FixWorkflowResponseSchema: GenMessage<FixWorkflowResponse> = /*@__P
   messageDesc(file_sapphillon_v1_workflow_service, 3);
 
 /**
- * Request to run a workflow.
- * Contains the workflow definition to be executed.
+ * Request to run a workflow by ID or by providing a definition.
  *
  * @generated from message sapphillon.v1.RunWorkflowRequest
  */
 export type RunWorkflowRequest = Message<"sapphillon.v1.RunWorkflowRequest"> & {
   /**
-   * The workflow definition to run.
-   *
-   * @generated from field: sapphillon.v1.Workflow workflow_definition = 1;
+   * @generated from oneof sapphillon.v1.RunWorkflowRequest.source
    */
-  workflowDefinition?: Workflow;
+  source: {
+    /**
+     * Run a workflow by its ID and code ID.
+     *
+     * @generated from field: sapphillon.v1.WorkflowSourceById by_id = 1;
+     */
+    value: WorkflowSourceById;
+    case: "byId";
+  } | {
+    /**
+     * Run a workflow by providing its definition.
+     *
+     * @generated from field: sapphillon.v1.Workflow workflow_definition = 2;
+     */
+    value: Workflow;
+    case: "workflowDefinition";
+  } | { case: undefined; value?: undefined };
 };
 
 /**
@@ -174,6 +189,34 @@ export type RunWorkflowRequest = Message<"sapphillon.v1.RunWorkflowRequest"> & {
  */
 export const RunWorkflowRequestSchema: GenMessage<RunWorkflowRequest> = /*@__PURE__*/
   messageDesc(file_sapphillon_v1_workflow_service, 4);
+
+/**
+ * Specifies a workflow to run using its ID and code ID.
+ *
+ * @generated from message sapphillon.v1.WorkflowSourceById
+ */
+export type WorkflowSourceById = Message<"sapphillon.v1.WorkflowSourceById"> & {
+  /**
+   * The ID of the workflow to run.
+   *
+   * @generated from field: string workflow_id = 1;
+   */
+  workflowId: string;
+
+  /**
+   * The ID of the workflow code to run.
+   *
+   * @generated from field: string workflow_code_id = 2;
+   */
+  workflowCodeId: string;
+};
+
+/**
+ * Describes the message sapphillon.v1.WorkflowSourceById.
+ * Use `create(WorkflowSourceByIdSchema)` to create a new message.
+ */
+export const WorkflowSourceByIdSchema: GenMessage<WorkflowSourceById> = /*@__PURE__*/
+  messageDesc(file_sapphillon_v1_workflow_service, 5);
 
 /**
  * Response after running a workflow.
@@ -203,7 +246,259 @@ export type RunWorkflowResponse = Message<"sapphillon.v1.RunWorkflowResponse"> &
  * Use `create(RunWorkflowResponseSchema)` to create a new message.
  */
 export const RunWorkflowResponseSchema: GenMessage<RunWorkflowResponse> = /*@__PURE__*/
-  messageDesc(file_sapphillon_v1_workflow_service, 5);
+  messageDesc(file_sapphillon_v1_workflow_service, 6);
+
+/**
+ * @generated from message sapphillon.v1.GetWorkflowRequest
+ */
+export type GetWorkflowRequest = Message<"sapphillon.v1.GetWorkflowRequest"> & {
+  /**
+   * @generated from field: string workflow_id = 1;
+   */
+  workflowId: string;
+};
+
+/**
+ * Describes the message sapphillon.v1.GetWorkflowRequest.
+ * Use `create(GetWorkflowRequestSchema)` to create a new message.
+ */
+export const GetWorkflowRequestSchema: GenMessage<GetWorkflowRequest> = /*@__PURE__*/
+  messageDesc(file_sapphillon_v1_workflow_service, 7);
+
+/**
+ * @generated from message sapphillon.v1.GetWorkflowResponse
+ */
+export type GetWorkflowResponse = Message<"sapphillon.v1.GetWorkflowResponse"> & {
+  /**
+   * @generated from field: sapphillon.v1.Workflow workflow = 1;
+   */
+  workflow?: Workflow;
+
+  /**
+   * @generated from field: google.rpc.Status status = 2;
+   */
+  status?: Status;
+};
+
+/**
+ * Describes the message sapphillon.v1.GetWorkflowResponse.
+ * Use `create(GetWorkflowResponseSchema)` to create a new message.
+ */
+export const GetWorkflowResponseSchema: GenMessage<GetWorkflowResponse> = /*@__PURE__*/
+  messageDesc(file_sapphillon_v1_workflow_service, 8);
+
+/**
+ * @generated from message sapphillon.v1.ListWorkflowsFilter
+ */
+export type ListWorkflowsFilter = Message<"sapphillon.v1.ListWorkflowsFilter"> & {
+  /**
+   * @generated from field: string display_name = 1;
+   */
+  displayName: string;
+
+  /**
+   * @generated from field: sapphillon.v1.WorkflowLanguage workflow_language = 2;
+   */
+  workflowLanguage: WorkflowLanguage;
+};
+
+/**
+ * Describes the message sapphillon.v1.ListWorkflowsFilter.
+ * Use `create(ListWorkflowsFilterSchema)` to create a new message.
+ */
+export const ListWorkflowsFilterSchema: GenMessage<ListWorkflowsFilter> = /*@__PURE__*/
+  messageDesc(file_sapphillon_v1_workflow_service, 9);
+
+/**
+ * Order by clause
+ *
+ * @generated from message sapphillon.v1.OrderByClause
+ */
+export type OrderByClause = Message<"sapphillon.v1.OrderByClause"> & {
+  /**
+   * Field name to order by (e.g. "display_name", "updated_at")
+   *
+   * @generated from field: string field = 1;
+   */
+  field: string;
+
+  /**
+   * @generated from field: sapphillon.v1.OrderByDirection direction = 2;
+   */
+  direction: OrderByDirection;
+};
+
+/**
+ * Describes the message sapphillon.v1.OrderByClause.
+ * Use `create(OrderByClauseSchema)` to create a new message.
+ */
+export const OrderByClauseSchema: GenMessage<OrderByClause> = /*@__PURE__*/
+  messageDesc(file_sapphillon_v1_workflow_service, 10);
+
+/**
+ * @generated from message sapphillon.v1.ListWorkflowsRequest
+ */
+export type ListWorkflowsRequest = Message<"sapphillon.v1.ListWorkflowsRequest"> & {
+  /**
+   * @generated from field: int32 page_size = 1;
+   */
+  pageSize: number;
+
+  /**
+   * @generated from field: string page_token = 2;
+   */
+  pageToken: string;
+
+  /**
+   * @generated from field: sapphillon.v1.ListWorkflowsFilter filter = 3;
+   */
+  filter?: ListWorkflowsFilter;
+
+  /**
+   * @generated from field: repeated sapphillon.v1.OrderByClause order_by = 4;
+   */
+  orderBy: OrderByClause[];
+};
+
+/**
+ * Describes the message sapphillon.v1.ListWorkflowsRequest.
+ * Use `create(ListWorkflowsRequestSchema)` to create a new message.
+ */
+export const ListWorkflowsRequestSchema: GenMessage<ListWorkflowsRequest> = /*@__PURE__*/
+  messageDesc(file_sapphillon_v1_workflow_service, 11);
+
+/**
+ * @generated from message sapphillon.v1.ListWorkflowsResponse
+ */
+export type ListWorkflowsResponse = Message<"sapphillon.v1.ListWorkflowsResponse"> & {
+  /**
+   * @generated from field: repeated sapphillon.v1.Workflow workflows = 1;
+   */
+  workflows: Workflow[];
+
+  /**
+   * @generated from field: string next_page_token = 2;
+   */
+  nextPageToken: string;
+
+  /**
+   * @generated from field: google.rpc.Status status = 3;
+   */
+  status?: Status;
+};
+
+/**
+ * Describes the message sapphillon.v1.ListWorkflowsResponse.
+ * Use `create(ListWorkflowsResponseSchema)` to create a new message.
+ */
+export const ListWorkflowsResponseSchema: GenMessage<ListWorkflowsResponse> = /*@__PURE__*/
+  messageDesc(file_sapphillon_v1_workflow_service, 12);
+
+/**
+ * @generated from message sapphillon.v1.UpdateWorkflowRequest
+ */
+export type UpdateWorkflowRequest = Message<"sapphillon.v1.UpdateWorkflowRequest"> & {
+  /**
+   * @generated from field: sapphillon.v1.Workflow workflow = 1;
+   */
+  workflow?: Workflow;
+
+  /**
+   * @generated from field: google.protobuf.FieldMask update_mask = 2;
+   */
+  updateMask?: FieldMask;
+};
+
+/**
+ * Describes the message sapphillon.v1.UpdateWorkflowRequest.
+ * Use `create(UpdateWorkflowRequestSchema)` to create a new message.
+ */
+export const UpdateWorkflowRequestSchema: GenMessage<UpdateWorkflowRequest> = /*@__PURE__*/
+  messageDesc(file_sapphillon_v1_workflow_service, 13);
+
+/**
+ * @generated from message sapphillon.v1.UpdateWorkflowResponse
+ */
+export type UpdateWorkflowResponse = Message<"sapphillon.v1.UpdateWorkflowResponse"> & {
+  /**
+   * @generated from field: sapphillon.v1.Workflow workflow = 1;
+   */
+  workflow?: Workflow;
+
+  /**
+   * @generated from field: google.rpc.Status status = 2;
+   */
+  status?: Status;
+};
+
+/**
+ * Describes the message sapphillon.v1.UpdateWorkflowResponse.
+ * Use `create(UpdateWorkflowResponseSchema)` to create a new message.
+ */
+export const UpdateWorkflowResponseSchema: GenMessage<UpdateWorkflowResponse> = /*@__PURE__*/
+  messageDesc(file_sapphillon_v1_workflow_service, 14);
+
+/**
+ * @generated from message sapphillon.v1.DeleteWorkflowRequest
+ */
+export type DeleteWorkflowRequest = Message<"sapphillon.v1.DeleteWorkflowRequest"> & {
+  /**
+   * @generated from field: string workflow_id = 1;
+   */
+  workflowId: string;
+};
+
+/**
+ * Describes the message sapphillon.v1.DeleteWorkflowRequest.
+ * Use `create(DeleteWorkflowRequestSchema)` to create a new message.
+ */
+export const DeleteWorkflowRequestSchema: GenMessage<DeleteWorkflowRequest> = /*@__PURE__*/
+  messageDesc(file_sapphillon_v1_workflow_service, 15);
+
+/**
+ * @generated from message sapphillon.v1.DeleteWorkflowResponse
+ */
+export type DeleteWorkflowResponse = Message<"sapphillon.v1.DeleteWorkflowResponse"> & {
+};
+
+/**
+ * Describes the message sapphillon.v1.DeleteWorkflowResponse.
+ * Use `create(DeleteWorkflowResponseSchema)` to create a new message.
+ */
+export const DeleteWorkflowResponseSchema: GenMessage<DeleteWorkflowResponse> = /*@__PURE__*/
+  messageDesc(file_sapphillon_v1_workflow_service, 16);
+
+/**
+ * Sort direction
+ *
+ * @generated from enum sapphillon.v1.OrderByDirection
+ */
+export enum OrderByDirection {
+  /**
+   * @generated from enum value: ORDER_BY_DIRECTION_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * Ascending
+   *
+   * @generated from enum value: ORDER_BY_DIRECTION_ASC = 1;
+   */
+  ASC = 1,
+
+  /**
+   * Descending
+   *
+   * @generated from enum value: ORDER_BY_DIRECTION_DESC = 2;
+   */
+  DESC = 2,
+}
+
+/**
+ * Describes the enum sapphillon.v1.OrderByDirection.
+ */
+export const OrderByDirectionSchema: GenEnum<OrderByDirection> = /*@__PURE__*/
+  enumDesc(file_sapphillon_v1_workflow_service, 0);
 
 /**
  * Generates and fixes structured workflow definitions from natural language descriptions.
@@ -214,14 +509,14 @@ export const RunWorkflowResponseSchema: GenMessage<RunWorkflowResponse> = /*@__P
 export const WorkflowService: GenService<{
   /**
    * Generates a workflow from a natural language prompt.
-   * 
+   *
    * Behavior:
    * - Server-streaming RPC that emits partial or incremental workflow definitions.
    * - The client should read until the stream completes to obtain the final definition.
-   * 
+   *
    * Responses:
    * - Each message may represent a partial draft or an updated full definition.
-   * 
+   *
    * Errors:
    * - INVALID_ARGUMENT if the prompt is empty or malformed.
    * - INTERNAL for unexpected generation errors.
@@ -235,11 +530,11 @@ export const WorkflowService: GenService<{
   },
   /**
    * Fixes an existing workflow definition using a description of issues.
-   * 
+   *
    * Behavior:
    * - Server-streaming RPC that emits suggested fixes and updated definitions incrementally.
    * - The final message in the stream typically represents the fully fixed definition.
-   * 
+   *
    * Errors:
    * - INVALID_ARGUMENT if workflow_definition or description is empty.
    * - FAILED_PRECONDITION if the definition cannot be parsed.
@@ -261,6 +556,38 @@ export const WorkflowService: GenService<{
     methodKind: "unary";
     input: typeof RunWorkflowRequestSchema;
     output: typeof RunWorkflowResponseSchema;
+  },
+  /**
+   * @generated from rpc sapphillon.v1.WorkflowService.GetWorkflow
+   */
+  getWorkflow: {
+    methodKind: "unary";
+    input: typeof GetWorkflowRequestSchema;
+    output: typeof GetWorkflowResponseSchema;
+  },
+  /**
+   * @generated from rpc sapphillon.v1.WorkflowService.ListWorkflows
+   */
+  listWorkflows: {
+    methodKind: "unary";
+    input: typeof ListWorkflowsRequestSchema;
+    output: typeof ListWorkflowsResponseSchema;
+  },
+  /**
+   * @generated from rpc sapphillon.v1.WorkflowService.UpdateWorkflow
+   */
+  updateWorkflow: {
+    methodKind: "unary";
+    input: typeof UpdateWorkflowRequestSchema;
+    output: typeof UpdateWorkflowResponseSchema;
+  },
+  /**
+   * @generated from rpc sapphillon.v1.WorkflowService.DeleteWorkflow
+   */
+  deleteWorkflow: {
+    methodKind: "unary";
+    input: typeof DeleteWorkflowRequestSchema;
+    output: typeof DeleteWorkflowResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_sapphillon_v1_workflow_service, 0);

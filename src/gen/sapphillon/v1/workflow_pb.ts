@@ -20,7 +20,7 @@ import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2"
 import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
-import type { Permission } from "./permission_pb";
+import type { AllowedPermission } from "./permission_pb";
 import { file_sapphillon_v1_permission } from "./permission_pb";
 import type { PluginPackage } from "./plugin_pb";
 import { file_sapphillon_v1_plugin } from "./plugin_pb";
@@ -30,11 +30,11 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file sapphillon/v1/workflow.proto.
  */
 export const file_sapphillon_v1_workflow: GenFile = /*@__PURE__*/
-  fileDesc("ChxzYXBwaGlsbG9uL3YxL3dvcmtmbG93LnByb3RvEg1zYXBwaGlsbG9uLnYxIt4CCgxXb3JrZmxvd0NvZGUSCgoCaWQYASABKAkSFQoNY29kZV9yZXZpc2lvbhgCIAEoBRIMCgRjb2RlGAMgASgJEjEKCGxhbmd1YWdlGAQgASgOMh8uc2FwcGhpbGxvbi52MS5Xb3JrZmxvd0xhbmd1YWdlEi4KCmNyZWF0ZWRfYXQYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi0KBnJlc3VsdBgGIAMoCzIdLnNhcHBoaWxsb24udjEuV29ya2Zsb3dSZXN1bHQSNwoUcmVxdWlyZWRfcGVybWlzc2lvbnMYByADKAsyGS5zYXBwaGlsbG9uLnYxLlBlcm1pc3Npb24SNQoPcGx1Z2luX3BhY2thZ2VzGAggAygLMhwuc2FwcGhpbGxvbi52MS5QbHVnaW5QYWNrYWdlEhsKE3BsdWdpbl9mdW5jdGlvbl9pZHMYCSADKAkijgIKDldvcmtmbG93UmVzdWx0EgoKAmlkGAEgASgJEhQKDGRpc3BsYXlfbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIOCgZyZXN1bHQYBCABKAkSKgoGcmFuX2F0GAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI2CgtyZXN1bHRfdHlwZRgGIAEoDjIhLnNhcHBoaWxsb24udjEuV29ya2Zsb3dSZXN1bHRUeXBlEhEKCWV4aXRfY29kZRgHIAEoBRIgChh3b3JrZmxvd19yZXN1bHRfcmV2aXNpb24YCSABKAVKBAgIEAlSFndvcmtmbG93X2NvZGVfcmV2aXNpb24iygIKCFdvcmtmbG93EgoKAmlkGAEgASgJEhQKDGRpc3BsYXlfbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRI6ChF3b3JrZmxvd19sYW5ndWFnZRgEIAEoDjIfLnNhcHBoaWxsb24udjEuV29ya2Zsb3dMYW5ndWFnZRIyCg13b3JrZmxvd19jb2RlGAUgAygLMhsuc2FwcGhpbGxvbi52MS5Xb3JrZmxvd0NvZGUSLgoKY3JlYXRlZF9hdBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgHIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASNwoQd29ya2Zsb3dfcmVzdWx0cxgIIAMoCzIdLnNhcHBoaWxsb24udjEuV29ya2Zsb3dSZXN1bHQqeQoQV29ya2Zsb3dMYW5ndWFnZRIhCh1XT1JLRkxPV19MQU5HVUFHRV9VTlNQRUNJRklFRBAAEiAKHFdPUktGTE9XX0xBTkdVQUdFX1RZUEVTQ1JJUFQQARIgChxXT1JLRkxPV19MQU5HVUFHRV9KQVZBU0NSSVBUEAIqZAoSV29ya2Zsb3dSZXN1bHRUeXBlEiwKKFdPUktGTE9XX1JFU1VMVF9UWVBFX1NVQ0NFU1NfVU5TUEVDSUZJRUQQABIgChxXT1JLRkxPV19SRVNVTFRfVFlQRV9GQUlMVVJFEAFiBnByb3RvMw", [file_google_protobuf_timestamp, file_sapphillon_v1_permission, file_sapphillon_v1_plugin]);
+  fileDesc("ChxzYXBwaGlsbG9uL3YxL3dvcmtmbG93LnByb3RvEg1zYXBwaGlsbG9uLnYxIoADCgxXb3JrZmxvd0NvZGUSCgoCaWQYASABKAkSFQoNY29kZV9yZXZpc2lvbhgCIAEoBRIMCgRjb2RlGAMgASgJEjEKCGxhbmd1YWdlGAQgASgOMh8uc2FwcGhpbGxvbi52MS5Xb3JrZmxvd0xhbmd1YWdlEi4KCmNyZWF0ZWRfYXQYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi0KBnJlc3VsdBgGIAMoCzIdLnNhcHBoaWxsb24udjEuV29ya2Zsb3dSZXN1bHQSNQoPcGx1Z2luX3BhY2thZ2VzGAggAygLMhwuc2FwcGhpbGxvbi52MS5QbHVnaW5QYWNrYWdlEhsKE3BsdWdpbl9mdW5jdGlvbl9pZHMYCSADKAkSPQoTYWxsb3dlZF9wZXJtaXNzaW9ucxgKIAMoCzIgLnNhcHBoaWxsb24udjEuQWxsb3dlZFBlcm1pc3Npb25KBAgHEAhSFHJlcXVpcmVkX3Blcm1pc3Npb25zIo4CCg5Xb3JrZmxvd1Jlc3VsdBIKCgJpZBgBIAEoCRIUCgxkaXNwbGF5X25hbWUYAiABKAkSEwoLZGVzY3JpcHRpb24YAyABKAkSDgoGcmVzdWx0GAQgASgJEioKBnJhbl9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASNgoLcmVzdWx0X3R5cGUYBiABKA4yIS5zYXBwaGlsbG9uLnYxLldvcmtmbG93UmVzdWx0VHlwZRIRCglleGl0X2NvZGUYByABKAUSIAoYd29ya2Zsb3dfcmVzdWx0X3JldmlzaW9uGAkgASgFSgQICBAJUhZ3b3JrZmxvd19jb2RlX3JldmlzaW9uIsoCCghXb3JrZmxvdxIKCgJpZBgBIAEoCRIUCgxkaXNwbGF5X25hbWUYAiABKAkSEwoLZGVzY3JpcHRpb24YAyABKAkSOgoRd29ya2Zsb3dfbGFuZ3VhZ2UYBCABKA4yHy5zYXBwaGlsbG9uLnYxLldvcmtmbG93TGFuZ3VhZ2USMgoNd29ya2Zsb3dfY29kZRgFIAMoCzIbLnNhcHBoaWxsb24udjEuV29ya2Zsb3dDb2RlEi4KCmNyZWF0ZWRfYXQYBiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCnVwZGF0ZWRfYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEjcKEHdvcmtmbG93X3Jlc3VsdHMYCCADKAsyHS5zYXBwaGlsbG9uLnYxLldvcmtmbG93UmVzdWx0KnkKEFdvcmtmbG93TGFuZ3VhZ2USIQodV09SS0ZMT1dfTEFOR1VBR0VfVU5TUEVDSUZJRUQQABIgChxXT1JLRkxPV19MQU5HVUFHRV9UWVBFU0NSSVBUEAESIAocV09SS0ZMT1dfTEFOR1VBR0VfSkFWQVNDUklQVBACKmQKEldvcmtmbG93UmVzdWx0VHlwZRIsCihXT1JLRkxPV19SRVNVTFRfVFlQRV9TVUNDRVNTX1VOU1BFQ0lGSUVEEAASIAocV09SS0ZMT1dfUkVTVUxUX1RZUEVfRkFJTFVSRRABYgZwcm90bzM", [file_google_protobuf_timestamp, file_sapphillon_v1_permission, file_sapphillon_v1_plugin]);
 
 /**
  * Represents a specific revision of workflow source code and metadata.
- * 
+ *
  * Fields:
  * - id: Stable identifier of the workflow code entity.
  * - code_revision: Monotonic integer representing the code version within the workflow.
@@ -43,7 +43,7 @@ export const file_sapphillon_v1_workflow: GenFile = /*@__PURE__*/
  * - created_at: Timestamp when this code revision was created.
  * - result: Optional preview or last run result associated with this code revision.
  * - required_permissions: Permissions required to run this code (declared by the author).
- * 
+ *
  * Notes:
  * - code_revision should increase by 1 for each new revision of the same workflow.
  * - required_permissions should be kept minimal and specific to support principle of least privilege.
@@ -97,14 +97,6 @@ export type WorkflowCode = Message<"sapphillon.v1.WorkflowCode"> & {
   result: WorkflowResult[];
 
   /**
-   * Permissions required to execute this workflow code.
-   * Use specific Permission.resource values to scope access where possible.
-   *
-   * @generated from field: repeated sapphillon.v1.Permission required_permissions = 7;
-   */
-  requiredPermissions: Permission[];
-
-  /**
    * Plugin packages that this workflow code depends on.
    * This allows the workflow to use functions defined in these plugins.
    *
@@ -118,6 +110,13 @@ export type WorkflowCode = Message<"sapphillon.v1.WorkflowCode"> & {
    * @generated from field: repeated string plugin_function_ids = 9;
    */
   pluginFunctionIds: string[];
+
+  /**
+   * Allowed permissions for this workflow code.
+   *
+   * @generated from field: repeated sapphillon.v1.AllowedPermission allowed_permissions = 10;
+   */
+  allowedPermissions: AllowedPermission[];
 };
 
 /**
@@ -129,7 +128,7 @@ export const WorkflowCodeSchema: GenMessage<WorkflowCode> = /*@__PURE__*/
 
 /**
  * Captures the result of running a workflow at a specific code revision.
- * 
+ *
  * Fields:
  * - id: Identifier of the result record.
  * - display_name: Human-friendly name for UIs (e.g., "Nightly Run 2025-08-05").
@@ -140,7 +139,7 @@ export const WorkflowCodeSchema: GenMessage<WorkflowCode> = /*@__PURE__*/
  * - exit_code: Process exit code when applicable (0 for success).
  * - workflow_code_revision: The code revision that produced this result.
  * - workflow_result_revision: Monotonic revision of this result record itself.
- * 
+ *
  * TODO: Add structured data types for results (logs, metrics, artifacts).
  *
  * @generated from message sapphillon.v1.WorkflowResult
@@ -213,7 +212,7 @@ export const WorkflowResultSchema: GenMessage<WorkflowResult> = /*@__PURE__*/
 
 /**
  * Represents a workflow entity including its code history and execution results.
- * 
+ *
  * Fields:
  * - id: Stable identifier for the workflow.
  * - display_name: Human-readable name.
@@ -223,7 +222,7 @@ export const WorkflowResultSchema: GenMessage<WorkflowResult> = /*@__PURE__*/
  * - created_at: Time the workflow was created.
  * - updated_at: Time the workflow was last modified.
  * - workflow_results: Historical execution results for this workflow.
- * 
+ *
  * Notes:
  * - Keep workflow_code revisions append-only to preserve history.
  *
