@@ -6,6 +6,7 @@ on:
     path:
       - "web_server/**"
   workflow_dispatch:
+  workflow_call:
 
 env:
   CARGO_TERM_COLOR: always
