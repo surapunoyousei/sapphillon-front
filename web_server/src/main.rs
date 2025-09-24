@@ -7,7 +7,10 @@ include!(concat!(env!("OUT_DIR"), "/generated.rs"));
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // Initialize logger from RUST_LOG env var (e.g. RUST_LOG=info or actix_web=info)
+    let level = env::var("RUST_LOG").unwrap_or_else(|_| "info".into());
+    unsafe {
+        env::set_var("RUST_LOG", &level);
+    }
     env_logger::init();
 
     let listen = env::var("LISTEN").unwrap_or_else(|_| "127.0.0.1:8081".into());
@@ -30,7 +33,6 @@ async fn main() -> std::io::Result<()> {
 
     if let Some(addr) = server.addrs().first() {
         info!("listening on {}", addr);
-        println!("{:05}", addr.port());
     }
 
     // Run server and log any runtime errors

@@ -22,7 +22,7 @@ jobs:
       run:
         working-directory: ./web_server
     env:
-      PROJECT_NAME: Sapphillon-Front
+      PROJECT_NAME: sapphillon-front-web-server
     strategy:
       fail-fast: false
       matrix:

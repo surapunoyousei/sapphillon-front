@@ -926,6 +926,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "28d3b2b1366ec20994f1fd18c3c594f05c5dd4bc44d8bb0c1c632c8d6829481f"
 
 [[package]]
+name = "sapphillon-front-web-server"
+version = "0.1.0"
+dependencies = [
+ "actix-web",
+ "actix-web-static-files",
+ "env_logger",
+ "log",
+ "static-files 0.3.1",
+]
+
+[[package]]
 name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1269,17 +1280,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0562428422c63773dad2c345a1882263bbf4d65cf3f42e90921f787ef5ad58e7"
 dependencies = [
  "wit-bindgen",
-]
-
-[[package]]
-name = "web_server"
-version = "0.1.0"
-dependencies = [
- "actix-web",
- "actix-web-static-files",
- "env_logger",
- "log",
- "static-files 0.3.1",
 ]
 
 [[package]]
