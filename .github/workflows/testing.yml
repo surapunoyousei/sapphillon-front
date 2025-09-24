@@ -46,6 +46,7 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           choco install make --yes
+          choco install pnpm --yes
 
       - name: Test Build
         run: cargo build --workspace --all-features --verbose
