@@ -18,9 +18,6 @@ jobs:
   build:
     needs: [Test]
     runs-on: ${{ matrix.runner }}
-    defaults:
-      run:
-        working-directory: ./web_server
     env:
       PROJECT_NAME: sapphillon-front-web-server
     strategy:

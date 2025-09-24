@@ -15,6 +15,9 @@ dist-ssr
 # pnpm store
 .pnpm-store
 
+# cargo target
+target/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

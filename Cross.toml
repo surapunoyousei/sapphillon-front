@@ -1,16 +1,25 @@
 [target.x86_64-unknown-linux-gnu]
 image = "ghcr.io/cross-rs/x86_64-unknown-linux-gnu:main"
 pre-build = [
-    "apt-get update && apt-get install -y nodejs npm",
-    "npm install -g pnpm",
+    "apt-get update && apt-get install -y wget tar xz-utils",
+    "wget https://nodejs.org/dist/v20.19.5/node-v20.19.5-linux-x64.tar.xz",
+    "tar -xf node-v20.19.5-linux-x64.tar.xz",
+    "cd node-v20.19.5-linux-x64 && cp -r * /usr/local/",
+    "npm install -g pnpm@latest-10"
 ]
 
 [target.aarch64-unknown-linux-gnu]
 image = "ghcr.io/cross-rs/aarch64-unknown-linux-gnu:main"
 pre-build = [
-    "apt-get update && apt-get install -y nodejs npm",
-    "npm install -g pnpm",
+    "apt-get update && apt-get install -y wget tar xz-utils",
+    "wget https://nodejs.org/dist/v20.19.5/node-v20.19.5-linux-x64.tar.xz",
+    "tar -xf node-v20.19.5-linux-x64.tar.xz",
+    "cd node-v20.19.5-linux-x64 && cp -r * /usr/local/",
+    "npm install -g pnpm@latest-10"
 ]
+
+[build.env]
+passthrough = ["CI=true"]
 
 # [target.x86_64-unknown-linux-gnu]
 # image = "ghcr.io/cross-rs/x86_64-unknown-linux-gnu:main-centos"
