@@ -12,12 +12,10 @@ fn run_cmd(dir: &Path, cmd: &str, args: &[&str]) -> std::io::Result<()> {
     if status.success() {
         Ok(())
     } else {
-        Err(std::io::Error::other(
-            format!(
-                "command {:?} {:?} failed with status: {}",
-                cmd, args, status
-            ),
-        ))
+        Err(std::io::Error::other(format!(
+            "command {:?} {:?} failed with status: {}",
+            cmd, args, status
+        )))
     }
 }
 
