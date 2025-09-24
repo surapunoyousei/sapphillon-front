@@ -1,7 +1,7 @@
 use actix_web::{App, HttpServer, middleware::Logger};
 use actix_web_static_files::ResourceFiles;
-use std::env;
 use log::{error, info};
+use std::env;
 
 include!(concat!(env!("OUT_DIR"), "/generated.rs"));
 
