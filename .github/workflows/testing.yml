@@ -6,6 +6,7 @@ on:
     path:
       - "web_server/**"
   workflow_dispatch:
+  workflow_call:
 
 env:
   CARGO_TERM_COLOR: always
@@ -18,9 +19,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-    defaults:
-      run:
-        working-directory: ./web_server
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -46,6 +44,7 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           choco install make --yes
+          choco install pnpm --yes
 
       - name: Test Build
         run: cargo build --workspace --all-features --verbose
@@ -55,9 +54,6 @@ jobs:
   check:
     name: Rustfmt
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./web_server
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
