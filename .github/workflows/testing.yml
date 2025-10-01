@@ -1,0 +1,74 @@
+# This workflow runs Rust tests and checks on push and pull request events
+name: Rust Testing
+
+on:
+  pull_request:
+    path:
+      - "web_server/**"
+  workflow_dispatch:
+  workflow_call:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test
+    runs-on: ${{ matrix.os }}
+    needs: ["check"]
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      
+      # - name: Install Dependecies on Ubuntu
+      #   if: runner.os == 'Linux'
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y nodejs
+
+
+      # - name: Install Dependencies on MacOS
+      #   if: runner.os == 'macOS'
+      #   run: |
+      #     brew install protobuf
+
+      - name: Install Dependencies on Windows
+        if: runner.os == 'Windows'
+        run: |
+          choco install make --yes
+          choco install pnpm --yes
+
+      - name: Test Build
+        run: cargo build --workspace --all-features --verbose
+      - name: Run tests
+        run: cargo test --workspace --all-features --verbose
+
+  check:
+    name: Rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install Rust fmt
+        run: rustup component add rustfmt
+      - name: Install Rust clippy
+        run: rustup component add clippy
+      - name: Run rustfmt
+        run: cargo fmt --all -- --check
+      - name: Run clippy
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+
