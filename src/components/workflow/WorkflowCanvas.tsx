@@ -35,6 +35,7 @@ import {
 
 interface WorkflowCanvasProps {
   workflow: Workflow;
+  withBackground?: boolean;
 }
 
 const generateCode = (node: Node | null | undefined) => {
@@ -55,15 +56,136 @@ const generateCode = (node: Node | null | undefined) => {
 };
 
 const INDENT_PX = 16; // インデント幅（各ネストレベル）
-
 const oneLine = (code: string | null | undefined, max = 80) => {
   const s = (code ?? "").replace(/\s+/g, " ").trim();
   if (s.length <= max) return s;
   return s.slice(0, max - 1) + "…";
 };
 
-const AstNode: React.FC<{ node: Statement; depth?: number }> = (
-  { node, depth = 0 },
+// Simple inline token highlighter for variable-like expressions.
+const TokenizedInlineCode: React.FC<{ code?: string }> = ({ code }) => {
+  const s = code ?? "";
+  // Tokenize into identifiers, numbers, strings, whitespace, and others
+  const tokens = Array.from(
+    s.matchAll(
+      /([A-Za-z_$][\w$]*)|(\d+(?:\.\d+)?)|("[^"]*"|'[^']*')|(\s+)|(.)/g,
+    ),
+  );
+  return (
+    <Code
+      fontSize="xs"
+      px={2}
+      py={0.5}
+      borderRadius="sm"
+      bg="gray.50"
+      color="gray.800"
+      _dark={{ bg: "gray.800", color: "gray.100" }}
+      whiteSpace="pre"
+      fontFamily="monospace"
+      display="inline-flex"
+      alignItems="center"
+    >
+      {tokens.map((m, i) => {
+        const ident = (m as unknown as string[])[1];
+        const num = (m as unknown as string[])[2];
+        const str = (m as unknown as string[])[3];
+        const ws = (m as unknown as string[])[4];
+        const other = (m as unknown as string[])[5];
+        if (ident) {
+          return (
+            <Box
+              as="span"
+              key={i}
+              color="purple.600"
+              _dark={{ color: "purple.300" }}
+            >
+              {ident}
+            </Box>
+          );
+        }
+        if (num) {
+          return (
+            <Box
+              as="span"
+              key={i}
+              color="teal.600"
+              _dark={{ color: "teal.300" }}
+            >
+              {num}
+            </Box>
+          );
+        }
+        if (str) {
+          return (
+            <Box
+              as="span"
+              key={i}
+              color="orange.600"
+              _dark={{ color: "orange.300" }}
+            >
+              {str}
+            </Box>
+          );
+        }
+        if (ws) {
+          return <span key={i}>{ws}</span>;
+        }
+        return (
+          <Box as="span" key={i} color="gray.600" _dark={{ color: "gray.400" }}>
+            {other}
+          </Box>
+        );
+      })}
+    </Code>
+  );
+};
+
+const isImportantCall = (calleeCode: string): boolean => {
+  const c = calleeCode.toLowerCase();
+  // Heuristics to identify important, potentially impactful actions
+  const keywords = [
+    "page",
+    "navigate",
+    "goto",
+    "access",
+    "plugin",
+    "click",
+    "type",
+    "select",
+    "submit",
+    "wait",
+  ];
+  return keywords.some((keyword) => c.includes(keyword));
+};
+
+// Reuse the same keyword list for broader subtree checks
+const IMPORTANT_KEYWORDS = [
+  "page",
+  "navigate",
+  "goto",
+  "access",
+  "plugin",
+  "click",
+  "type",
+  "select",
+  "submit",
+  "wait",
+];
+
+const nodeHasImportant = (node: Node | null | undefined) => {
+  if (!node) return false;
+  try {
+    const code = generateCode(node).toLowerCase();
+    return IMPORTANT_KEYWORDS.some((k) => code.includes(k));
+  } catch {
+    return false;
+  }
+};
+
+const AstNode: React.FC<
+  { node: Statement; depth?: number; importantOnly?: boolean }
+> = (
+  { node, depth = 0, importantOnly = false },
 ) => {
   // Early return for invalid nodes
   if (!node || !node.type) {
@@ -245,7 +367,7 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
                     : <LuChevronDown size={14} />}
                 </Box>
               )
-              : <Box w="18px" h="18px" />}
+              : null}
 
             {/* Icon */}
             <Box
@@ -281,27 +403,14 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
               >
                 {title}
               </Text>
-              {summary && (
-                <Code
-                  fontSize="xs"
-                  px={1.5}
-                  py={0.5}
-                  borderRadius="sm"
-                  bg="gray.50"
-                  color="gray.700"
-                  _dark={{ bg: "gray.800", color: "gray.300" }}
-                  whiteSpace="nowrap"
-                >
-                  {summary}
-                </Code>
-              )}
+              {summary && <TokenizedInlineCode code={summary} />}
             </Box>
           </Box>
         </Box>
 
         {/* Details */}
         {(!expandable || !collapsed) && (
-          <Box px={2.5} pb={2}>
+          <Box px={2.5}>
             <VStack align="stretch" w="100%" gap={1}>
               {children}
             </VStack>
@@ -315,7 +424,8 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
     body: Statement | Statement[];
     depth?: number;
     label?: string;
-  }> = ({ body, depth = 0, label }) => {
+    importantOnly?: boolean;
+  }> = ({ body, depth = 0, label, importantOnly = false }) => {
     const list = Array.isArray(body) ? body : [body];
     return (
       <Box>
@@ -331,15 +441,25 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
           </Text>
         )}
         <VStack gap={1} align="stretch" w="100%">
-          {list.map((stmt, index) => (
-            <Box
-              key={index}
-              position="relative"
-              pl={`${depth * INDENT_PX + 12}px`}
-            >
-              <AstNode node={stmt} depth={depth + 1} />
-            </Box>
-          ))}
+          {list
+            .filter((stmt) => {
+              if (!importantOnly) return true;
+              // Keep the statement if it or its subtree contains important calls
+              return nodeHasImportant(stmt);
+            })
+            .map((stmt, index) => (
+              <Box
+                key={index}
+                position="relative"
+                pl={`${depth * INDENT_PX + 12}px`}
+              >
+                <AstNode
+                  node={stmt}
+                  depth={depth + 1}
+                  importantOnly={importantOnly}
+                />
+              </Box>
+            ))}
         </VStack>
       </Box>
     );
@@ -359,21 +479,17 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
           </NodeContainer>
         );
       }
-      const summary = oneLine(
-        varDecl.declarations.map((d) => generateCode(d)).join(", "),
-      );
       return (
         <NodeContainer
           title="変数を準備"
           icon={<LuVariable size={16} />}
           type="action"
-          summary={summary}
+          // show full declaration in header (tokenized there)
+          summary={generateCode(varDecl)}
           expandable={false}
           defaultCollapsed={false}
           palette="purple"
-        >
-          {/* Variables are already summarized inline for compact view */}
-        </NodeContainer>
+        />
       );
     }
     case "ReturnStatement": {
@@ -408,18 +524,19 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
       if (expr.expression.type === "CallExpression") {
         const callExpr = expr.expression;
         const fn = oneLine(generateCode(callExpr.callee), 40);
-        const summary = `${fn}(…)  args=${callExpr.arguments?.length || 0}`;
+        const isImportant = isImportantCall(fn);
         return (
           <NodeContainer
-            title="ツールを実行"
-            icon={<LuSettings size={16} />}
+            title={isImportant ? "重要処理" : "ツールを実行"}
+            icon={isImportant
+              ? <LuTriangleAlert size={16} />
+              : <LuSettings size={16} />}
             type="action"
-            summary={summary}
+            // show the full call expression in the header (will be tokenized by TokenizedInlineCode there)
+            summary={generateCode(callExpr)}
             expandable={false}
-            palette="teal"
-          >
-            {/* Call summarized inline */}
-          </NodeContainer>
+            palette={isImportant ? "orange" : "teal"}
+          />
         );
       }
       const summary = oneLine(generateCode(expr.expression));
@@ -460,16 +577,18 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
           defaultCollapsed={depth > 0}
           palette="amber"
         >
-          <VStack w="100%" align="stretch" gap={2}>
+          <VStack w="100%" align="stretch" gap={2} mb={2}>
             <BodyRenderer
               body={ifStmt.consequent}
               depth={depth + 1}
+              importantOnly={importantOnly}
               label="もし合致した場合"
             />
             {ifStmt.alternate && (
               <BodyRenderer
                 body={ifStmt.alternate}
                 depth={depth + 1}
+                importantOnly={importantOnly}
                 label="合致しなかった場合"
               />
             )}
@@ -497,6 +616,7 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
             body={loopStmt.body}
             depth={depth + 1}
             label="繰り返し処理"
+            importantOnly={importantOnly}
           />
         </NodeContainer>
       );
@@ -518,6 +638,7 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
             body={whileStmt.body}
             depth={depth + 1}
             label="繰り返し処理"
+            importantOnly={importantOnly}
           />
         </NodeContainer>
       );
@@ -543,6 +664,7 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
             body={forStmt.body}
             depth={depth + 1}
             label="繰り返し処理"
+            importantOnly={importantOnly}
           />
         </NodeContainer>
       );
@@ -575,12 +697,14 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
             <BodyRenderer
               body={tryStmt.block.body}
               depth={depth + 1}
+              importantOnly={importantOnly}
               label="通常実行"
             />
             {tryStmt.handler && tryStmt.handler.body && (
               <BodyRenderer
                 body={tryStmt.handler.body.body}
                 depth={depth + 1}
+                importantOnly={importantOnly}
                 label={`エラーが発生した場合 (${
                   oneLine(generateCode(tryStmt.handler.param), 24)
                 })`}
@@ -603,7 +727,13 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
           </NodeContainer>
         );
       }
-      return <BodyRenderer body={blockStmt.body} depth={depth + 1} />;
+      return (
+        <BodyRenderer
+          body={blockStmt.body}
+          depth={depth + 1}
+          importantOnly={importantOnly}
+        />
+      );
     }
     default:
       return (
@@ -611,7 +741,7 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
           title={`不明な処理: ${node.type}`}
           icon={<LuCircle size={16} />}
           type="action"
-          summary={oneLine(generateCode(node))}
+          summary={generateCode(node)}
           expandable={false}
           palette="pink"
         />
@@ -621,6 +751,7 @@ const AstNode: React.FC<{ node: Statement; depth?: number }> = (
 
 export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
   workflow,
+  withBackground = true,
 }) => {
   const [viewMode, setViewMode] = useState<"steps" | "code">("steps");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -880,42 +1011,46 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
       position="relative"
       bg="bg"
     >
-      {/* Light mode grid pattern */}
-      <Box
-        position="absolute"
-        top={0}
-        left={0}
-        right={0}
-        bottom={0}
-        style={{
-          backgroundImage: `
+      {withBackground && (
+        <>
+          {/* Light mode grid pattern */}
+          <Box
+            position="absolute"
+            top={0}
+            left={0}
+            right={0}
+            bottom={0}
+            style={{
+              backgroundImage: `
             radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px),
             radial-gradient(circle, rgba(0,0,0,0.015) 1px, transparent 1px)
           `,
-          backgroundSize: "14px 14px, 64px 64px",
-          backgroundPosition: "0 0, 32px 32px",
-        }}
-        _dark={{ display: "none" }}
-      />
+              backgroundSize: "14px 14px, 64px 64px",
+              backgroundPosition: "0 0, 32px 32px",
+            }}
+            _dark={{ display: "none" }}
+          />
 
-      {/* Dark mode grid pattern */}
-      <Box
-        position="absolute"
-        top={0}
-        left={0}
-        right={0}
-        bottom={0}
-        display="none"
-        _dark={{ display: "block" }}
-        style={{
-          backgroundImage: `
+          {/* Dark mode grid pattern */}
+          <Box
+            position="absolute"
+            top={0}
+            left={0}
+            right={0}
+            bottom={0}
+            display="none"
+            _dark={{ display: "block" }}
+            style={{
+              backgroundImage: `
             radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px),
             radial-gradient(circle, rgba(255,255,255,0.015) 1px, transparent 1px)
           `,
-          backgroundSize: "16px 16px, 80px 80px",
-          backgroundPosition: "0 0, 40px 40px",
-        }}
-      />
+              backgroundSize: "16px 16px, 80px 80px",
+              backgroundPosition: "0 0, 40px 40px",
+            }}
+          />
+        </>
+      )}
 
       {/* Content */}
       <Box position="absolute" inset={0} overflow="auto" zIndex={1}>
@@ -956,6 +1091,7 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
             onClick={() => setViewMode("steps")}
             colorScheme={viewMode === "steps" ? "blue" : "gray"}
             variant={viewMode === "steps" ? "solid" : "outline"}
+            background={viewMode === "steps" ? "black" : "white"}
           >
             Steps
           </Button>
@@ -963,6 +1099,7 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
             onClick={() => setViewMode("code")}
             colorScheme={viewMode === "code" ? "blue" : "gray"}
             variant={viewMode === "code" ? "solid" : "outline"}
+            background={viewMode === "code" ? "black" : "white"}
           >
             Code
           </Button>

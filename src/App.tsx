@@ -2,6 +2,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { HomePage } from "@/pages/home/Home";
 import { GeneratePage } from "@/pages/generate/GeneratePage";
+import WorkflowPlayground from "@/pages/dev/WorkflowPlayground";
 
 function App() {
   return (
@@ -10,6 +11,10 @@ function App() {
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/generate" element={<GeneratePage />} />
+        <Route
+          path="/dev/workflow-playground"
+          element={<WorkflowPlayground />}
+        />
         <Route path="/fix" element={<PageBox title="Fix" />} />
         <Route path="/run" element={<PageBox title="Run" />} />
         <Route path="/plugins" element={<PageBox title="Plugins" />} />
