@@ -16,12 +16,16 @@ export type AppRoute = {
 
 export const routes: AppRoute[] = [
   { path: "/home", key: "home", label: "Home", icon: LuHouse },
-  {
-    path: "/dev/workflow-playground",
-    key: "dev-workflow",
-    label: "Dev: Workflow",
-    icon: LuPlay,
-  },
+  ...(import.meta.env.DEV
+    ? [
+        {
+          path: "/dev/workflow-playground",
+          key: "dev-workflow",
+          label: "Dev: Workflow",
+          icon: LuPlay,
+        },
+      ]
+    : []),
   { path: "/generate", key: "generate", label: "Generate", icon: LuSparkles },
   { path: "/fix", key: "fix", label: "Fix", icon: LuWrench },
   { path: "/run", key: "run", label: "Run", icon: LuPlay },
