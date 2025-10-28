@@ -4,14 +4,17 @@ import type {
   GenerateWorkflowResponse,
   RunWorkflowResponse,
 } from "@/gen/sapphillon/v1/workflow_service_pb";
-import type {
-  AllowedPermission,
-  Permission,
-} from "@/gen/sapphillon/v1/permission_pb";
 import {
   PermissionType,
   PermissionLevel,
+  PermissionSchema,
+  AllowedPermissionSchema,
 } from "@/gen/sapphillon/v1/permission_pb";
+import { create } from "@bufbuild/protobuf";
+import {
+  WorkflowCodeSchema,
+  WorkflowSchema,
+} from "@/gen/sapphillon/v1/workflow_pb";
 
 export type GenerationEvent = {
   t: number;
@@ -73,32 +76,37 @@ export function useWorkflowGeneration() {
     if (!latest?.workflowDefinition) return;
     try {
       append({ kind: "message", payload: { stage: "run", status: "start" } });
-      // Ensure the workflow definition grants full permissions when running from this UI.
-      // We clone the latest definition and inject an AllowedPermission entry that grants
-      // PERMISSION_TYPE_ALLOW_ALL to all plugin functions (pluginFunctionId = "*").
-      const allowAllPermission = {
-        displayName: "Allow All",
-        description: "Grant all permissions for testing/run from UI",
+      // Ensure the workflow definition grants ALL permissions when running from this UI.
+      // We add an AllowedPermission that grants PERMISSION_TYPE_ALLOW_ALL to all plugin functions.
+      const allowAllPermissionMsg = create(PermissionSchema, {
+        displayName: "ALLOW_ALL",
+        description:
+          "Granted by UI to allow full execution for testing/preview",
         permissionType: PermissionType.ALLOW_ALL,
         resource: [],
-        permissionLevel: PermissionLevel.UNSPECIFIED,
-      } as unknown as Permission;
+        permissionLevel: PermissionLevel.CRITICAL,
+      });
 
-      const allowed = {
+      const allowedMsg = create(AllowedPermissionSchema, {
         pluginFunctionId: "*",
-        permissions: [allowAllPermission],
-      } as unknown as AllowedPermission;
+        permissions: [allowAllPermissionMsg],
+      });
 
-      const wfWithAllPerms = {
+      // Clone the workflow definition and append allowedPermissions (message instances) to each WorkflowCode entry.
+      const wfDef = create(WorkflowSchema, {
         ...latest.workflowDefinition,
-        // overwrite allowedPermissions to ensure full access when running
-        allowedPermissions: [allowed],
-      };
+        workflowCode: (latest.workflowDefinition.workflowCode || []).map((wc) =>
+          create(WorkflowCodeSchema, {
+            ...wc,
+            allowedPermissions: [...(wc.allowedPermissions || []), allowedMsg],
+          })
+        ),
+      });
 
       const res = await clients.workflow.runWorkflow({
         source: {
           case: "workflowDefinition",
-          value: wfWithAllPerms,
+          value: wfDef,
         },
       });
       setRunRes(res);
