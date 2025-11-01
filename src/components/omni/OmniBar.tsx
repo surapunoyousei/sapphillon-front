@@ -12,14 +12,19 @@ import {
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 
-type Item = {
+interface OmniBarItem {
   label: string;
   hint?: string;
   to?: string;
   kind: "navigate" | "action";
-};
+}
 
-const DEFAULT_ITEMS: Item[] = [
+export interface OmniBarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const DEFAULT_ITEMS: OmniBarItem[] = [
   {
     label: "Go to Generate",
     hint: "/generate",
@@ -31,9 +36,7 @@ const DEFAULT_ITEMS: Item[] = [
   { label: "Open Plugins", hint: "/plugins", to: "/plugins", kind: "navigate" },
 ];
 
-export function OmniBar(
-  { isOpen, onClose }: { isOpen: boolean; onClose: () => void },
-) {
+export function OmniBar({ isOpen, onClose }: OmniBarProps) {
   const [query, setQuery] = React.useState("");
   const [active, setActive] = React.useState(0);
   const navigate = useNavigate();
@@ -147,14 +150,14 @@ export function OmniBar(
   );
 }
 
-function Suggestion(
-  { text, hint, active, onClick }: {
-    text: string;
-    hint?: string;
-    active?: boolean;
-    onClick?: () => void;
-  },
-) {
+interface SuggestionProps {
+  text: string;
+  hint?: string;
+  active?: boolean;
+  onClick?: () => void;
+}
+
+function Suggestion({ text, hint, active, onClick }: SuggestionProps) {
   return (
     <HStack
       justify="space-between"

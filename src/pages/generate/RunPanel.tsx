@@ -9,7 +9,7 @@ import {
 } from "@chakra-ui/react";
 import type { RunWorkflowResponse } from "@/gen/sapphillon/v1/workflow_service_pb";
 import { LuPlay } from "react-icons/lu";
-import StreamConsole from "@/components/console/StreamConsole";
+import { StreamConsole } from "@/components/console";
 
 export type GenerationEvent = {
   t: number;

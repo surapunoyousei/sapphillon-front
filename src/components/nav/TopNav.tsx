@@ -2,7 +2,11 @@
 import { ColorModeButton } from "@/components/ui/color-mode";
 import { useColorMode } from "@/components/ui/use-color-mode";
 
-export function TopNav({ onOpenOmni }: { onOpenOmni?: () => void }) {
+export interface TopNavProps {
+  onOpenOmni?: () => void;
+}
+
+export function TopNav({ onOpenOmni }: TopNavProps) {
   const lightLogoUrl = new URL(
     "../../assets/Floorp_Logo_OS_C_Light.png",
     import.meta.url,

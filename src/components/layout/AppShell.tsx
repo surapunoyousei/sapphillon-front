@@ -6,7 +6,11 @@ import { OmniBar } from "@/components/omni/OmniBar";
 import { SideNav } from "@/components/nav/SideNav";
 import { MemoryRouter, useInRouterContext } from "react-router-dom";
 
-export function AppShell({ children }: { children?: React.ReactNode }) {
+export interface AppShellProps {
+  children?: React.ReactNode;
+}
+
+export function AppShell({ children }: AppShellProps) {
   const [omniOpen, setOmniOpen] = React.useState(false);
   const inRouter = useInRouterContext();
   // Always render standard chrome (TopNav/SideNav/StatusBar).

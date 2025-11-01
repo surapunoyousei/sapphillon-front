@@ -15,7 +15,7 @@ import { PluginsPanel } from "./PluginsPanel";
 import { RunPanel } from "./RunPanel";
 import { usePaneLayout } from "./usePaneLayout";
 import { useWorkflowGeneration } from "./useWorkflowGeneration";
-import { WorkflowCanvas } from "../../components/workflow/WorkflowCanvas";
+import { WorkflowCanvas } from "@/components/workflow";
 import { LuExpand, LuNetwork } from "react-icons/lu";
 
 export function GeneratePage() {

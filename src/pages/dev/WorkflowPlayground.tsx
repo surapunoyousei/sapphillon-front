@@ -1,6 +1,6 @@
 import { Box, Button, Heading, VStack } from "@chakra-ui/react";
 import { makeWorkflowMock } from "@/test/mocks/workflowMock";
-import { WorkflowCanvas } from "@/components/workflow/WorkflowCanvas";
+import { WorkflowCanvas } from "@/components/workflow";
 
 export default function WorkflowPlayground() {
     const sampleCode = `function workflow() {

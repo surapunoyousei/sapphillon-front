@@ -13,7 +13,13 @@ export function SideNav() {
   );
 }
 
-function NavItem({ to, label, Icon }: { to: string; label: string; Icon: React.ComponentType<{ size?: string | number }> }) {
+interface NavItemProps {
+  to: string;
+  label: string;
+  Icon: React.ComponentType<{ size?: string | number }>;
+}
+
+function NavItem({ to, label, Icon }: NavItemProps) {
   return (
     <NavLink to={to} style={{ textDecoration: "none" }}>
       {({ isActive }) => (
