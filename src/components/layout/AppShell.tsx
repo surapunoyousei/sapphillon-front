@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Flex } from "@chakra-ui/react";
+import { Box, Drawer, Flex } from "@chakra-ui/react";
 import { TopNav } from "@/components/nav/TopNav";
 import { StatusBar } from "@/components/status/StatusBar";
 import { OmniBar } from "@/components/omni/OmniBar";
@@ -12,7 +12,9 @@ export interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   const [omniOpen, setOmniOpen] = React.useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const inRouter = useInRouterContext();
+
   // Always render standard chrome (TopNav/SideNav/StatusBar).
   // Individual pages control their own vertical sizing.
   React.useEffect(() => {
@@ -29,14 +31,19 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <Flex direction="column" minH="100dvh">
-      <TopNav onOpenOmni={() => setOmniOpen(true)} />
+      <TopNav
+        onOpenOmni={() => setOmniOpen(true)}
+        onOpenMenu={() => setMobileMenuOpen(true)}
+        showMenuButton={inRouter}
+      />
       <Flex as="main" flex="1" minH="0" overflow="hidden">
+        {/* デスクトップ用サイドナビ */}
         {inRouter
           ? (
             <Box
               as="aside"
-              w={{ base: "0", md: "56" }}
-              display={{ base: "none", md: "block" }}
+              w={{ base: "0", lg: "56" }}
+              display={{ base: "none", lg: "block" }}
               borderRightWidth="1px"
               py={3}
             >
@@ -44,14 +51,40 @@ export function AppShell({ children }: AppShellProps) {
             </Box>
           )
           : null}
+
+        {/* モバイル用ドロワーメニュー */}
+        {inRouter && (
+          <Drawer.Root
+            open={mobileMenuOpen}
+            onOpenChange={(e) => setMobileMenuOpen(e.open)}
+            placement="start"
+            size="xs"
+          >
+            <Drawer.Backdrop />
+            <Drawer.Positioner>
+              <Drawer.Content>
+                <Drawer.Header borderBottomWidth="1px">
+                  <Drawer.Title>Menu</Drawer.Title>
+                </Drawer.Header>
+                <Drawer.CloseTrigger />
+                <Drawer.Body p={2}>
+                  <SideNav onNavigate={() => setMobileMenuOpen(false)} />
+                </Drawer.Body>
+              </Drawer.Content>
+            </Drawer.Positioner>
+          </Drawer.Root>
+        )}
+
         <Box
+          id="main-content"
           flex="1"
-          p={4}
+          p={{ base: 2, md: 4 }}
           minH="0"
           minW="0"
           overflow="hidden"
           display="grid"
           gridTemplateRows="1fr"
+          tabIndex={-1}
         >
           <Box minH="0" minW="0" overflow="hidden" h="full">
             {children}

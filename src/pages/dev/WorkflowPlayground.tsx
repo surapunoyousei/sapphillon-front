@@ -16,10 +16,11 @@ export default function WorkflowPlayground() {
     const workflow = makeWorkflowMock(sampleCode);
 
     return (
-        <Box p={6} h="100%">
-            <VStack align="start" gap={4} h="100%">
-                <Heading size="md">Workflow Playground</Heading>
+        <Box p={{ base: 3, md: 6 }} h="100%">
+            <VStack align="start" gap={{ base: 2, md: 4 }} h="100%">
+                <Heading size={{ base: "sm", md: "md" }}>Workflow Playground</Heading>
                 <Button
+                    size={{ base: "sm", md: "md" }}
                     onClick={() => {
                         // placeholder for possible future interactions
                         // e.g., update the workflow source dynamically
@@ -30,7 +31,7 @@ export default function WorkflowPlayground() {
                 >
                     Interact
                 </Button>
-                <Box flex={1} w="100%" h="600px">
+                <Box flex={1} w="100%" h={{ base: "400px", md: "600px" }}>
                     <WorkflowCanvas workflow={workflow} />
                 </Box>
             </VStack>

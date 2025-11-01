@@ -6,6 +6,7 @@ import {
   HStack,
   IconButton,
   Separator,
+  Tabs,
   Text,
   useDisclosure,
   VStack,
@@ -16,7 +17,7 @@ import { RunPanel } from "./RunPanel";
 import { usePaneLayout } from "./usePaneLayout";
 import { useWorkflowGeneration } from "./useWorkflowGeneration";
 import { WorkflowCanvas } from "@/components/workflow";
-import { LuExpand, LuNetwork } from "react-icons/lu";
+import { LuExpand } from "react-icons/lu";
 
 export function GeneratePage() {
   const [prompt, setPrompt] = React.useState("");
@@ -34,7 +35,116 @@ export function GeneratePage() {
 
   const onStart = React.useCallback(() => start(prompt), [start, prompt]);
 
-  return (
+  // モバイル・タブレット用のタブ表示
+  const MobileLayout = () => (
+    <VStack
+      align="stretch"
+      gap={2}
+      h="full"
+      minH={0}
+      css={{
+        "@media (max-height: 600px) and (orientation: landscape)": {
+          gap: "0.5rem",
+        },
+      }}
+    >
+      <Box
+        p={{ base: 2, md: 3 }}
+        borderWidth="1px"
+        bg="bg"
+        rounded="md"
+        css={{
+          "@media (max-height: 600px) and (orientation: landscape)": {
+            padding: "0.5rem",
+          },
+        }}
+      >
+        <PromptPanel
+          prompt={prompt}
+          onChange={setPrompt}
+          onStart={onStart}
+          onStop={stop}
+          streaming={streaming}
+        />
+      </Box>
+
+      <Tabs.Root
+        defaultValue="workflow"
+        flex={1}
+        minH={0}
+        display="flex"
+        flexDirection="column"
+      >
+        <Tabs.List bg="bg" borderWidth="1px" borderRadius="md" p={1}>
+          <Tabs.Trigger value="workflow" flex={1}>
+            <Text fontSize={{ base: "xs", sm: "sm" }}>Workflow</Text>
+          </Tabs.Trigger>
+          <Tabs.Trigger value="plugins" flex={1}>
+            <Text fontSize={{ base: "xs", sm: "sm" }}>Plugins</Text>
+          </Tabs.Trigger>
+          <Tabs.Trigger value="run" flex={1}>
+            <Text fontSize={{ base: "xs", sm: "sm" }}>Run</Text>
+          </Tabs.Trigger>
+        </Tabs.List>
+
+        <Tabs.Content
+          value="workflow"
+          p={0}
+          mt={2}
+          flex={1}
+          minH={0}
+          overflow="hidden"
+        >
+          <VStack align="stretch" gap={2} h="full" minH={0}>
+            <HStack justify="space-between" px={2}>
+              <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>
+                Workflow Steps
+              </Text>
+              <IconButton
+                aria-label="Expand workflow"
+                size="sm"
+                variant="ghost"
+                onClick={onOpen}
+                disabled={!latest?.workflowDefinition}
+                minH={{ base: "36px", md: "auto" }}
+              >
+                <LuExpand />
+              </IconButton>
+            </HStack>
+            <Box
+              flex={1}
+              minH={0}
+              borderWidth="1px"
+              rounded="md"
+              bg="bg.subtle"
+              overflow="hidden"
+            >
+              {latest?.workflowDefinition && (
+                <WorkflowCanvas workflow={latest.workflowDefinition} />
+              )}
+            </Box>
+          </VStack>
+        </Tabs.Content>
+
+        <Tabs.Content value="plugins" p={0} mt={2} flex={1} minH={0}>
+          <PluginsPanel />
+        </Tabs.Content>
+
+        <Tabs.Content value="run" p={0} mt={2} flex={1} minH={0}>
+          <RunPanel
+            streaming={streaming}
+            events={events}
+            latestDefinition={latest?.workflowDefinition}
+            runRes={runRes}
+            onRun={runLatest}
+          />
+        </Tabs.Content>
+      </Tabs.Root>
+    </VStack>
+  );
+
+  // デスクトップ用のグリッドレイアウト
+  const DesktopLayout = () => (
     <Box
       display="grid"
       gridTemplateColumns={gridCols}
@@ -48,7 +158,7 @@ export function GeneratePage() {
       <VStack
         align="stretch"
         gap={2}
-        p={3}
+        p={{ base: 2, md: 3 }}
         borderWidth="1px"
         bg="bg"
         rounded="md"
@@ -80,13 +190,16 @@ export function GeneratePage() {
               overflow="hidden"
             >
               <HStack justify="space-between" mb={1}>
-                <Text fontWeight="medium">Workflow Steps</Text>
+                <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>
+                  Workflow Steps
+                </Text>
                 <IconButton
                   aria-label="Expand workflow"
                   size="sm"
                   variant="ghost"
                   onClick={onOpen}
                   disabled={!latest?.workflowDefinition}
+                  minH={{ base: "36px", md: "auto" }}
                 >
                   <LuExpand />
                 </IconButton>
@@ -151,26 +264,52 @@ export function GeneratePage() {
           onRun={runLatest}
         />
       </Box>
+    </Box>
+  );
+
+  return (
+    <>
+      {/* モバイル・タブレット表示 (lg未満) */}
+      <Box
+        display={{ base: "block", lg: "none" }}
+        h="full"
+        minH={0}
+        overflow="hidden"
+      >
+        <MobileLayout />
+      </Box>
+
+      {/* デスクトップ表示 (lg以上) */}
+      <Box
+        display={{ base: "none", lg: "block" }}
+        h="full"
+        minH={0}
+        overflow="hidden"
+      >
+        <DesktopLayout />
+      </Box>
 
       <Dialog.Root
         open={open}
         onOpenChange={(e) => !e.open && onClose()}
-        size="xl"
+        size={{ base: "full", md: "xl" }}
       >
         <Dialog.Backdrop />
         <Dialog.Positioner>
-          <Dialog.Content>
+          <Dialog.Content
+            maxW={{ base: "100vw", md: "90vw" }}
+            maxH={{ base: "100vh", md: "90vh" }}
+          >
             <Dialog.Header>
-              <HStack>
-                <LuNetwork />
-                <Text fontWeight="medium">Workflow</Text>
-              </HStack>
+              <Text fontWeight="medium" fontSize={{ base: "md", md: "lg" }}>
+                Workflow
+              </Text>
             </Dialog.Header>
             <Dialog.CloseTrigger />
             <Dialog.Body
-              minH="70vh"
+              minH={{ base: "60vh", md: "70vh" }}
               p={0}
-              padding={4}
+              padding={{ base: 2, md: 4 }}
               display="flex"
               flexDir="column"
             >
@@ -179,12 +318,14 @@ export function GeneratePage() {
               )}
             </Dialog.Body>
             <Dialog.Footer>
-              <Button onClick={onClose}>Close</Button>
+              <Button onClick={onClose} size={{ base: "sm", md: "md" }}>
+                Close
+              </Button>
             </Dialog.Footer>
           </Dialog.Content>
         </Dialog.Positioner>
       </Dialog.Root>
-    </Box>
+    </>
   );
 }
 

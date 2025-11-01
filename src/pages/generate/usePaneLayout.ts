@@ -3,8 +3,8 @@ import React from "react";
 export type DragKind = "right" | "bottom" | null;
 
 const STORAGE_KEY = "sapphillon-generate-pane";
-export const MIN_RIGHT = 280;
-export const MIN_BOTTOM = 160;
+export const MIN_RIGHT = 240; // モバイル・タブレット対応で最小幅を少し小さく
+export const MIN_BOTTOM = 140;
 export const GUTTER = 6;
 const DEFAULT_RIGHT = 320;
 const DEFAULT_BOTTOM = 320; // make run console larger by default

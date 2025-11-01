@@ -57,8 +57,8 @@ export function LogRow({ e, index }: LogRowProps) {
 
   return (
     <Box
-      px={2}
-      py={1}
+      px={{ base: 1, md: 2 }}
+      py={{ base: 0.5, md: 1 }}
       borderBottomWidth="1px"
       borderColor="border"
       bg={index % 2 === 1 ? "bg.subtle" : undefined}
@@ -73,17 +73,17 @@ export function LogRow({ e, index }: LogRowProps) {
         w="1.5px"
         bg={meta.border}
       />
-      <HStack gap={1} align="center">
+      <HStack gap={{ base: 0.5, md: 1 }} align="center" flexWrap="nowrap">
         <Badge
           colorPalette={meta.palette}
           flexShrink={0}
-          fontSize="10px"
-          px={1}
+          fontSize="xs"
+          px={{ base: 0.5, md: 1 }}
           py={0}
         >
           {e.kind}
         </Badge>
-        <Text fontSize="xs" color="fg.muted" flexShrink={0} w="72px">
+        <Text fontSize="xs" color="fg.muted" flexShrink={0} w={{ base: "48px", md: "72px" }} display={{ base: "none", sm: "block" }}>
           {fmtTime(e.t)}
         </Text>
         <Box flex={1} minW={0}>
@@ -96,7 +96,7 @@ export function LogRow({ e, index }: LogRowProps) {
               >
                 <Tooltip.Trigger asChild>
                   <Text
-                    fontSize="sm"
+                    fontSize={{ base: "xs", md: "sm" }}
                     css={{
                       whiteSpace: "nowrap",
                       overflow: "hidden",
@@ -105,7 +105,7 @@ export function LogRow({ e, index }: LogRowProps) {
                   >
                     {summary}
                     {inline && (
-                      <Text as="span" fontFamily="mono" color="fg.muted">
+                      <Text as="span" fontFamily="mono" color="fg.muted" display={{ base: "none", md: "inline" }}>
                         — {inline}
                       </Text>
                     )}
@@ -114,10 +114,10 @@ export function LogRow({ e, index }: LogRowProps) {
                 <Portal>
                   <Tooltip.Positioner>
                     <Tooltip.Content
-                      maxW="90vw"
-                      maxH="50vh"
+                      maxW={{ base: "95vw", md: "90vw" }}
+                      maxH={{ base: "40vh", md: "50vh" }}
                       overflow="auto"
-                      p={2}
+                      p={{ base: 1.5, md: 2 }}
                       fontSize="xs"
                       zIndex={1700}
                     >
@@ -138,7 +138,7 @@ export function LogRow({ e, index }: LogRowProps) {
             )
             : (
               <Text
-                fontSize="sm"
+                fontSize={{ base: "xs", md: "sm" }}
                 css={{
                   whiteSpace: "nowrap",
                   overflow: "hidden",
@@ -162,11 +162,19 @@ export function LogRow({ e, index }: LogRowProps) {
               onClick={handleCopy}
               disabled={!copyText}
               aria-label={copied ? "Copied" : "Copy"}
+              flexShrink={0}
+              minH={{ base: "32px", md: "auto" }}
             >
               <Box
                 as={copied ? LuCheck : LuClipboard}
                 aria-hidden="true"
-                css={{ width: 4, height: 4 }}
+                css={{ width: 3, height: 3 }}
+                sx={{
+                  "@media (min-width: 768px)": {
+                    width: 4,
+                    height: 4,
+                  },
+                }}
               />
             </Button>
           </Tooltip.Trigger>

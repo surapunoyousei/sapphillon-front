@@ -1,0 +1,159 @@
+/* アクセシビリティとフォーカス状態の改善 - レスポンシブ対応 */
+
+/* より視認性の高いフォーカスリング */
+*:focus-visible {
+  outline: 2px solid var(--chakra-colors-accent-focusRing, #3182ce);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* モバイルデバイスでのタッチフィードバック */
+@media (hover: none) and (pointer: coarse) {
+  /* タッチ可能な要素にタップハイライトを追加 */
+  button,
+  a,
+  [role="button"],
+  [role="link"],
+  input,
+  textarea,
+  select {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  }
+
+  /* ダークモード用 */
+  @media (prefers-color-scheme: dark) {
+    button,
+    a,
+    [role="button"],
+    [role="link"],
+    input,
+    textarea,
+    select {
+      -webkit-tap-highlight-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  /* タッチ時のアクティブ状態を強化 */
+  button:active,
+  [role="button"]:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+}
+
+/* キーボードナビゲーション用のスキップリンク */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--chakra-colors-bg, white);
+  color: var(--chakra-colors-fg, black);
+  padding: 8px;
+  text-decoration: none;
+  z-index: 100;
+  border: 2px solid var(--chakra-colors-accent-focusRing, #3182ce);
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* より大きなタップターゲット（モバイル） */
+@media (max-width: 768px) {
+  button,
+  a,
+  [role="button"],
+  [role="link"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* 高コントラストモードのサポート */
+@media (prefers-contrast: high) {
+  *:focus-visible {
+    outline-width: 3px;
+    outline-offset: 3px;
+  }
+
+  button,
+  a,
+  input,
+  textarea,
+  select {
+    border-width: 2px;
+  }
+}
+
+/* アニメーション削減設定に対応 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* タッチフィードバックのアニメーションも削除 */
+  button:active,
+  [role="button"]:active {
+    transform: none !important;
+  }
+}
+
+/* スクリーンリーダー専用テキスト */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* フォーカス時にスクリーンリーダー専用テキストを表示 */
+.sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0.5rem;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* タッチデバイスでのホバー効果を無効化 */
+@media (hover: none) {
+  *:hover {
+    /* タッチデバイスでは意図しないホバー効果が残らないようにする */
+  }
+}
+
+/* カスタムフォーカスインジケーター（ボタンなど） */
+button:focus-visible,
+[role="button"]:focus-visible {
+  box-shadow: 0 0 0 3px var(--chakra-colors-accent-focusRing, rgba(49, 130, 206, 0.6));
+  outline: none;
+}
+
+/* インプット要素のフォーカス */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  border-color: var(--chakra-colors-accent-focusRing, #3182ce);
+  box-shadow: 0 0 0 1px var(--chakra-colors-accent-focusRing, #3182ce);
+}
+
+/* リンクのフォーカス */
+a:focus-visible {
+  outline: 2px solid var(--chakra-colors-accent-focusRing, #3182ce);
+  outline-offset: 2px;
+  text-decoration: underline;
+}
+

@@ -1,0 +1,86 @@
+/* カスタムスクロールバースタイル - レスポンシブ対応 */
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 100, 100, 0.3) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+@media (max-width: 768px) {
+  *::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 100, 100, 0.3);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 100, 100, 0.5);
+}
+
+/* Dark mode scrollbar */
+@media (prefers-color-scheme: dark) {
+  * {
+    scrollbar-color: rgba(200, 200, 200, 0.3) transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: rgba(200, 200, 200, 0.3);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(200, 200, 200, 0.5);
+  }
+}
+
+/* スクロールグラデーション効果用のクラス */
+.scroll-container {
+  position: relative;
+}
+
+.scroll-container::before,
+.scroll-container::after {
+  content: '';
+  position: sticky;
+  left: 0;
+  right: 0;
+  height: 12px;
+  pointer-events: none;
+  z-index: 10;
+  transition: opacity 0.2s ease;
+}
+
+.scroll-container::before {
+  top: 0;
+  background: linear-gradient(to bottom, var(--chakra-colors-bg, white) 0%, transparent 100%);
+}
+
+.scroll-container::after {
+  bottom: 0;
+  background: linear-gradient(to top, var(--chakra-colors-bg, white) 0%, transparent 100%);
+}
+
+@media (prefers-color-scheme: dark) {
+  .scroll-container::before {
+    background: linear-gradient(to bottom, var(--chakra-colors-bg, #1a1a1a) 0%, transparent 100%);
+  }
+
+  .scroll-container::after {
+    background: linear-gradient(to top, var(--chakra-colors-bg, #1a1a1a) 0%, transparent 100%);
+  }
+}
+

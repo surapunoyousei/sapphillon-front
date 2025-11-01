@@ -1,12 +1,25 @@
-﻿import { Box, HStack, Image, Kbd, Spacer, Text } from "@chakra-ui/react";
+﻿import {
+  Box,
+  HStack,
+  IconButton,
+  Image,
+  Kbd,
+  Spacer,
+  Text,
+} from "@chakra-ui/react";
 import { ColorModeButton } from "@/components/ui/color-mode";
 import { useColorMode } from "@/components/ui/use-color-mode";
+import { LuMenu } from "react-icons/lu";
 
 export interface TopNavProps {
   onOpenOmni?: () => void;
+  onOpenMenu?: () => void;
+  showMenuButton?: boolean;
 }
 
-export function TopNav({ onOpenOmni }: TopNavProps) {
+export function TopNav(
+  { onOpenOmni, onOpenMenu, showMenuButton = false }: TopNavProps,
+) {
   const lightLogoUrl = new URL(
     "../../assets/Floorp_Logo_OS_C_Light.png",
     import.meta.url,
@@ -20,22 +33,40 @@ export function TopNav({ onOpenOmni }: TopNavProps) {
   return (
     <HStack
       as="header"
-      px={4}
-      py={3}
+      px={{ base: 2, md: 4 }}
+      py={{ base: 1.5, md: 3 }}
       align="center"
-      gap={3}
+      gap={{ base: 2, md: 3 }}
       position="relative"
       borderBottomWidth="1px"
       borderBottomColor="border"
       bg="bg.panel"
+      css={{
+        "@media (max-height: 600px) and (orientation: landscape)": {
+          paddingTop: "0.5rem",
+          paddingBottom: "0.5rem",
+        },
+      }}
     >
-      <HStack gap={2}>
+      <HStack gap={2} flexShrink={0}>
+        {showMenuButton && (
+          <IconButton
+            aria-label="Open menu"
+            size="md"
+            variant="ghost"
+            onClick={onOpenMenu}
+            display={{ base: "flex", md: "none" }}
+          >
+            <LuMenu />
+          </IconButton>
+        )}
         <Image
           src={logoUrl}
           alt="Floorp OS"
-          height="8"
+          height={{ base: "6", md: "8" }}
           width="auto"
-          css={{ display: "block", objectFit: "contain" }}
+          display={{ base: "none", md: "block" }}
+          css={{ objectFit: "contain" }}
         />
       </HStack>
       {/* Centered Omni Bar trigger (absolute centering) */}
@@ -46,7 +77,8 @@ export function TopNav({ onOpenOmni }: TopNavProps) {
         top="50%"
         transform="translate(-50%, -50%)"
         w="full"
-        maxW="lg"
+        maxW={{ base: "xs", sm: "md", md: "lg" }}
+        px={{ base: 2, md: 0 }}
       >
         <Box
           role="button"
@@ -56,8 +88,8 @@ export function TopNav({ onOpenOmni }: TopNavProps) {
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") onOpenOmni?.();
           }}
-          px={3}
-          py={2}
+          px={{ base: 2, md: 3 }}
+          py={{ base: 1.5, md: 2 }}
           rounded="md"
           borderWidth="1px"
           borderColor="border"
@@ -66,19 +98,25 @@ export function TopNav({ onOpenOmni }: TopNavProps) {
           transitionProperty="colors, shadow"
           transitionDuration="normal"
           _hover={{ bg: "bg.subtle" }}
-          _focusVisible={{ outline: "2px solid", outlineColor: "accent.focusRing", outlineOffset: "2px" }}
+          _focusVisible={{
+            outline: "2px solid",
+            outlineColor: "accent.focusRing",
+            outlineOffset: "2px",
+          }}
         >
-          <HStack justify="space-between" color="fg.muted">
-            <Text fontSize="sm">Search or run…</Text>
-            <HStack>
-              <Kbd>⌘</Kbd>
-              <Kbd>K</Kbd>
+          <HStack justify="space-between" color="fg.muted" gap={2}>
+            <Text fontSize={{ base: "xs", sm: "sm" }} whiteSpace="nowrap">
+              Search or run…
+            </Text>
+            <HStack display={{ base: "none", sm: "flex" }} gap={1}>
+              <Kbd fontSize="xs">⌘</Kbd>
+              <Kbd fontSize="xs">K</Kbd>
             </HStack>
           </HStack>
         </Box>
       </Box>
       <Spacer />
-      <HStack gap={2}>
+      <HStack gap={2} flexShrink={0}>
         <ColorModeButton />
       </HStack>
     </HStack>

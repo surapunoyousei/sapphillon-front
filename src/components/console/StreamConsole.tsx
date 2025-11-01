@@ -52,13 +52,14 @@ export const StreamConsole: React.FC<StreamConsoleProps> = ({
         h="full"
         overflowY="auto"
         onScroll={onScroll}
-        pr={1}
+        pr={{ base: 0.5, md: 1 }}
         fontFamily="mono"
         css={{ overflowAnchor: "none" }}
+        className="scroll-container"
       >
         {visible.length === 0
           ? (
-            <Text color="fg.muted" px={2}>
+            <Text color="fg.muted" px={{ base: 1, md: 2 }} fontSize={{ base: "xs", md: "sm" }}>
               {events.length === 0
                 ? (streaming ? "Streaming…" : "Waiting for run…")
                 : "No matches"}

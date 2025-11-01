@@ -52,11 +52,16 @@ const generateCode = (node: Node | null | undefined) => {
   }
 };
 
-const INDENT_PX = 16; // インデント幅（各ネストレベル）
-const oneLine = (code: string | null | undefined, max = 80) => {
+// インデント幅（各ネストレベル）はCSSで制御するため、ベース値として保持
+const INDENT_PX = 16;
+const INDENT_PX_MOBILE = 12;
+
+const oneLine = (code: string | null | undefined, max = 80, mobileMax = 40) => {
   const s = (code ?? "").replace(/\s+/g, " ").trim();
-  if (s.length <= max) return s;
-  return s.slice(0, max - 1) + "…";
+  // モバイル用に短縮版も考慮（実際の使用時にビューポートを確認）
+  const effectiveMax = window.innerWidth < 768 ? mobileMax : max;
+  if (s.length <= effectiveMax) return s;
+  return s.slice(0, effectiveMax - 1) + "…";
 };
 
 // Simple inline token highlighter for variable-like expressions.
@@ -71,8 +76,8 @@ const TokenizedInlineCode: React.FC<{ code?: string }> = ({ code }) => {
   return (
     <Code
       fontSize="xs"
-      px={2}
-      py={0.5}
+      px={{ base: 1, md: 2 }}
+      py={{ base: 0.5, md: 0.5 }}
       borderRadius="sm"
       bg="gray.50"
       color="gray.800"
@@ -188,10 +193,10 @@ const AstNode: React.FC<
   if (!node || !node.type) {
     return (
       <Box
-        p={3}
+        p={{ base: 2, md: 3 }}
         borderWidth="1px"
         borderRadius="md"
-        minWidth="200px"
+        minWidth={{ base: "150px", md: "200px" }}
         flexShrink={0}
         bg="red.50"
         borderColor="red.200"
@@ -200,7 +205,7 @@ const AstNode: React.FC<
           borderColor: "red.700",
         }}
       >
-        <Text color="red.700" _dark={{ color: "red.500" }} fontSize="sm">
+        <Text color="red.700" _dark={{ color: "red.500" }} fontSize={{ base: "xs", md: "sm" }}>
           Invalid node
         </Text>
       </Box>
@@ -338,8 +343,8 @@ const AstNode: React.FC<
         />
 
         {/* Header row */}
-        <Box px={2.5} py={1.5}>
-          <Box display="flex" alignItems="center" gap={2} minH="24px">
+        <Box px={{ base: 1.5, md: 2.5 }} py={{ base: 1, md: 1.5 }}>
+          <Box display="flex" alignItems="center" gap={{ base: 1, md: 2 }} minH="24px">
             {/* Toggle */}
             {expandable
               ? (
@@ -356,31 +361,38 @@ const AstNode: React.FC<
                   display="flex"
                   alignItems="center"
                   justifyContent="center"
-                  w="18px"
-                  h="18px"
+                  w={{ base: "16px", md: "18px" }}
+                  h={{ base: "16px", md: "18px" }}
                 >
                   {collapsed
-                    ? <LuChevronRight size={14} />
-                    : <LuChevronDown size={14} />}
+                    ? <LuChevronRight size={12} style={{ width: "100%", height: "100%" }} />
+                    : <LuChevronDown size={12} style={{ width: "100%", height: "100%" }} />}
                 </Box>
               )
               : null}
 
             {/* Icon */}
             <Box
-              w={5}
-              h={5}
+              w={{ base: 4, md: 5 }}
+              h={{ base: 4, md: 5 }}
               borderRadius="sm"
               bg={colors.iconBg}
               display="flex"
               alignItems="center"
               justifyContent="center"
-              fontSize="xs"
+              fontSize={{ base: "10px", md: "xs" }}
               color={colors.iconColor}
               _dark={{ bg: colors._dark.iconBg, color: colors._dark.iconColor }}
               flexShrink={0}
             >
-              {icon}
+              <Box
+                as={icon.type}
+                {...icon.props}
+                css={{
+                  width: "100%",
+                  height: "100%",
+                }}
+              />
             </Box>
 
             {/* Title + Summary */}
@@ -389,11 +401,11 @@ const AstNode: React.FC<
               minWidth={0}
               display="flex"
               alignItems="center"
-              gap={2}
+              gap={{ base: 1, md: 2 }}
             >
               <Text
                 fontWeight="medium"
-                fontSize="sm"
+                fontSize={{ base: "xs", md: "sm" }}
                 color="gray.900"
                 _dark={{ color: "gray.200" }}
                 truncate
@@ -407,7 +419,7 @@ const AstNode: React.FC<
 
         {/* Details */}
         {(!expandable || !collapsed) && (
-          <Box px={2.5}>
+          <Box px={{ base: 1.5, md: 2.5 }}>
             <VStack align="stretch" w="100%" gap={1}>
               {children}
             </VStack>
@@ -428,11 +440,11 @@ const AstNode: React.FC<
       <Box>
         {label && (
           <Text
-            fontSize="md"
+            fontSize={{ base: "xs", md: "sm" }}
             color="gray.600"
             _dark={{ color: "gray.400" }}
             mb={1}
-            ml={`${depth * INDENT_PX + 4}px`}
+            ml={{ base: `${depth * INDENT_PX_MOBILE + 4}px`, md: `${depth * INDENT_PX + 4}px` }}
           >
             {label}
           </Text>
@@ -448,7 +460,7 @@ const AstNode: React.FC<
               <Box
                 key={index}
                 position="relative"
-                pl={`${depth * INDENT_PX + 12}px`}
+                pl={{ base: `${depth * INDENT_PX_MOBILE + 8}px`, md: `${depth * INDENT_PX + 12}px` }}
               >
                 <AstNode
                   node={stmt}
@@ -823,41 +835,44 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
         {viewMode === "steps" && (
           <>
             {!latestCode
-              ? <Text>No code available to display.</Text>
+              ? <Text fontSize={{ base: "sm", md: "md" }}>No code available to display.</Text>
               : parseError
               ? (
-                <Box p={4} color="red.500" whiteSpace="pre-wrap">
-                  <Text fontWeight="bold">Error parsing workflow code:</Text>
-                  <Code colorScheme="red">{parseError.message}</Code>
+                <Box p={{ base: 2, md: 4 }} color="red.500" whiteSpace="pre-wrap">
+                  <Text fontWeight="bold" fontSize={{ base: "sm", md: "md" }}>Error parsing workflow code:</Text>
+                  <Code colorScheme="red" fontSize={{ base: "xs", md: "sm" }}>{parseError.message}</Code>
                 </Box>
               )
               : workflowBody
               ? (
-                <VStack align="stretch" gap={1.5} w="100%" p={3} pb="80px">
+                <VStack align="stretch" gap={{ base: 1, md: 1.5 }} w="100%" p={{ base: 2, md: 3 }} pb={{ base: "60px", md: "80px" }}>
                   {workflowBody.map((statement, index) => (
                     <AstNode key={index} node={statement} depth={0} />
                   ))}
                 </VStack>
               )
-              : <Text>`workflow()` function not found.</Text>}
+              : <Text fontSize={{ base: "sm", md: "md" }}>`workflow()` function not found.</Text>}
           </>
         )}
 
         {viewMode === "code" && (
-          <Box as="pre" fontFamily="mono" fontSize="sm" m={0} p={3}>
+          <Box as="pre" fontFamily="mono" fontSize={{ base: "xs", md: "sm" }} m={0} p={{ base: 2, md: 3 }} overflowX="auto">
             {rawJsCode}
           </Box>
         )}
       </Box>
 
       {/* View toggle */}
-      <Box position="absolute" top={2} right={2} zIndex={2}>
+      <Box position="absolute" top={{ base: 1, md: 2 }} right={{ base: 1, md: 2 }} zIndex={2}>
         <ButtonGroup size="xs" attached variant="outline">
           <Button
             onClick={() => setViewMode("steps")}
             colorScheme={viewMode === "steps" ? "blue" : "gray"}
             variant={viewMode === "steps" ? "solid" : "outline"}
             background={viewMode === "steps" ? "black" : "white"}
+            fontSize={{ base: "xs", md: "sm" }}
+            px={{ base: 2, md: 3 }}
+            minH={{ base: "32px", md: "auto" }}
           >
             Steps
           </Button>
@@ -866,6 +881,9 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
             colorScheme={viewMode === "code" ? "blue" : "gray"}
             variant={viewMode === "code" ? "solid" : "outline"}
             background={viewMode === "code" ? "black" : "white"}
+            fontSize={{ base: "xs", md: "sm" }}
+            px={{ base: 2, md: 3 }}
+            minH={{ base: "32px", md: "auto" }}
           >
             Code
           </Button>

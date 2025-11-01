@@ -15,37 +15,57 @@ export function StatusBar() {
   return (
     <HStack
       as="footer"
-      px={4}
-      py={2}
+      px={{ base: 2, md: 4 }}
+      py={{ base: 1, md: 2 }}
       borderTopWidth="1px"
       borderTopColor="border"
       bg="bg.panel"
       color="fg.muted"
-      fontSize="sm"
+      fontSize={{ base: "xs", md: "sm" }}
       align="center"
-      gap={3}
+      gap={{ base: 2, md: 3 }}
+      flexWrap="wrap"
+      css={{
+        "@media (max-height: 600px) and (orientation: landscape)": {
+          paddingTop: "0.25rem",
+          paddingBottom: "0.25rem",
+        },
+      }}
     >
-      <Text>Automotor Status</Text>
-      <Badge
-        colorPalette={grpc === "connected"
-          ? "green"
-          : grpc === "connecting"
-          ? "yellow"
-          : "red"}
-      >
-        {grpc}
-      </Badge>
+      <HStack gap={2} flexShrink={0}>
+        <Text whiteSpace="nowrap">Automotor Status</Text>
+        <Badge
+          colorPalette={grpc === "connected"
+            ? "green"
+            : grpc === "connecting"
+            ? "yellow"
+            : "red"}
+          fontSize={{ base: "xs", md: "sm" }}
+        >
+          {grpc}
+        </Badge>
+      </HStack>
 
-      <Box w="1px" h="4" bg="border" mx={1} />
+      <Box
+        w="1px"
+        h="4"
+        bg="border"
+        mx={1}
+        display={{ base: "none", sm: "block" }}
+      />
 
       {/* Placeholders like LLM/Queue can be restored when wired */}
 
       <Spacer />
       {version
         ? (
-          <HStack>
-            <Text>Version:</Text>
-            <Badge colorPalette="gray">{version}</Badge>
+          <HStack gap={2} flexShrink={0}>
+            <Text display={{ base: "none", sm: "block" }} whiteSpace="nowrap">
+              Version:
+            </Text>
+            <Badge colorPalette="gray" fontSize={{ base: "xs", md: "sm" }}>
+              {version}
+            </Badge>
           </HStack>
         )
         : null}
