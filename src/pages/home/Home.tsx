@@ -2,22 +2,143 @@ import React from "react";
 import {
   Box,
   Button,
+  Card,
   Flex,
   Heading,
   HStack,
   IconButton,
   Kbd,
+  SimpleGrid,
+  Spinner,
   Text,
   Textarea,
   VStack,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { LuSend } from "react-icons/lu";
+import { LuPlay, LuSend } from "react-icons/lu";
+import { useWorkflowsList } from "@/pages/workflows/useWorkflowsList";
+import type { Workflow } from "@/gen/sapphillon/v1/workflow_pb";
+import { clients } from "@/lib/grpc-clients";
+import { create } from "@bufbuild/protobuf";
+import {
+  RunWorkflowRequestSchema,
+  WorkflowSourceByIdSchema,
+} from "@/gen/sapphillon/v1/workflow_service_pb";
+import { WorkflowLanguage } from "@/gen/sapphillon/v1/workflow_pb";
+
+function WorkflowCard({ workflow }: { workflow: Workflow }) {
+  const [running, setRunning] = React.useState(false);
+  const latestCode = workflow.workflowCode?.[workflow.workflowCode.length - 1];
+
+  const handleRun = React.useCallback(async () => {
+    if (!latestCode || running) return;
+
+    setRunning(true);
+    try {
+      const request = create(RunWorkflowRequestSchema, {
+        source: {
+          case: "byId",
+          value: create(WorkflowSourceByIdSchema, {
+            workflowId: workflow.id,
+            workflowCodeId: latestCode.id,
+          }),
+        },
+      });
+
+      await clients.workflow.runWorkflow(request);
+      // TODO: 実行結果を表示する（Toastなど）
+    } catch (error) {
+      console.error("Failed to run workflow:", error);
+      // TODO: エラーを表示する
+    } finally {
+      setRunning(false);
+    }
+  }, [workflow, latestCode, running]);
+
+  return (
+    <Card.Root
+      cursor="pointer"
+      _hover={{ borderColor: "border.emphasized", shadow: "md" }}
+      transition="all 0.2s"
+      onClick={handleRun}
+    >
+      <Card.Body p={4}>
+        <VStack align="stretch" gap={3}>
+          <HStack justify="space-between" align="start">
+            <VStack align="start" gap={1} flex="1">
+              <Text
+                fontWeight="semibold"
+                fontSize="md"
+                css={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 1,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
+              >
+                {workflow.displayName || "Untitled Workflow"}
+              </Text>
+              {workflow.description && (
+                <Text
+                  fontSize="sm"
+                  color="fg.muted"
+                  css={{
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {workflow.description}
+                </Text>
+              )}
+            </VStack>
+            <Button
+              size="sm"
+              colorPalette="floorp"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRun();
+              }}
+              disabled={running || !latestCode}
+            >
+              {running ? <Spinner size="xs" /> : <LuPlay />}
+            </Button>
+          </HStack>
+          {workflow.workflowLanguage !== WorkflowLanguage.UNSPECIFIED && (
+            <HStack gap={2}>
+              <Box
+                px={2}
+                py={0.5}
+                rounded="sm"
+                bg="blue.100"
+                color="blue.700"
+                fontSize="xs"
+                fontWeight="medium"
+              >
+                {workflow.workflowLanguage === WorkflowLanguage.TYPESCRIPT
+                  ? "TypeScript"
+                  : "JavaScript"}
+              </Box>
+            </HStack>
+          )}
+        </VStack>
+      </Card.Body>
+    </Card.Root>
+  );
+}
 
 export function HomePage() {
   const navigate = useNavigate();
   const [prompt, setPrompt] = React.useState("");
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  // 最初の6つのワークフローを取得
+  const { workflows, loading } = useWorkflowsList();
+  const recentWorkflows = React.useMemo(
+    () => workflows.slice(0, 6),
+    [workflows],
+  );
 
   const handleSubmit = React.useCallback(() => {
     if (prompt.trim()) {
@@ -118,6 +239,32 @@ export function HomePage() {
               <Text fontSize={{ base: "sm", md: "md" }}>Plugins</Text>
             </Button>
           </HStack>
+
+          {/* Recent Workflows */}
+          {recentWorkflows.length > 0 && (
+            <VStack align="stretch" gap={4} w="full" mt={4}>
+              <Heading size="md" textAlign="left" w="full">
+                Recent Workflows
+              </Heading>
+              {loading
+                ? (
+                  <Flex justify="center" py={8}>
+                    <Spinner />
+                  </Flex>
+                )
+                : (
+                  <SimpleGrid
+                    columns={{ base: 1, sm: 2, md: 3 }}
+                    gap={4}
+                    w="full"
+                  >
+                    {recentWorkflows.map((workflow) => (
+                      <WorkflowCard key={workflow.id} workflow={workflow} />
+                    ))}
+                  </SimpleGrid>
+                )}
+            </VStack>
+          )}
         </VStack>
       </Box>
 
