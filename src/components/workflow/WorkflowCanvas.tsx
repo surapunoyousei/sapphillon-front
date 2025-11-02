@@ -82,10 +82,13 @@ const TokenizedInlineCode: React.FC<{ code?: string }> = ({ code }) => {
       bg="gray.50"
       color="gray.800"
       _dark={{ bg: "gray.800", color: "gray.100" }}
-      whiteSpace="pre"
+      whiteSpace="pre-wrap"
+      wordBreak="break-all"
       fontFamily="monospace"
-      display="inline-flex"
+      display="inline-block"
       alignItems="center"
+      maxW="100%"
+      overflowWrap="anywhere"
     >
       {tokens.map((m, i) => {
         const ident = (m as unknown as string[])[1];
@@ -184,10 +187,33 @@ const nodeHasImportant = (node: Node | null | undefined) => {
   }
 };
 
+// Helper function to find plugin function definition
+const findFunctionDefinition = (functionName: string, workflow?: Workflow) => {
+  if (!workflow) return null;
+  
+  const latestCode = workflow.workflowCode[workflow.workflowCode.length - 1];
+  if (!latestCode) return null;
+
+  // Search through all plugin packages
+  for (const pkg of latestCode.pluginPackages || []) {
+    for (const func of pkg.functions || []) {
+      if (func.functionId === functionName) {
+        return {
+          name: func.functionName || func.functionId,
+          description: func.description,
+          packageName: pkg.packageName,
+          arguments: func.arguments,
+        };
+      }
+    }
+  }
+  return null;
+};
+
 const AstNode: React.FC<
-  { node: Statement; depth?: number; importantOnly?: boolean }
+  { node: Statement; depth?: number; importantOnly?: boolean; workflow?: Workflow }
 > = (
-  { node, depth = 0, importantOnly = false },
+  { node, depth = 0, importantOnly = false, workflow },
 ) => {
   // Early return for invalid nodes
   if (!node || !node.type) {
@@ -400,8 +426,8 @@ const AstNode: React.FC<
               flex={1}
               minWidth={0}
               display="flex"
-              alignItems="center"
-              gap={{ base: 1, md: 2 }}
+              flexDirection="column"
+              gap={{ base: 0.5, md: 1 }}
             >
               <Text
                 fontWeight="medium"
@@ -466,6 +492,7 @@ const AstNode: React.FC<
                   node={stmt}
                   depth={depth + 1}
                   importantOnly={importantOnly}
+                  workflow={workflow}
                 />
               </Box>
             ))}
@@ -534,18 +561,42 @@ const AstNode: React.FC<
         const callExpr = expr.expression;
         const fn = oneLine(generateCode(callExpr.callee), 40);
         const isImportant = isImportantCall(fn);
+        
+        // Extract function name from callee
+        const functionName = callExpr.callee.type === "Identifier" 
+          ? callExpr.callee.name 
+          : null;
+        
+        // Try to find function definition
+        const funcDef = functionName ? findFunctionDefinition(functionName, workflow) : null;
+        
         return (
           <NodeContainer
-            title={isImportant ? "重要処理" : "ツールを実行"}
+            title={funcDef ? funcDef.name : (isImportant ? "重要処理" : "ツールを実行")}
             icon={isImportant
               ? <LuTriangleAlert size={16} />
               : <LuSettings size={16} />}
             type="action"
             // show the full call expression in the header (will be tokenized by TokenizedInlineCode there)
             summary={generateCode(callExpr)}
-            expandable={false}
+            expandable={!!funcDef}
             palette={isImportant ? "orange" : "teal"}
-          />
+          >
+            {funcDef && (
+              <VStack align="stretch" gap={1} fontSize={{ base: "2xs", md: "xs" }}>
+                {funcDef.description && (
+                  <Text color="gray.600" _dark={{ color: "gray.400" }}>
+                    {funcDef.description}
+                  </Text>
+                )}
+                {funcDef.packageName && (
+                  <Text color="gray.500" _dark={{ color: "gray.500" }} fontSize="2xs">
+                    パッケージ: {funcDef.packageName}
+                  </Text>
+                )}
+              </VStack>
+            )}
+          </NodeContainer>
         );
       }
       const summary = oneLine(generateCode(expr.expression));
@@ -847,7 +898,7 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
               ? (
                 <VStack align="stretch" gap={{ base: 1, md: 1.5 }} w="100%" p={{ base: 2, md: 3 }} pb={{ base: "60px", md: "80px" }}>
                   {workflowBody.map((statement, index) => (
-                    <AstNode key={index} node={statement} depth={0} />
+                    <AstNode key={index} node={statement} depth={0} workflow={workflow} />
                   ))}
                 </VStack>
               )
@@ -856,7 +907,17 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
         )}
 
         {viewMode === "code" && (
-          <Box as="pre" fontFamily="mono" fontSize={{ base: "xs", md: "sm" }} m={0} p={{ base: 2, md: 3 }} overflowX="auto">
+          <Box 
+            as="pre" 
+            fontFamily="mono" 
+            fontSize={{ base: "xs", md: "sm" }} 
+            m={0} 
+            p={{ base: 2, md: 3 }} 
+            overflowX="auto"
+            whiteSpace="pre-wrap"
+            wordBreak="break-all"
+            overflowWrap="anywhere"
+          >
             {rawJsCode}
           </Box>
         )}

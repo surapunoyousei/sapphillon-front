@@ -17,9 +17,12 @@ export function parseWorkflowCode(code: string): ParseResult {
       sourceType: "module",
       plugins: ["typescript"],
     });
+    
+    // Look for workflow function: function workflow() { ... }
+    // No export, no async - just a simple function declaration
     const workflowFunction = ast.program.body.find(
       (node) =>
-        node.type === "FunctionDeclaration" && node.id?.name === "workflow",
+        node.type === "FunctionDeclaration" && node.id?.name === "workflow"
     ) as FunctionDeclaration | undefined;
     
     if (!workflowFunction) {

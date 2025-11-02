@@ -14,7 +14,6 @@ import {
     VStack,
 } from "@chakra-ui/react";
 import {
-    LuCalendar,
     LuFileText,
     LuPlus,
     LuRefreshCw,
@@ -57,7 +56,15 @@ function WorkflowRow({
         <Table.Row>
             <Table.Cell>
                 <VStack align="start" gap={1}>
-                    <Text fontWeight="medium">
+                    <Text 
+                        fontWeight="medium"
+                        css={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 1,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                        }}
+                    >
                         {workflow.displayName || "-"}
                     </Text>
                     {workflow.description && (
@@ -76,18 +83,7 @@ function WorkflowRow({
                     )}
                 </VStack>
             </Table.Cell>
-            <Table.Cell>
-                <Text fontSize="sm" color="fg.muted">
-                    {workflow.workflowCode?.length || 0} revisions
-                </Text>
-            </Table.Cell>
-            <Table.Cell>
-                <HStack gap={1} color="fg.muted">
-                    <LuCalendar size={14} />
-                    <Text fontSize="sm">{formatDate(workflow.updatedAt)}</Text>
-                </HStack>
-            </Table.Cell>
-            <Table.Cell>
+            <Table.Cell display={{ base: "none", md: "table-cell" }}>
                 {latestResult
                     ? (
                         <HStack gap={2}>
@@ -101,7 +97,11 @@ function WorkflowRow({
                                     ? "red.500"
                                     : "gray.500"}
                             />
-                            <Text fontSize="sm" color="fg.muted">
+                            <Text 
+                                fontSize="sm" 
+                                color="fg.muted"
+                                whiteSpace="nowrap"
+                            >
                                 {latestResult.resultType === 0
                                     ? "Success"
                                     : "Failed"}
@@ -109,7 +109,11 @@ function WorkflowRow({
                         </HStack>
                     )
                     : (
-                        <Text fontSize="sm" color="fg.muted">
+                        <Text 
+                            fontSize="sm" 
+                            color="fg.muted"
+                            whiteSpace="nowrap"
+                        >
                             No runs
                         </Text>
                     )}
@@ -123,7 +127,10 @@ function WorkflowRow({
                     >
                         View
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                        size="sm" 
+                        variant="outline"
+                    >
                         Run
                     </Button>
                 </HStack>
@@ -338,47 +345,45 @@ export function WorkflowsPage() {
                     : (
                         <Card.Root>
                             <Card.Body p={0}>
-                                <Table.Root>
-                                    <Table.Header>
-                                        <Table.Row>
-                                            <Table.ColumnHeader
-                                                cursor="pointer"
-                                                onClick={() =>
-                                                    handleSort("display_name")}
-                                            >
-                                                Name
-                                            </Table.ColumnHeader>
-                                            <Table.ColumnHeader>
-                                                Revisions
-                                            </Table.ColumnHeader>
-                                            <Table.ColumnHeader
-                                                cursor="pointer"
-                                                onClick={() =>
-                                                    handleSort("updated_at")}
-                                            >
-                                                Updated
-                                            </Table.ColumnHeader>
-                                            <Table.ColumnHeader>
-                                                Last Run
-                                            </Table.ColumnHeader>
-                                            <Table.ColumnHeader>
-                                                Actions
-                                            </Table.ColumnHeader>
-                                        </Table.Row>
-                                    </Table.Header>
-                                    <Table.Body>
-                                        {workflows.map((workflow) => (
-                                            <WorkflowRow
-                                                key={workflow.id}
-                                                workflow={workflow}
-                                                onView={(id) =>
-                                                    navigate(
-                                                        `/workflows/${id}`,
-                                                    )}
-                                            />
-                                        ))}
-                                    </Table.Body>
-                                </Table.Root>
+                                <Box overflowX="auto">
+                                    <Table.Root>
+                                        <Table.Header>
+                                            <Table.Row>
+                                                <Table.ColumnHeader
+                                                    cursor="pointer"
+                                                    onClick={() =>
+                                                        handleSort("display_name")}
+                                                    minW="200px"
+                                                >
+                                                    Name
+                                                </Table.ColumnHeader>
+                                                <Table.ColumnHeader
+                                                    minW="120px"
+                                                    display={{ base: "none", md: "table-cell" }}
+                                                >
+                                                    Last Run
+                                                </Table.ColumnHeader>
+                                                <Table.ColumnHeader
+                                                    minW="150px"
+                                                >
+                                                    Actions
+                                                </Table.ColumnHeader>
+                                            </Table.Row>
+                                        </Table.Header>
+                                        <Table.Body>
+                                            {workflows.map((workflow) => (
+                                                <WorkflowRow
+                                                    key={workflow.id}
+                                                    workflow={workflow}
+                                                    onView={(id) =>
+                                                        navigate(
+                                                            `/workflows/${id}`,
+                                                        )}
+                                                />
+                                            ))}
+                                        </Table.Body>
+                                    </Table.Root>
+                                </Box>
                             </Card.Body>
                         </Card.Root>
                     )}

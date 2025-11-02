@@ -314,9 +314,12 @@ export function initializeMockData() {
             id: "code-1",
             codeRevision: 1,
             code: `// サンプルワークフローコード
-export async function workflow() {
-  console.log("Hello, World!");
-  return { success: true };
+function workflow() {
+  const page = browser.newPage();
+  page.goto("https://example.com");
+  const title = page.title();
+  console.log("Page title:", title);
+  return { success: true, title };
 }`,
             language: WorkflowLanguage.TYPESCRIPT,
             createdAt: createTimestamp(),
@@ -344,10 +347,12 @@ export async function workflow() {
             id: "code-2",
             codeRevision: 1,
             code: `// 天気チェックワークフロー
-export async function workflow() {
-  const weather = await checkWeather();
+function workflow() {
+  const weather = checkWeather();
   if (weather === "rain") {
-    await sendNotification("雨が降っています");
+    sendNotification("雨が降っています");
+  } else {
+    console.log("天気は良好です");
   }
   return { weather, notified: weather === "rain" };
 }`,
@@ -377,16 +382,20 @@ export async function workflow() {
             id: "code-3",
             codeRevision: 1,
             code: `// 定期レポート送信ワークフロー
-import { send_email } from "com.sapphillon.notifications";
-
-export async function workflow() {
-  const report = await generateReport();
-  const result = await send_email({
-    to: "admin@example.com",
-    subject: "日次レポート",
-    body: report,
-  });
-  return { success: result.success, messageId: result.messageId };
+function workflow() {
+  const report = generateReport();
+  
+  try {
+    const result = send_email({
+      to: "admin@example.com",
+      subject: "日次レポート",
+      body: report,
+    });
+    return { success: result.success, messageId: result.messageId };
+  } catch (error) {
+    console.error("Failed to send email:", error);
+    return { success: false, error: error.message };
+  }
 }`,
             language: WorkflowLanguage.TYPESCRIPT,
             createdAt: createTimestamp(),
@@ -430,7 +439,7 @@ export async function workflow() {
             id: "code-4",
             codeRevision: 1,
             code: `
-async function workflow() {
+function workflow() {
   const logContent = read_file({ path: "/var/log/app.log" });
   const analysis = analyzeLogs(logContent.content);
 
@@ -480,14 +489,14 @@ workflow();
 import { fetch } from "com.sapphillon.http";
 import { send_email } from "com.sapphillon.notifications";
 
-export async function workflow() {
-  const response = await fetch({
+function workflow() {
+  const response = fetch({
     url: "https://api.example.com/health",
     method: "GET",
   });
   
   if (response.status !== 200) {
-    await send_email({
+    send_email({
       to: "ops@example.com",
       subject: "API異常検知",
       body: \`APIが異常です: ステータス \${response.status}\`,
@@ -546,13 +555,13 @@ export async function workflow() {
 import { query } from "com.sapphillon.database";
 import { write_file } from "com.sapphillon.filesystem";
 
-export async function workflow() {
-  const data = await query({
+function workflow() {
+  const data = query({
     sql: "SELECT * FROM users WHERE created_at > NOW() - INTERVAL '1 day'",
   });
   
   const backup = JSON.stringify(data.rows);
-  await write_file({
+  write_file({
     path: "/backups/users-backup.json",
     content: backup,
   });
@@ -602,9 +611,9 @@ import { fetch } from "com.sapphillon.http";
 import { write_file } from "com.sapphillon.filesystem";
 import { send_slack } from "com.sapphillon.notifications";
 
-export async function workflow() {
+function workflow() {
   // 1. データ取得
-  const response = await fetch({
+  const response = fetch({
     url: "https://api.example.com/data",
     method: "GET",
   });
@@ -613,13 +622,13 @@ export async function workflow() {
   const processed = transformData(response.body);
   
   // 3. ファイル保存
-  await write_file({
+  write_file({
     path: "/data/processed.json",
     content: JSON.stringify(processed),
   });
   
   // 4. 通知
-  await send_slack({
+  send_slack({
     channel: "#data-team",
     message: \`処理完了: \${processed.length}件のデータを処理しました\`,
   });
