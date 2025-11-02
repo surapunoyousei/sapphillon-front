@@ -115,12 +115,9 @@ export function HomePage() {
   const [prompt, setPrompt] = React.useState("");
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
-  // 最初の6つのワークフローを取得
+  // ワークフロー一覧を取得
   const { workflows, loading } = useWorkflowsList();
-  const recentWorkflows = React.useMemo(
-    () => workflows.slice(0, 6),
-    [workflows],
-  );
+  const hasWorkflows = workflows.length > 0;
 
   const handleSubmit = React.useCallback(() => {
     if (prompt.trim()) {
@@ -146,113 +143,151 @@ export function HomePage() {
       mx={{ base: -2, md: -4 }}
       mb={{ base: -2, md: -4 }}
       css={{
+        height: "100%",
         "@media (max-height: 600px) and (orientation: landscape)": {
           minHeight: "auto",
         },
       }}
     >
       {/* Scrollable content area */}
-      <Box
-        flex="1"
-        minH={0}
-        overflowY="auto"
-        overflowX="hidden"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        px={{ base: 3, sm: 4, md: 6 }}
-        py={{ base: 4, sm: 6, md: 8 }}
-      >
-        <VStack
-          w="full"
-          maxW="3xl"
-          margin="auto"
-          gap={{ base: 6, sm: 7, md: 8 }}
-          pb={{ base: 4, md: 6 }}
-        >
-          <VStack
-            gap={{ base: 2, sm: 2.5, md: 3 }}
-            textAlign="center"
-            align="center"
-            my="auto"
-            pt={{ base: 4, md: 8 }}
+      {!hasWorkflows
+        ? (
+          <Box
+            flex="1"
+            minH={0}
+            overflowY="auto"
+            overflowX="hidden"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            px={{ base: 3, sm: 4, md: 6 }}
+            py={{ base: 4, sm: 6, md: 8 }}
           >
-            <Heading
-              size={{ base: "xl", sm: "2xl", md: "3xl" }}
-              lineHeight="1.2"
+            <VStack
+              w="full"
+              maxW="3xl"
+              margin="auto"
+              gap={{ base: 6, sm: 7, md: 8 }}
+              pb={{ base: 4, md: 6 }}
             >
-              あなたが今やりたいことを代わりに実行する統合プラットフォーム
-            </Heading>
-            <Text
-              color="fg.muted"
-              fontSize={{ base: "sm", sm: "md", md: "lg" }}
-              px={{ base: 2, md: 0 }}
-            >
-              Floorp OS が、命令をあなたのように安全に実行し、結果を報告します。
-            </Text>
-          </VStack>
+              <VStack
+                gap={{ base: 2, sm: 2.5, md: 3 }}
+                textAlign="center"
+                align="center"
+                my="auto"
+                pt={{ base: 4, md: 8 }}
+              >
+                <Heading
+                  size={{ base: "xl", sm: "2xl", md: "3xl" }}
+                  lineHeight="1.2"
+                >
+                  あなたが今やりたいことを代わりに実行する統合プラットフォーム
+                </Heading>
+                <Text
+                  color="fg.muted"
+                  fontSize={{ base: "sm", sm: "md", md: "lg" }}
+                  px={{ base: 2, md: 0 }}
+                >
+                  Floorp OS
+                  が、命令をあなたのように安全に実行し、結果を報告します。
+                </Text>
+              </VStack>
 
-          {/* Quick actions */}
-          <HStack
-            gap={{ base: 2, md: 3 }}
-            justify="center"
-            flexWrap="wrap"
-            w="full"
+              {/* Quick actions */}
+              <HStack
+                gap={{ base: 2, md: 3 }}
+                justify="center"
+                flexWrap="wrap"
+                w="full"
+              >
+                <Button
+                  onClick={() => navigate("/generate")}
+                  variant="surface"
+                  size={{ base: "sm", md: "md" }}
+                >
+                  <Text fontSize={{ base: "sm", md: "md" }}>Generate</Text>
+                </Button>
+                <Button
+                  onClick={() => navigate("/run")}
+                  variant="surface"
+                  size={{ base: "sm", md: "md" }}
+                >
+                  <Text fontSize={{ base: "sm", md: "md" }}>Run</Text>
+                </Button>
+                <Button
+                  onClick={() => navigate("/plugins")}
+                  colorPalette="floorp"
+                  size={{ base: "sm", md: "md" }}
+                >
+                  <Text fontSize={{ base: "sm", md: "md" }}>Plugins</Text>
+                </Button>
+              </HStack>
+            </VStack>
+          </Box>
+        )
+        : (
+          <Box
+            flex="1"
+            minH={0}
+            display="flex"
+            flexDirection="column"
+            overflow="hidden"
+            px={{ base: 3, sm: 4, md: 6 }}
+            py={{ base: 3, sm: 4, md: 6 }}
           >
-            <Button
-              onClick={() => navigate("/generate")}
-              variant="surface"
-              size={{ base: "sm", md: "md" }}
+            <Box
+              w="full"
+              maxW="3xl"
+              mx="auto"
+              h="full"
+              minH={0}
+              display="flex"
+              flexDirection="column"
+              overflow="hidden"
             >
-              <Text fontSize={{ base: "sm", md: "md" }}>Generate</Text>
-            </Button>
-            <Button
-              onClick={() => navigate("/run")}
-              variant="surface"
-              size={{ base: "sm", md: "md" }}
-            >
-              <Text fontSize={{ base: "sm", md: "md" }}>Run</Text>
-            </Button>
-            <Button
-              onClick={() => navigate("/plugins")}
-              colorPalette="floorp"
-              size={{ base: "sm", md: "md" }}
-            >
-              <Text fontSize={{ base: "sm", md: "md" }}>Plugins</Text>
-            </Button>
-          </HStack>
-
-          {/* Recent Workflows */}
-          {recentWorkflows.length > 0 && (
-            <VStack align="stretch" gap={4} w="full" mt={4}>
-              <Heading size="md" textAlign="left" w="full">
+              <Heading
+                size="md"
+                textAlign="left"
+                w="full"
+                mb={4}
+                flexShrink={0}
+              >
                 Recent Workflows
               </Heading>
-              {loading
-                ? (
-                  <Flex justify="center" py={8}>
-                    <Spinner />
-                  </Flex>
-                )
-                : (
-                  <SimpleGrid
-                    columns={{ base: 1, sm: 2, md: 3 }}
-                    gap={4}
-                    w="full"
-                  >
-                    {recentWorkflows.map((workflow) => (
-                      <WorkflowCard key={workflow.id} workflow={workflow} />
-                    ))}
-                  </SimpleGrid>
-                )}
-            </VStack>
-          )}
-        </VStack>
-      </Box>
+              <Box
+                flex="1"
+                minH={0}
+                overflowY="auto"
+                overflowX="hidden"
+                w="full"
+              >
+                {loading
+                  ? (
+                    <Flex justify="center" py={8}>
+                      <Spinner />
+                    </Flex>
+                  )
+                  : (
+                    <SimpleGrid
+                      columns={{ base: 1, sm: 2, md: 3 }}
+                      gap={4}
+                      w="full"
+                      pb={4}
+                    >
+                      {workflows.map((workflow) => (
+                        <WorkflowCard key={workflow.id} workflow={workflow} />
+                      ))}
+                    </SimpleGrid>
+                  )}
+              </Box>
+            </Box>
+          </Box>
+        )}
 
       {/* Fixed bottom input bar - ChatGPT mobile style */}
       <Box
         w="full"
+        flexShrink={0}
         borderTopWidth="1px"
         borderTopColor="border"
         bg="bg.panel"

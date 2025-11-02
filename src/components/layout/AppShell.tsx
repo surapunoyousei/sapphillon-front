@@ -30,7 +30,7 @@ export function AppShell({ children }: AppShellProps) {
   }, []);
 
   return (
-    <Flex direction="column" minH="100dvh">
+    <Flex direction="column" h="100dvh" overflow="hidden">
       <TopNav
         onOpenOmni={() => setOmniOpen(true)}
         onOpenMenu={() => setMobileMenuOpen(true)}
@@ -83,7 +83,7 @@ export function AppShell({ children }: AppShellProps) {
           minW="0"
           overflow="hidden"
           display="grid"
-          gridTemplateRows="1fr"
+          gridTemplateRows="minmax(0, 1fr)"
           tabIndex={-1}
         >
           <Box minH="0" minW="0" overflow="hidden" h="full">
