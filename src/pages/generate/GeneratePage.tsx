@@ -16,27 +16,43 @@ import { PluginsPanel } from "./PluginsPanel";
 import { RunPanel } from "./RunPanel";
 import { usePaneLayout } from "./usePaneLayout";
 import { useWorkflowGeneration } from "./useWorkflowGeneration";
+import type { GenerationEvent } from "./useWorkflowGeneration";
 import { WorkflowCanvas } from "@/components/workflow";
 import { LuExpand } from "react-icons/lu";
+import type {
+  GenerateWorkflowResponse,
+  RunWorkflowResponse,
+} from "@/gen/sapphillon/v1/workflow_service_pb";
+type WorkflowDefinition = GenerateWorkflowResponse["workflowDefinition"];
 
-export function GeneratePage() {
-  const [prompt, setPrompt] = React.useState("");
-  const {
-    gridCols,
-    gridRows,
-    beginDrag,
-    onGutterKeyDown,
-    MIN_RIGHT,
-    MIN_BOTTOM,
-  } = usePaneLayout();
-  const { streaming, events, latest, runRes, start, stop, runLatest } =
-    useWorkflowGeneration();
-  const { open, onOpen, onClose } = useDisclosure();
+type LayoutCommonProps = {
+  prompt: string;
+  onPromptChange: (value: string) => void;
+  onStart: () => void;
+  onStop: () => void;
+  streaming: boolean;
+  latestDefinition: WorkflowDefinition | undefined;
+  events: GenerationEvent[];
+  runRes: RunWorkflowResponse | null;
+  runLatest: () => void;
+  onOpenWorkflowDialog: () => void;
+};
 
-  const onStart = React.useCallback(() => start(prompt), [start, prompt]);
+type MobileLayoutProps = LayoutCommonProps;
 
-  // モバイル・タブレット用のタブ表示
-  const MobileLayout = () => (
+function MobileLayout({
+  prompt,
+  onPromptChange,
+  onStart,
+  onStop,
+  streaming,
+  latestDefinition,
+  events,
+  runRes,
+  runLatest,
+  onOpenWorkflowDialog,
+}: MobileLayoutProps) {
+  return (
     <VStack
       align="stretch"
       gap={2}
@@ -61,9 +77,9 @@ export function GeneratePage() {
       >
         <PromptPanel
           prompt={prompt}
-          onChange={setPrompt}
+          onChange={onPromptChange}
           onStart={onStart}
-          onStop={stop}
+          onStop={onStop}
           streaming={streaming}
         />
       </Box>
@@ -104,8 +120,8 @@ export function GeneratePage() {
                 aria-label="Expand workflow"
                 size="sm"
                 variant="ghost"
-                onClick={onOpen}
-                disabled={!latest?.workflowDefinition}
+                onClick={onOpenWorkflowDialog}
+                disabled={!latestDefinition}
                 minH={{ base: "36px", md: "auto" }}
               >
                 <LuExpand />
@@ -119,8 +135,8 @@ export function GeneratePage() {
               bg="bg.subtle"
               overflow="hidden"
             >
-              {latest?.workflowDefinition && (
-                <WorkflowCanvas workflow={latest.workflowDefinition} />
+              {latestDefinition && (
+                <WorkflowCanvas workflow={latestDefinition} />
               )}
             </Box>
           </VStack>
@@ -134,7 +150,7 @@ export function GeneratePage() {
           <RunPanel
             streaming={streaming}
             events={events}
-            latestDefinition={latest?.workflowDefinition}
+            latestDefinition={latestDefinition}
             runRes={runRes}
             onRun={runLatest}
           />
@@ -142,9 +158,38 @@ export function GeneratePage() {
       </Tabs.Root>
     </VStack>
   );
+}
 
-  // デスクトップ用のグリッドレイアウト
-  const DesktopLayout = () => (
+type PaneLayoutApi = ReturnType<typeof usePaneLayout>;
+
+type DesktopLayoutProps = LayoutCommonProps & {
+  gridCols: PaneLayoutApi["gridCols"];
+  gridRows: PaneLayoutApi["gridRows"];
+  beginDrag: PaneLayoutApi["beginDrag"];
+  onGutterKeyDown: PaneLayoutApi["onGutterKeyDown"];
+  minRight: number;
+  minBottom: number;
+};
+
+function DesktopLayout({
+  prompt,
+  onPromptChange,
+  onStart,
+  onStop,
+  streaming,
+  latestDefinition,
+  events,
+  runRes,
+  runLatest,
+  onOpenWorkflowDialog,
+  gridCols,
+  gridRows,
+  beginDrag,
+  onGutterKeyDown,
+  minRight,
+  minBottom,
+}: DesktopLayoutProps) {
+  return (
     <Box
       display="grid"
       gridTemplateColumns={gridCols}
@@ -174,9 +219,9 @@ export function GeneratePage() {
           <VStack align="stretch" h="full" gap={2}>
             <PromptPanel
               prompt={prompt}
-              onChange={setPrompt}
+              onChange={onPromptChange}
               onStart={onStart}
-              onStop={stop}
+              onStop={onStop}
               streaming={streaming}
             />
             <Separator />
@@ -197,8 +242,8 @@ export function GeneratePage() {
                   aria-label="Expand workflow"
                   size="sm"
                   variant="ghost"
-                  onClick={onOpen}
-                  disabled={!latest?.workflowDefinition}
+                  onClick={onOpenWorkflowDialog}
+                  disabled={!latestDefinition}
                   minH={{ base: "36px", md: "auto" }}
                 >
                   <LuExpand />
@@ -212,8 +257,8 @@ export function GeneratePage() {
                 bg="bg.subtle"
                 overflow="hidden"
               >
-                {latest?.workflowDefinition && (
-                  <WorkflowCanvas workflow={latest.workflowDefinition} />
+                {latestDefinition && (
+                  <WorkflowCanvas workflow={latestDefinition} />
                 )}
               </Box>
             </VStack>
@@ -236,7 +281,7 @@ export function GeneratePage() {
       />
 
       {/* Right: Plugins */}
-      <Box gridColumn={3} gridRow={1} minW={MIN_RIGHT} minH={0} h="full">
+      <Box gridColumn={3} gridRow={1} minW={minRight} minH={0} h="full">
         <PluginsPanel />
       </Box>
 
@@ -255,17 +300,35 @@ export function GeneratePage() {
       />
 
       {/* Bottom: Run panel */}
-      <Box gridColumn="1 / span 3" gridRow={3} minH={MIN_BOTTOM} h="full">
+      <Box gridColumn="1 / span 3" gridRow={3} minH={minBottom} h="full">
         <RunPanel
           streaming={streaming}
           events={events}
-          latestDefinition={latest?.workflowDefinition}
+          latestDefinition={latestDefinition}
           runRes={runRes}
           onRun={runLatest}
         />
       </Box>
     </Box>
   );
+}
+
+export function GeneratePage() {
+  const [prompt, setPrompt] = React.useState("");
+  const {
+    gridCols,
+    gridRows,
+    beginDrag,
+    onGutterKeyDown,
+    MIN_RIGHT: layoutMinRight,
+    MIN_BOTTOM: layoutMinBottom,
+  } = usePaneLayout();
+  const { streaming, events, latest, runRes, start, stop, runLatest } =
+    useWorkflowGeneration();
+  const { open, onOpen, onClose } = useDisclosure();
+
+  const onStart = React.useCallback(() => start(prompt), [start, prompt]);
+  const latestDefinition = latest?.workflowDefinition;
 
   return (
     <>
@@ -276,7 +339,18 @@ export function GeneratePage() {
         minH={0}
         overflow="hidden"
       >
-        <MobileLayout />
+        <MobileLayout
+          prompt={prompt}
+          onPromptChange={(value) => setPrompt(value)}
+          onStart={onStart}
+          onStop={stop}
+          streaming={streaming}
+          latestDefinition={latestDefinition}
+          events={events}
+          runRes={runRes}
+          runLatest={runLatest}
+          onOpenWorkflowDialog={onOpen}
+        />
       </Box>
 
       {/* デスクトップ表示 (lg以上) */}
@@ -286,7 +360,24 @@ export function GeneratePage() {
         minH={0}
         overflow="hidden"
       >
-        <DesktopLayout />
+        <DesktopLayout
+          prompt={prompt}
+          onPromptChange={(value) => setPrompt(value)}
+          onStart={onStart}
+          onStop={stop}
+          streaming={streaming}
+          latestDefinition={latestDefinition}
+          events={events}
+          runRes={runRes}
+          runLatest={runLatest}
+          onOpenWorkflowDialog={onOpen}
+          gridCols={gridCols}
+          gridRows={gridRows}
+          beginDrag={beginDrag}
+          onGutterKeyDown={onGutterKeyDown}
+          minRight={layoutMinRight}
+          minBottom={layoutMinBottom}
+        />
       </Box>
 
       <Dialog.Root
@@ -313,8 +404,8 @@ export function GeneratePage() {
               display="flex"
               flexDir="column"
             >
-              {latest?.workflowDefinition && (
-                <WorkflowCanvas workflow={latest.workflowDefinition} />
+              {latestDefinition && (
+                <WorkflowCanvas workflow={latestDefinition} />
               )}
             </Dialog.Body>
             <Dialog.Footer>

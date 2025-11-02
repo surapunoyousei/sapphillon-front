@@ -11,6 +11,7 @@ import {
   Input,
   SelectContent,
   SelectItem,
+  SelectPositioner,
   SelectRoot,
   SelectTrigger,
   SelectValueText,
@@ -278,14 +279,6 @@ export function ModelsPage() {
     })),
   });
 
-  if (loading) {
-    return (
-      <Flex justify="center" align="center" h="50vh">
-        <Spinner size="xl" />
-      </Flex>
-    );
-  }
-
   return (
     <Box p={6}>
       <VStack align="stretch" gap={6}>
@@ -328,14 +321,19 @@ export function ModelsPage() {
                       <SelectTrigger>
                         <SelectValueText placeholder="すべてのプロバイダ" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem item="">すべてのプロバイダ</SelectItem>
-                        {providers.map((provider) => (
-                          <SelectItem key={provider.name} item={provider.name}>
-                            {provider.displayName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
+                      <SelectPositioner>
+                        <SelectContent>
+                          <SelectItem item="">すべてのプロバイダ</SelectItem>
+                          {providers.map((provider) => (
+                            <SelectItem
+                              key={provider.name}
+                              item={provider.name}
+                            >
+                              {provider.displayName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </SelectPositioner>
                     </SelectRoot>
                   </Field>
                 </Box>
@@ -412,16 +410,18 @@ export function ModelsPage() {
                           <SelectTrigger>
                             <SelectValueText placeholder="プロバイダを選択" />
                           </SelectTrigger>
-                          <SelectContent>
-                            {providers.map((provider) => (
-                              <SelectItem
-                                key={provider.name}
-                                item={provider.name}
-                              >
-                                {provider.displayName}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
+                          <SelectPositioner>
+                            <SelectContent>
+                              {providers.map((provider) => (
+                                <SelectItem
+                                  key={provider.name}
+                                  item={provider.name}
+                                >
+                                  {provider.displayName}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </SelectPositioner>
                         </SelectRoot>
                       )}
                     />
@@ -457,7 +457,13 @@ export function ModelsPage() {
             <Heading size="md">モデル一覧</Heading>
           </Card.Header>
           <Card.Body p={0}>
-            {models.length === 0
+            {loading
+              ? (
+                <Flex justify="center" align="center" p={8}>
+                  <Spinner size="lg" />
+                </Flex>
+              )
+              : models.length === 0
               ? (
                 <Box p={8} textAlign="center">
                   <Text color="fg.muted">モデルが登録されていません。</Text>
@@ -524,16 +530,18 @@ export function ModelsPage() {
                                     <SelectTrigger>
                                       <SelectValueText placeholder="プロバイダを選択" />
                                     </SelectTrigger>
-                                    <SelectContent>
-                                      {providers.map((provider) => (
-                                        <SelectItem
-                                          key={provider.name}
-                                          item={provider.name}
-                                        >
-                                          {provider.displayName}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
+                                    <SelectPositioner>
+                                      <SelectContent>
+                                        {providers.map((provider) => (
+                                          <SelectItem
+                                            key={provider.name}
+                                            item={provider.name}
+                                          >
+                                            {provider.displayName}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </SelectPositioner>
                                   </SelectRoot>
                                 )}
                               />
