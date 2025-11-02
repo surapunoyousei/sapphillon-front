@@ -3,13 +3,11 @@ import {
     Box,
     Button,
     Card,
-    createListCollection,
     Dialog,
     Flex,
     Heading,
     HStack,
     Input,
-    Select,
     Spinner,
     Table,
     Text,
@@ -17,7 +15,6 @@ import {
 } from "@chakra-ui/react";
 import {
     LuCalendar,
-    LuCode,
     LuFileText,
     LuPlus,
     LuRefreshCw,
@@ -27,11 +24,7 @@ import {
 } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { useWorkflowsList } from "./useWorkflowsList";
-import type {
-    Workflow,
-    WorkflowLanguage,
-} from "@/gen/sapphillon/v1/workflow_pb";
-import { WorkflowLanguage as WorkflowLanguageEnum } from "@/gen/sapphillon/v1/workflow_pb";
+import type { Workflow } from "@/gen/sapphillon/v1/workflow_pb";
 import {
     OrderByClauseSchema,
     OrderByDirection,
@@ -50,18 +43,13 @@ function formatDate(timestamp?: { seconds: bigint; nanos: number }): string {
     });
 }
 
-function getLanguageLabel(language: WorkflowLanguage): string {
-    switch (language) {
-        case WorkflowLanguageEnum.TYPESCRIPT:
-            return "TypeScript";
-        case WorkflowLanguageEnum.JAVASCRIPT:
-            return "JavaScript";
-        default:
-            return "Unknown";
-    }
-}
-
-function WorkflowRow({ workflow }: { workflow: Workflow }) {
+function WorkflowRow({
+    workflow,
+    onView,
+}: {
+    workflow: Workflow;
+    onView: (id: string) => void;
+}) {
     const latestResult = workflow.workflowResults
         ?.[workflow.workflowResults.length - 1];
 
@@ -87,14 +75,6 @@ function WorkflowRow({ workflow }: { workflow: Workflow }) {
                         </Text>
                     )}
                 </VStack>
-            </Table.Cell>
-            <Table.Cell>
-                <HStack gap={2}>
-                    <LuCode size={16} />
-                    <Text fontSize="sm">
-                        {getLanguageLabel(workflow.workflowLanguage)}
-                    </Text>
-                </HStack>
             </Table.Cell>
             <Table.Cell>
                 <Text fontSize="sm" color="fg.muted">
@@ -136,7 +116,11 @@ function WorkflowRow({ workflow }: { workflow: Workflow }) {
             </Table.Cell>
             <Table.Cell>
                 <HStack gap={2}>
-                    <Button size="sm" variant="outline">
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onView(workflow.id)}
+                    >
                         View
                     </Button>
                     <Button size="sm" variant="outline">
@@ -175,40 +159,6 @@ export function WorkflowsPage() {
             }));
         },
         [setFilter],
-    );
-
-    const handleLanguageFilter = React.useCallback(
-        (value: string) => {
-            setFilter((prev) => ({
-                ...prev,
-                workflowLanguage: value === "" ||
-                        value === WorkflowLanguageEnum.UNSPECIFIED.toString()
-                    ? WorkflowLanguageEnum.UNSPECIFIED
-                    : Number(value),
-            }));
-        },
-        [setFilter],
-    );
-
-    const languageCollection = React.useMemo(
-        () =>
-            createListCollection({
-                items: [
-                    {
-                        value: WorkflowLanguageEnum.UNSPECIFIED.toString(),
-                        label: "All Languages",
-                    },
-                    {
-                        value: WorkflowLanguageEnum.TYPESCRIPT.toString(),
-                        label: "TypeScript",
-                    },
-                    {
-                        value: WorkflowLanguageEnum.JAVASCRIPT.toString(),
-                        label: "JavaScript",
-                    },
-                ],
-            }),
-        [],
     );
 
     const handleSort = React.useCallback(
@@ -315,43 +265,6 @@ export function WorkflowsPage() {
                             bg="transparent"
                         />
                     </HStack>
-                    <Select.Root
-                        collection={languageCollection}
-                        value={filter.workflowLanguage ===
-                                WorkflowLanguageEnum.UNSPECIFIED
-                            ? undefined
-                            : [filter.workflowLanguage?.toString() || ""]}
-                        onValueChange={(details) => {
-                            const value = details.value?.[0];
-                            handleLanguageFilter(value || "");
-                        }}
-                        size="sm"
-                        maxW="200px"
-                    >
-                        <Select.Trigger>
-                            <Select.ValueText placeholder="All Languages" />
-                        </Select.Trigger>
-                        <Select.Content>
-                            <Select.Item
-                                item={WorkflowLanguageEnum.UNSPECIFIED
-                                    .toString()}
-                            >
-                                All Languages
-                            </Select.Item>
-                            <Select.Item
-                                item={WorkflowLanguageEnum.TYPESCRIPT
-                                    .toString()}
-                            >
-                                TypeScript
-                            </Select.Item>
-                            <Select.Item
-                                item={WorkflowLanguageEnum.JAVASCRIPT
-                                    .toString()}
-                            >
-                                JavaScript
-                            </Select.Item>
-                        </Select.Content>
-                    </Select.Root>
                 </HStack>
             </Box>
 
@@ -436,9 +349,6 @@ export function WorkflowsPage() {
                                                 Name
                                             </Table.ColumnHeader>
                                             <Table.ColumnHeader>
-                                                Language
-                                            </Table.ColumnHeader>
-                                            <Table.ColumnHeader>
                                                 Revisions
                                             </Table.ColumnHeader>
                                             <Table.ColumnHeader
@@ -461,6 +371,10 @@ export function WorkflowsPage() {
                                             <WorkflowRow
                                                 key={workflow.id}
                                                 workflow={workflow}
+                                                onView={(id) =>
+                                                    navigate(
+                                                        `/workflows/${id}`,
+                                                    )}
                                             />
                                         ))}
                                     </Table.Body>

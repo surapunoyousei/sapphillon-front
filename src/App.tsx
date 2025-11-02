@@ -2,7 +2,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { HomePage } from "@/pages/home/Home";
 import { GeneratePage } from "@/pages/generate/GeneratePage";
-import { WorkflowsPage } from "@/pages/workflows";
+import { WorkflowsPage, WorkflowViewPage } from "@/pages/workflows";
 
 function App() {
   return (
@@ -12,6 +12,7 @@ function App() {
         <Route path="/home" element={<HomePage />} />
         <Route path="/generate" element={<GeneratePage />} />
         <Route path="/workflows" element={<WorkflowsPage />} />
+        <Route path="/workflows/:id" element={<WorkflowViewPage />} />
         <Route path="/fix" element={<PageBox title="Fix" />} />
         <Route path="/run" element={<PageBox title="Run" />} />
         <Route path="/plugins" element={<PageBox title="Plugins" />} />

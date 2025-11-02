@@ -21,7 +21,12 @@ const im = import.meta as unknown as ImportMetaLike;
 // 1) VITE_GRPC_BASE_URL (e.g. http://localhost:50051)
 // 2) window.__SAPPHILLON_GRPC_BASE__ (debug hook)
 // 3) fallback http://localhost:50051
-export const BASE_URL = "http://localhost:50051";
+export const BASE_URL =
+  (im.env?.VITE_GRPC_BASE_URL as string | undefined) ||
+  (typeof window !== "undefined" &&
+    (window as unknown as { __SAPPHILLON_GRPC_BASE__?: string })
+      .__SAPPHILLON_GRPC_BASE__) ||
+  "http://localhost:50051";
 
 // Toggle grpc-web binary/json via env (defaults to binary)
 const BIN_ENV = (

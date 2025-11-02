@@ -24,7 +24,6 @@ import {
   RunWorkflowRequestSchema,
   WorkflowSourceByIdSchema,
 } from "@/gen/sapphillon/v1/workflow_service_pb";
-import { WorkflowLanguage } from "@/gen/sapphillon/v1/workflow_pb";
 
 function WorkflowCard({ workflow }: { workflow: Workflow }) {
   const [running, setRunning] = React.useState(false);
@@ -105,23 +104,6 @@ function WorkflowCard({ workflow }: { workflow: Workflow }) {
               {running ? <Spinner size="xs" /> : <LuPlay />}
             </Button>
           </HStack>
-          {workflow.workflowLanguage !== WorkflowLanguage.UNSPECIFIED && (
-            <HStack gap={2}>
-              <Box
-                px={2}
-                py={0.5}
-                rounded="sm"
-                bg="blue.100"
-                color="blue.700"
-                fontSize="xs"
-                fontWeight="medium"
-              >
-                {workflow.workflowLanguage === WorkflowLanguage.TYPESCRIPT
-                  ? "TypeScript"
-                  : "JavaScript"}
-              </Box>
-            </HStack>
-          )}
         </VStack>
       </Card.Body>
     </Card.Root>
