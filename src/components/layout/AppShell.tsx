@@ -67,7 +67,7 @@ export function AppShell({ children }: AppShellProps) {
                   <Drawer.Title>Menu</Drawer.Title>
                 </Drawer.Header>
                 <Drawer.CloseTrigger />
-                <Drawer.Body p={2}>
+                <Drawer.Body p={2} display="flex" flexDirection="column" h="full">
                   <SideNav onNavigate={() => setMobileMenuOpen(false)} />
                 </Drawer.Body>
               </Drawer.Content>

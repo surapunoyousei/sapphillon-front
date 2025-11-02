@@ -2,6 +2,7 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import { routes } from "@/routes/registry";
 import { Box, HStack, Text, VStack } from "@chakra-ui/react";
+import { ColorModeButton } from "@/components/ui/color-mode";
 
 export interface SideNavProps {
   onNavigate?: () => void;
@@ -9,16 +10,31 @@ export interface SideNavProps {
 
 export function SideNav({ onNavigate }: SideNavProps = {}) {
   return (
-    <VStack align="stretch" p={2} gap={1}>
+    <VStack align="stretch" p={2} gap={1} h="full">
       {routes.map((r) => (
-        <NavItem 
-          key={r.key} 
-          to={r.path} 
-          label={r.label} 
+        <NavItem
+          key={r.key}
+          to={r.path}
+          label={r.label}
           Icon={r.icon}
           onClick={onNavigate}
         />
       ))}
+      <Box
+        px={3}
+        py={2}
+        display={{ base: "block", lg: "none" }}
+        borderTopWidth="1px"
+        borderTopColor="border"
+        mt="auto"
+      >
+        <HStack gap={2} align="center">
+          <Text fontSize="sm" color="fg.muted">
+            Theme
+          </Text>
+          <ColorModeButton />
+        </HStack>
+      </Box>
     </VStack>
   );
 }

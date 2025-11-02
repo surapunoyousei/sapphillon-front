@@ -33,29 +33,32 @@ export function TopNav(
   return (
     <HStack
       as="header"
-      px={{ base: 2, md: 4 }}
-      py={{ base: 1.5, md: 3 }}
+      px={{ base: 1, md: 2 }}
+      py={{ base: 0.5, md: 1 }}
       align="center"
-      gap={{ base: 2, md: 3 }}
+      gap={{ base: 1, md: 1.5 }}
       position="relative"
       borderBottomWidth="1px"
       borderBottomColor="border"
       bg="bg.panel"
+      h="auto"
+      minH={{ base: "10", md: "12" }}
       css={{
         "@media (max-height: 600px) and (orientation: landscape)": {
-          paddingTop: "0.5rem",
-          paddingBottom: "0.5rem",
+          paddingTop: "0.25rem",
+          paddingBottom: "0.25rem",
+          minHeight: "2rem",
         },
       }}
     >
-      <HStack gap={2} flexShrink={0}>
+      <HStack gap={{ base: 1, md: 1.5 }} flexShrink={0}>
         {showMenuButton && (
           <IconButton
             aria-label="Open menu"
-            size="md"
+            size="sm"
             variant="ghost"
             onClick={onOpenMenu}
-            display={{ base: "flex", md: "none" }}
+            display={{ base: "flex", lg: "none" }}
           >
             <LuMenu />
           </IconButton>
@@ -63,7 +66,7 @@ export function TopNav(
         <Image
           src={logoUrl}
           alt="Floorp OS"
-          height={{ base: "6", md: "8" }}
+          height={{ base: "4", md: "6" }}
           width="auto"
           display={{ base: "none", md: "block" }}
           css={{ objectFit: "contain" }}
@@ -71,13 +74,13 @@ export function TopNav(
       </HStack>
       {/* Centered Omni Bar trigger (absolute centering) */}
       <Box
-        display={{ base: "none", sm: "block" }}
+        display={"block"}
         position="absolute"
         left="50%"
         top="50%"
         transform="translate(-50%, -50%)"
         w="full"
-        maxW={{ base: "xs", sm: "md", md: "lg" }}
+        maxW={{ base: "calc(100% - 4rem)", sm: "20rem", md: "24rem" }}
         px={{ base: 2, md: 0 }}
       >
         <Box
@@ -88,13 +91,15 @@ export function TopNav(
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") onOpenOmni?.();
           }}
-          px={{ base: 2, md: 3 }}
-          py={{ base: 1.5, md: 2 }}
+          px={1.5}
+          py={1.5}
           rounded="md"
           borderWidth="1px"
           borderColor="border"
           bg="bg"
           cursor="text"
+          display="flex"
+          alignItems="center"
           transitionProperty="colors, shadow"
           transitionDuration="normal"
           _hover={{ bg: "bg.subtle" }}
@@ -104,11 +109,17 @@ export function TopNav(
             outlineOffset: "2px",
           }}
         >
-          <HStack justify="space-between" color="fg.muted" gap={2}>
-            <Text fontSize={{ base: "xs", sm: "sm" }} whiteSpace="nowrap">
+          <HStack
+            justify="space-between"
+            align="center"
+            color="fg.muted"
+            gap={1}
+            h="full"
+          >
+            <Text fontSize="xs" whiteSpace="nowrap" lineHeight="1.5">
               Search or run…
             </Text>
-            <HStack display={{ base: "none", sm: "flex" }} gap={1}>
+            <HStack display={"flex"} align="center" gap={0.5}>
               <Kbd fontSize="xs">⌘</Kbd>
               <Kbd fontSize="xs">K</Kbd>
             </HStack>
@@ -116,7 +127,7 @@ export function TopNav(
         </Box>
       </Box>
       <Spacer />
-      <HStack gap={2} flexShrink={0}>
+      <HStack gap={0.5} flexShrink={0} display={{ base: "none", sm: "flex" }}>
         <ColorModeButton />
       </HStack>
     </HStack>

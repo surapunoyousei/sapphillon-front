@@ -3,8 +3,10 @@ import {
   Badge,
   Box,
   Button,
+  Flex,
   Heading,
   HStack,
+  IconButton,
   Kbd,
   Text,
   Textarea,
@@ -12,121 +14,232 @@ import {
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { useVersionPing } from "@/hooks";
+import { LuSend } from "react-icons/lu";
+
 export function HomePage() {
   const navigate = useNavigate();
   const { status, version, lastUpdated } = useVersionPing(10000);
+  const [prompt, setPrompt] = React.useState("");
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  const handleSubmit = React.useCallback(() => {
+    if (prompt.trim()) {
+      // TODO: 実際の処理を実装
+      navigate("/generate");
+    }
+  }, [prompt, navigate]);
+
+  // Auto-resize textarea
+  React.useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 240)}px`;
+    }
+  }, [prompt]);
 
   return (
-    <Box
-      as="section"
-      minH={{ base: "calc(100dvh - 100px)", md: "calc(100dvh - 140px)" }}
-      display="flex"
-      alignItems="center"
+    <Flex
+      direction="column"
+      h="full"
+      minH={0}
+      overflow="hidden"
+      mx={{ base: -2, md: -4 }}
+      mb={{ base: -2, md: -4 }}
       css={{
-        '@media (max-height: 600px) and (orientation: landscape)': {
-          minHeight: 'auto',
-          paddingTop: '1rem',
-          paddingBottom: '1rem',
-        }
+        "@media (max-height: 600px) and (orientation: landscape)": {
+          minHeight: "auto",
+        },
       }}
     >
-      <VStack w="full" maxW="3xl" mx="auto" px={{ base: 3, sm: 4, md: 6 }} py={{ base: 6, sm: 8, md: 10 }} gap={{ base: 6, sm: 7, md: 8 }}>
-        {/* ChatGPT-like hero */}
-        <VStack gap={{ base: 2, sm: 2.5, md: 3 }} textAlign="center">
-          <Heading size={{ base: "xl", sm: "2xl", md: "3xl" }} lineHeight="1.2">
-            あなたが今やりたいことを代わりに実行する統合プラットフォーム
-          </Heading>
-          <Text color="fg.muted" fontSize={{ base: "sm", sm: "md", md: "lg" }} px={{ base: 2, md: 0 }}>
-            Floorp OS が、命令をあなたのように安全に実行し、結果を報告します。
-          </Text>
+      {/* Scrollable content area */}
+      <Box
+        flex="1"
+        minH={0}
+        overflowY="auto"
+        overflowX="hidden"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        px={{ base: 3, sm: 4, md: 6 }}
+        py={{ base: 4, sm: 6, md: 8 }}
+      >
+        <VStack
+          w="full"
+          maxW="3xl"
+          margin="auto"
+          gap={{ base: 6, sm: 7, md: 8 }}
+          pb={{ base: 4, md: 6 }}
+        >
+          <VStack
+            gap={{ base: 2, sm: 2.5, md: 3 }}
+            textAlign="center"
+            align="center"
+            my="auto"
+            pt={{ base: 4, md: 8 }}
+          >
+            <Heading
+              size={{ base: "xl", sm: "2xl", md: "3xl" }}
+              lineHeight="1.2"
+            >
+              あなたが今やりたいことを代わりに実行する統合プラットフォーム
+            </Heading>
+            <Text
+              color="fg.muted"
+              fontSize={{ base: "sm", sm: "md", md: "lg" }}
+              px={{ base: 2, md: 0 }}
+            >
+              Floorp OS が、命令をあなたのように安全に実行し、結果を報告します。
+            </Text>
+          </VStack>
+
+          {/* Quick actions */}
+          <HStack
+            gap={{ base: 2, md: 3 }}
+            justify="center"
+            flexWrap="wrap"
+            w="full"
+          >
+            <Button
+              onClick={() => navigate("/generate")}
+              variant="surface"
+              size={{ base: "sm", md: "md" }}
+            >
+              <Text fontSize={{ base: "sm", md: "md" }}>Generate</Text>
+            </Button>
+            <Button
+              onClick={() => navigate("/run")}
+              variant="surface"
+              size={{ base: "sm", md: "md" }}
+            >
+              <Text fontSize={{ base: "sm", md: "md" }}>Run</Text>
+            </Button>
+            <Button
+              onClick={() => navigate("/plugins")}
+              colorPalette="floorp"
+              size={{ base: "sm", md: "md" }}
+            >
+              <Text fontSize={{ base: "sm", md: "md" }}>Plugins</Text>
+            </Button>
+          </HStack>
         </VStack>
+      </Box>
 
-        <Box w="full" borderWidth="1px" rounded="lg" p={{ base: 2, md: 3 }} bg="bg">
-          <Textarea
-            placeholder="e.g. Download the latest report and email it to my team"
-            rows={{ base: 3, md: 4 }}
-            fontSize={{ base: "sm", md: "md" }}
-          />
-          <HStack justify="space-between" mt={2} color="fg.muted" flexWrap="wrap" gap={2}>
-            <HStack gap={2} flexWrap="wrap" flex={1} minW={0}>
-              <Hint>Summarize this tab</Hint>
-              <Hint display={{ base: "none", sm: "block" }}>Rename files in Downloads</Hint>
-              <Hint display={{ base: "none", md: "block" }}>Notify me when it rains</Hint>
-            </HStack>
-            <HStack display={{ base: "none", sm: "flex" }}>
-              <Kbd fontSize={{ base: "xs", md: "sm" }}>⌘</Kbd>
-              <Kbd fontSize={{ base: "xs", md: "sm" }}>Enter</Kbd>
-            </HStack>
+      {/* Fixed bottom input bar - ChatGPT mobile style */}
+      <Box
+        w="full"
+        borderTopWidth="1px"
+        borderTopColor="border"
+        bg="bg.panel"
+        px={{ base: 3, sm: 4, md: 6 }}
+        py={{ base: 3, md: 4 }}
+        css={{
+          "@media (max-height: 600px) and (orientation: landscape)": {
+            paddingTop: "0.5rem",
+            paddingBottom: "0.5rem",
+          },
+        }}
+      >
+        <Box
+          maxW="3xl"
+          mx="auto"
+          borderWidth="1px"
+          rounded="xl"
+          p={{ base: 2, md: 3 }}
+          bg="bg"
+          shadow="sm"
+        >
+          <HStack gap={2} align="flex-end">
+            <Textarea
+              ref={textareaRef}
+              placeholder="e.g. Download the latest report and email it to my team"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              onKeyDown={(e) => {
+                // Cmd/Ctrl+Enter で送信（デスクトップ）
+                if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                  e.preventDefault();
+                  handleSubmit();
+                } // Enter キーで送信（モバイル、またはデスクトップで Shift なしの場合）
+                // Shift+Enter は改行を許可
+                else if (e.key === "Enter" && !e.shiftKey) {
+                  // モバイルデバイスでは Enter で送信
+                  // デスクトップでは Cmd+Enter を使うことを推奨
+                  const isMobile = window.innerWidth < 768;
+                  if (isMobile) {
+                    e.preventDefault();
+                    handleSubmit();
+                  }
+                }
+              }}
+              rows={2}
+              minH="120px"
+              fontSize="md"
+              resize="none"
+              css={{
+                "&": {
+                  maxHeight: "240px",
+                  overflowY: "auto",
+                  lineHeight: "1.6",
+                },
+              }}
+              flex="1"
+            />
+            <IconButton
+              aria-label="Send"
+              onClick={handleSubmit}
+              disabled={!prompt.trim()}
+              colorPalette="floorp"
+              size={{ base: "md", md: "lg" }}
+              flexShrink={0}
+              minH={{ base: "36px", md: "44px" }}
+              minW={{ base: "36px", md: "44px" }}
+            >
+              <LuSend />
+            </IconButton>
+          </HStack>
+          <HStack
+            justify="space-between"
+            mt={2}
+            color="fg.muted"
+            display={{ base: "none", sm: "flex" }}
+          >
+            <Text fontSize={{ base: "xs", md: "sm" }}>
+              Press <Kbd fontSize={{ base: "xs", md: "sm" }}>⌘</Kbd> +{" "}
+              <Kbd fontSize={{ base: "xs", md: "sm" }}>Enter</Kbd> to send
+            </Text>
           </HStack>
         </Box>
-
-        {/* Quick actions */}
-        <HStack gap={{ base: 2, md: 3 }} justify="center" flexWrap="wrap">
-          <Button 
-            onClick={() => navigate("/generate")} 
-            variant="surface"
-            size={{ base: "sm", md: "md" }}
-          >
-            <Text fontSize={{ base: "sm", md: "md" }}>Generate</Text>
-          </Button>
-          <Button 
-            onClick={() => navigate("/run")} 
-            variant="surface"
-            size={{ base: "sm", md: "md" }}
-          >
-            <Text fontSize={{ base: "sm", md: "md" }}>Run</Text>
-          </Button>
-          <Button 
-            onClick={() => navigate("/plugins")} 
-            colorPalette="floorp"
-            size={{ base: "sm", md: "md" }}
-          >
-            <Text fontSize={{ base: "sm", md: "md" }}>Plugins</Text>
-          </Button>
-        </HStack>
-
-        {/* Status strip below hero */}
-        <Box w="full" borderWidth="1px" rounded="md" p={{ base: 2, md: 3 }}>
-          <HStack gap={{ base: 3, md: 6 }} wrap="wrap" justify={{ base: "center", sm: "flex-start" }}>
-            <HStack gap={2}>
-              <Text color="fg.muted" fontSize={{ base: "xs", md: "sm" }}>Automotor Status</Text>
-              <Badge
-                colorPalette={status === "connected"
-                  ? "green"
-                  : status === "connecting"
-                  ? "yellow"
-                  : "red"}
-                fontSize={{ base: "xs", md: "sm" }}
-              >
-                {status}
-              </Badge>
-            </HStack>
-            <HStack gap={2}>
-              <Text color="fg.muted" fontSize={{ base: "xs", md: "sm" }}>Version</Text>
-              <Badge colorPalette="gray" fontSize={{ base: "xs", md: "sm" }}>{version || "-"}</Badge>
-            </HStack>
-            <HStack gap={2} display={{ base: "none", sm: "flex" }}>
-              <Text color="fg.muted" fontSize={{ base: "xs", md: "sm" }}>Updated</Text>
-              <Text fontSize={{ base: "xs", md: "sm" }} color="fg.muted">
-                {lastUpdated ? new Date(lastUpdated).toLocaleTimeString() : "-"}
-              </Text>
-            </HStack>
-          </HStack>
-        </Box>
-      </VStack>
-    </Box>
+      </Box>
+    </Flex>
   );
 }
 
-function Hint({ children, display }: { children: React.ReactNode; display?: any }) {
+function Hint({
+  children,
+  display,
+  onClick,
+}: {
+  children: React.ReactNode;
+  display?: any;
+  onClick?: () => void;
+}) {
   return (
-    <Box 
-      px={{ base: 2, md: 3 }} 
-      py={{ base: 1, md: 1.5 }} 
-      borderWidth="1px" 
-      rounded="md" 
+    <Box
+      as={onClick ? "button" : "div"}
+      onClick={onClick}
+      px={{ base: 2, md: 3 }}
+      py={{ base: 1, md: 1.5 }}
+      borderWidth="1px"
+      rounded="md"
       bg="bg.subtle"
       display={display}
+      cursor={onClick ? "pointer" : "default"}
+      transition="all 0.2s"
+      _hover={onClick
+        ? { bg: "bg.subtleHover", borderColor: "border.emphasized" }
+        : {}}
+      _active={onClick ? { transform: "scale(0.98)" } : {}}
     >
       <Text fontSize={{ base: "xs", md: "sm" }}>{children}</Text>
     </Box>
