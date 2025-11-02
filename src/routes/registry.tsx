@@ -1,7 +1,6 @@
 import {
   LuHouse,
   LuInfo,
-  LuPlay,
   LuPlugZap,
   LuSparkles,
   LuWrench,
@@ -16,19 +15,8 @@ export type AppRoute = {
 
 export const routes: AppRoute[] = [
   { path: "/home", key: "home", label: "Home", icon: LuHouse },
-  ...(import.meta.env.DEV
-    ? [
-        {
-          path: "/dev/workflow-playground",
-          key: "dev-workflow",
-          label: "Dev: Workflow",
-          icon: LuPlay,
-        },
-      ]
-    : []),
   { path: "/generate", key: "generate", label: "Generate", icon: LuSparkles },
-  { path: "/fix", key: "fix", label: "Fix", icon: LuWrench },
-  { path: "/run", key: "run", label: "Run", icon: LuPlay },
+  { path: "/workflows", key: "workflows", label: "Workflows", icon: LuWrench },
   { path: "/plugins", key: "plugins", label: "Plugins", icon: LuPlugZap },
   { path: "/about", key: "about", label: "About", icon: LuInfo },
 ];

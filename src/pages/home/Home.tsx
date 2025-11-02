@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Badge,
   Box,
   Button,
   Flex,
@@ -13,18 +12,15 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { useVersionPing } from "@/hooks";
 import { LuSend } from "react-icons/lu";
 
 export function HomePage() {
   const navigate = useNavigate();
-  const { status, version, lastUpdated } = useVersionPing(10000);
   const [prompt, setPrompt] = React.useState("");
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = React.useCallback(() => {
     if (prompt.trim()) {
-      // TODO: 実際の処理を実装
       navigate("/generate");
     }
   }, [prompt, navigate]);
@@ -212,36 +208,5 @@ export function HomePage() {
         </Box>
       </Box>
     </Flex>
-  );
-}
-
-function Hint({
-  children,
-  display,
-  onClick,
-}: {
-  children: React.ReactNode;
-  display?: any;
-  onClick?: () => void;
-}) {
-  return (
-    <Box
-      as={onClick ? "button" : "div"}
-      onClick={onClick}
-      px={{ base: 2, md: 3 }}
-      py={{ base: 1, md: 1.5 }}
-      borderWidth="1px"
-      rounded="md"
-      bg="bg.subtle"
-      display={display}
-      cursor={onClick ? "pointer" : "default"}
-      transition="all 0.2s"
-      _hover={onClick
-        ? { bg: "bg.subtleHover", borderColor: "border.emphasized" }
-        : {}}
-      _active={onClick ? { transform: "scale(0.98)" } : {}}
-    >
-      <Text fontSize={{ base: "xs", md: "sm" }}>{children}</Text>
-    </Box>
   );
 }
