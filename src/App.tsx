@@ -7,6 +7,7 @@ import {
   WorkflowsPage,
   WorkflowViewPage,
 } from "@/pages/workflows";
+import { SettingsPage } from "@/pages/settings";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/workflows" element={<WorkflowsPage />} />
         <Route path="/workflows/:id" element={<WorkflowViewPage />} />
         <Route path="/workflows-parser-test" element={<WorkflowParserTest />} />
+        <Route path="/settings" element={<SettingsPage />} />
         <Route path="/fix" element={<PageBox title="Fix" />} />
         <Route path="/run" element={<PageBox title="Run" />} />
         <Route path="/plugins" element={<PageBox title="Plugins" />} />

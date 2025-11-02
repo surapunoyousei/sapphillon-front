@@ -8,6 +8,9 @@ import type { Interceptor } from "@connectrpc/connect";
 
 import { VersionService } from "@/gen/sapphillon/v1/version_pb";
 import { WorkflowService } from "@/gen/sapphillon/v1/workflow_service_pb";
+import { ProviderService } from "@/gen/sapphillon/ai/v1/provider_service_pb";
+import { ModelService } from "@/gen/sapphillon/ai/v1/model_service_pb";
+import { SearchModelService } from "@/gen/sapphillon/ai/v1/search_model_service_pb";
 
 interface EnvLike {
   [k: string]: unknown;
@@ -134,6 +137,9 @@ export function withInterceptors(...custom: Interceptor[]) {
   return {
     version: createClient(VersionService, t),
     workflow: createClient(WorkflowService, t),
+    provider: createClient(ProviderService, t),
+    model: createClient(ModelService, t),
+    searchModel: createClient(SearchModelService, t),
   } as const;
 }
 
@@ -146,10 +152,19 @@ const defaultTransport = createGrpcWebTransport({
 });
 export const versionClient = createClient(VersionService, defaultTransport);
 export const workflowClient = createClient(WorkflowService, defaultTransport);
+export const providerClient = createClient(ProviderService, defaultTransport);
+export const modelClient = createClient(ModelService, defaultTransport);
+export const searchModelClient = createClient(
+  SearchModelService,
+  defaultTransport
+);
 
 export const clients = {
   version: versionClient,
   workflow: workflowClient,
+  provider: providerClient,
+  model: modelClient,
+  searchModel: searchModelClient,
 };
 
 export type Clients = typeof clients;

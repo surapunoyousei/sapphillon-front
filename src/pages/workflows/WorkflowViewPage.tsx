@@ -320,62 +320,48 @@ export function WorkflowViewPage() {
                             )}
                         </VStack>
                     </HStack>
+                    {hasInfo && (
+                        <IconButton
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setIsPanelOpen(!isPanelOpen)}
+                            aria-label="Toggle sidebar"
+                            display={{ base: "none", lg: "flex" }}
+                        >
+                            <LuInfo />
+                        </IconButton>
+                    )}
                 </HStack>
             </Box>
 
             {/* Main Content */}
-            <Flex flex="1" overflow="hidden" position="relative">
+            <Flex flex="1" overflow="hidden">
                 {/* Canvas Area */}
                 <Box flex="1" overflow="hidden" position="relative">
                     <WorkflowCanvas workflow={workflow} withBackground={true} />
                 </Box>
 
-                {/* Toggle Button for Info Panel */}
-                {hasInfo && (
-                    <IconButton
-                        position="absolute"
-                        right={{ base: 2, md: 4 }}
-                        top={{ base: 2, md: 4 }}
-                        zIndex={25}
-                        size="sm"
-                        variant="solid"
-                        colorPalette="blue"
-                        onClick={() => setIsPanelOpen(!isPanelOpen)}
-                        aria-label="Toggle info panel"
-                        display={{ base: "none", lg: "flex" }}
-                    >
-                        <LuInfo />
-                    </IconButton>
-                )}
-
-                {/* Compact Info Panel with Tabs */}
+                {/* Right Sidebar */}
                 {hasInfo && isPanelOpen && (
                     <Box
-                        position="absolute"
-                        right={{ base: 2, md: 4 }}
-                        top={{ base: 12, md: 14 }}
-                        bottom={{ base: 2, md: 4 }}
-                        w={{
-                            base: "calc(100% - 1rem)",
-                            sm: "280px",
-                            md: "300px",
-                        }}
-                        maxW={{
-                            base: "calc(100% - 1rem)",
-                            sm: "280px",
-                            md: "300px",
-                        }}
-                        zIndex={20}
-                        pointerEvents="auto"
+                        w={{ base: "280px", xl: "320px" }}
+                        borderLeftWidth="1px"
+                        borderLeftColor="border"
                         bg="bg.panel"
-                        borderWidth="1px"
-                        borderColor="border"
-                        rounded="md"
-                        shadow="xl"
                         overflow="hidden"
                         display={{ base: "none", lg: "flex" }}
                         flexDirection="column"
                     >
+                        {/* Sidebar Header */}
+                        <Box
+                            px={4}
+                            py={3}
+                            borderBottomWidth="1px"
+                            borderBottomColor="border"
+                        >
+                            <Heading size="sm">ワークフロー情報</Heading>
+                        </Box>
+
                         <Tabs.Root
                             defaultValue="overview"
                             size="sm"

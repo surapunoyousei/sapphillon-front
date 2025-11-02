@@ -2,6 +2,7 @@ import {
   LuHouse,
   LuInfo,
   LuPlugZap,
+  LuSettings,
   LuSparkles,
   LuWrench,
 } from "react-icons/lu";
@@ -18,5 +19,6 @@ export const routes: AppRoute[] = [
   { path: "/generate", key: "generate", label: "Generate", icon: LuSparkles },
   { path: "/workflows", key: "workflows", label: "Workflows", icon: LuWrench },
   { path: "/plugins", key: "plugins", label: "Plugins", icon: LuPlugZap },
+  { path: "/settings", key: "settings", label: "Settings", icon: LuSettings },
   { path: "/about", key: "about", label: "About", icon: LuInfo },
 ];
