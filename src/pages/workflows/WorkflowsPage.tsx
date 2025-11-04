@@ -7,7 +7,12 @@ import {
     Flex,
     Heading,
     HStack,
+    IconButton,
     Input,
+    MenuContent,
+    MenuItem,
+    MenuRoot,
+    MenuTrigger,
     Spinner,
     Table,
     Text,
@@ -16,21 +21,26 @@ import {
 import {
     LuArrowDown,
     LuArrowUp,
+    LuCopy,
+    LuEllipsisVertical,
     LuFileText,
     LuPlus,
     LuRefreshCw,
     LuSearch,
     LuSparkles,
+    LuTrash2,
     LuUpload,
 } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { useWorkflowsList } from "./useWorkflowsList";
+import { WorkflowCloneDialog } from "./WorkflowCloneDialog";
 import type { Workflow } from "@/gen/sapphillon/v1/workflow_pb";
 import {
     OrderByClauseSchema,
     OrderByDirection,
 } from "@/gen/sapphillon/v1/workflow_service_pb";
 import { create } from "@bufbuild/protobuf";
+import { toaster } from "@/components/ui/toaster-instance";
 
 function formatDate(timestamp?: { seconds: bigint; nanos: number }): string {
     if (!timestamp) return "-";
@@ -47,9 +57,13 @@ function formatDate(timestamp?: { seconds: bigint; nanos: number }): string {
 function WorkflowRow({
     workflow,
     onView,
+    onClone,
+    onDelete,
 }: {
     workflow: Workflow;
     onView: (id: string) => void;
+    onClone: (workflow: Workflow) => void;
+    onDelete?: (id: string) => void;
 }) {
     const latestResult = workflow.workflowResults
         ?.[workflow.workflowResults.length - 1];
@@ -67,7 +81,7 @@ function WorkflowRow({
         >
             <Table.Cell>
                 <VStack align="start" gap={1}>
-                    <Text 
+                    <Text
                         fontWeight="medium"
                         css={{
                             display: "-webkit-box",
@@ -98,19 +112,19 @@ function WorkflowRow({
                 {latestResult
                     ? (
                         <VStack align="start" gap={1}>
-                        <HStack gap={2}>
-                            <Box
-                                w={2}
-                                h={2}
-                                rounded="full"
-                                bg={latestResult.resultType === 0
-                                    ? "green.500"
-                                    : latestResult.resultType === 1
-                                    ? "red.500"
-                                    : "gray.500"}
-                            />
-                            <Text 
-                                fontSize="sm" 
+                            <HStack gap={2}>
+                                <Box
+                                    w={2}
+                                    h={2}
+                                    rounded="full"
+                                    bg={latestResult.resultType === 0
+                                        ? "green.500"
+                                        : latestResult.resultType === 1
+                                        ? "red.500"
+                                        : "gray.500"}
+                                />
+                                <Text
+                                    fontSize="sm"
                                     fontWeight="medium"
                                     color={latestResult.resultType === 0
                                         ? "green.700"
@@ -126,27 +140,27 @@ function WorkflowRow({
                                                 : "var(--chakra-colors-fg-muted)",
                                         },
                                     }}
-                                whiteSpace="nowrap"
-                            >
-                                {latestResult.resultType === 0
-                                    ? "Success"
-                                    : "Failed"}
-                            </Text>
-                        </HStack>
-                            {latestResult.createdAt && (
-                                <Text 
-                                    fontSize="xs" 
+                                    whiteSpace="nowrap"
+                                >
+                                    {latestResult.resultType === 0
+                                        ? "Success"
+                                        : "Failed"}
+                                </Text>
+                            </HStack>
+                            {latestResult.ranAt && (
+                                <Text
+                                    fontSize="xs"
                                     color="fg.muted"
                                     whiteSpace="nowrap"
                                 >
-                                    {formatDate(latestResult.createdAt)}
+                                    {formatDate(latestResult.ranAt)}
                                 </Text>
                             )}
                         </VStack>
                     )
                     : (
-                        <Text 
-                            fontSize="sm" 
+                        <Text
+                            fontSize="sm"
                             color="fg.muted"
                             whiteSpace="nowrap"
                         >
@@ -166,15 +180,53 @@ function WorkflowRow({
                     >
                         View
                     </Button>
-                    <Button 
-                        size="sm" 
+                    <Button
+                        size="sm"
                         variant="outline"
                         onClick={(e) => {
                             e.stopPropagation();
+                            // TODO: Run workflow
                         }}
                     >
                         Run
                     </Button>
+                    <MenuRoot>
+                        <MenuTrigger asChild>
+                            <IconButton
+                                size="sm"
+                                variant="ghost"
+                                aria-label="その他のアクション"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <LuEllipsisVertical />
+                            </IconButton>
+                        </MenuTrigger>
+                        <MenuContent>
+                            <MenuItem
+                                value="clone"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onClone(workflow);
+                                }}
+                            >
+                                <LuCopy />
+                                複製
+                            </MenuItem>
+                            {onDelete && (
+                                <MenuItem
+                                    value="delete"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onDelete(workflow.id);
+                                    }}
+                                    color="red.500"
+                                >
+                                    <LuTrash2 />
+                                    削除
+                                </MenuItem>
+                            )}
+                        </MenuContent>
+                    </MenuRoot>
                 </HStack>
             </Table.Cell>
         </Table.Row>
@@ -185,6 +237,12 @@ export function WorkflowsPage() {
     const navigate = useNavigate();
     const [isNewWorkflowModalOpen, setIsNewWorkflowModalOpen] = React.useState(
         false,
+    );
+    const [cloneDialogOpen, setCloneDialogOpen] = React.useState(false);
+    const [workflowToClone, setWorkflowToClone] = React.useState<
+        Workflow | null
+    >(
+        null,
     );
 
     const {
@@ -211,13 +269,45 @@ export function WorkflowsPage() {
         [setFilter],
     );
 
+    // 複製ハンドラー
+    const handleClone = React.useCallback((workflow: Workflow) => {
+        setWorkflowToClone(workflow);
+        setCloneDialogOpen(true);
+    }, []);
+
+    // 複製成功時のハンドラー
+    const handleCloneSuccess = React.useCallback(
+        (clonedWorkflow: Workflow) => {
+            toaster.create({
+                title: "ワークフローを複製しました",
+                description: `"${clonedWorkflow.displayName}" が作成されました`,
+                type: "success",
+                duration: 3000,
+            });
+            refetch();
+        },
+        [refetch],
+    );
+
+    // 削除ハンドラー（将来実装）
+    const handleDelete = React.useCallback((id: string) => {
+        // TODO: バックエンドAPIの実装後に追加
+        console.log("Delete workflow:", id);
+        toaster.create({
+            title: "削除機能は未実装です",
+            description: "この機能は近日中に実装予定です",
+            type: "info",
+            duration: 3000,
+        });
+    }, []);
+
     // Get sort icon for a field
     const getSortIcon = React.useCallback(
         (field: string) => {
             const order = orderBy.find((o) => o.field === field);
             if (!order) return null;
-            return order.direction === OrderByDirection.ASC 
-                ? <LuArrowUp size={14} /> 
+            return order.direction === OrderByDirection.ASC
+                ? <LuArrowUp size={14} />
                 : <LuArrowDown size={14} />;
         },
         [orderBy],
@@ -407,24 +497,29 @@ export function WorkflowsPage() {
                                                 <Table.ColumnHeader
                                                     cursor="pointer"
                                                     onClick={() =>
-                                                        handleSort("display_name")}
+                                                        handleSort(
+                                                            "display_name",
+                                                        )}
                                                     minW="200px"
                                                     _hover={{ bg: "bg.subtle" }}
                                                 >
                                                     <HStack gap={2}>
                                                         <Text>Name</Text>
-                                                        {getSortIcon("display_name")}
+                                                        {getSortIcon(
+                                                            "display_name",
+                                                        )}
                                                     </HStack>
                                                 </Table.ColumnHeader>
                                                 <Table.ColumnHeader
                                                     minW="120px"
-                                                    display={{ base: "none", md: "table-cell" }}
+                                                    display={{
+                                                        base: "none",
+                                                        md: "table-cell",
+                                                    }}
                                                 >
                                                     Last Run
                                                 </Table.ColumnHeader>
-                                                <Table.ColumnHeader
-                                                    minW="150px"
-                                                >
+                                                <Table.ColumnHeader minW="150px">
                                                     Actions
                                                 </Table.ColumnHeader>
                                             </Table.Row>
@@ -438,6 +533,8 @@ export function WorkflowsPage() {
                                                         navigate(
                                                             `/workflows/${id}`,
                                                         )}
+                                                    onClone={handleClone}
+                                                    onDelete={handleDelete}
                                                 />
                                             ))}
                                         </Table.Body>
@@ -611,6 +708,19 @@ export function WorkflowsPage() {
                     </Dialog.Content>
                 </Dialog.Positioner>
             </Dialog.Root>
+
+            {/* Clone Workflow Dialog */}
+            {workflowToClone && (
+                <WorkflowCloneDialog
+                    open={cloneDialogOpen}
+                    onClose={() => {
+                        setCloneDialogOpen(false);
+                        setWorkflowToClone(null);
+                    }}
+                    workflow={workflowToClone}
+                    onSuccess={handleCloneSuccess}
+                />
+            )}
         </Flex>
     );
 }

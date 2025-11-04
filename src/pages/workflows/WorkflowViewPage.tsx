@@ -18,11 +18,13 @@ import {
     LuArrowLeft,
     LuChevronDown,
     LuChevronRight,
+    LuHistory,
     LuInfo,
     LuPlugZap,
     LuShield,
 } from "react-icons/lu";
 import { WorkflowCanvas } from "@/components/workflow/WorkflowCanvas";
+import { WorkflowExecutionTimeline } from "@/components/workflow/WorkflowExecutionTimeline";
 import { useWorkflow } from "./useWorkflow";
 import type { PluginPackage } from "@/gen/sapphillon/v1/plugin_pb";
 import type {
@@ -336,9 +338,36 @@ export function WorkflowViewPage() {
 
             {/* Main Content */}
             <Flex flex="1" overflow="hidden">
-                {/* Canvas Area */}
+                {/* Canvas/Timeline Area */}
                 <Box flex="1" overflow="hidden" position="relative">
-                    <WorkflowCanvas workflow={workflow} withBackground={true} />
+                    <Tabs.Root defaultValue="canvas" h="full" display="flex" flexDirection="column">
+                        <Tabs.List borderBottomWidth="1px" flexShrink={0}>
+                            <Tabs.Trigger value="canvas" px={4} py={2}>
+                                <Text fontSize="sm">ワークフロー</Text>
+                            </Tabs.Trigger>
+                            <Tabs.Trigger value="history" px={4} py={2}>
+                                <HStack gap={1}>
+                                    <LuHistory size={14} />
+                                    <Text fontSize="sm">実行履歴</Text>
+                                    {workflow.workflowResults && workflow.workflowResults.length > 0 && (
+                                        <Badge size="xs" colorPalette="blue">
+                                            {workflow.workflowResults.length}
+                                        </Badge>
+                                    )}
+                                </HStack>
+                            </Tabs.Trigger>
+                        </Tabs.List>
+
+                        <Tabs.Content value="canvas" flex="1" overflow="hidden" p={0}>
+                            <WorkflowCanvas workflow={workflow} withBackground={true} />
+                        </Tabs.Content>
+
+                        <Tabs.Content value="history" flex="1" overflow="auto" p={4}>
+                            <WorkflowExecutionTimeline
+                                results={workflow.workflowResults || []}
+                            />
+                        </Tabs.Content>
+                    </Tabs.Root>
                 </Box>
 
                 {/* Right Sidebar */}
