@@ -15,7 +15,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { LuPlay, LuSend } from "react-icons/lu";
+import { LuPackage, LuPlay, LuSend, LuSparkles } from "react-icons/lu";
 import { useWorkflowsList } from "@/pages/workflows/useWorkflowsList";
 import type { Workflow } from "@/gen/sapphillon/v1/workflow_pb";
 import { clients } from "@/lib/grpc-clients";
@@ -24,6 +24,7 @@ import {
   RunWorkflowRequestSchema,
   WorkflowSourceByIdSchema,
 } from "@/gen/sapphillon/v1/workflow_service_pb";
+import { CardSkeleton } from "@/components/ui/skeleton";
 
 function WorkflowCard({ workflow }: { workflow: Workflow }) {
   const [running, setRunning] = React.useState(false);
@@ -205,20 +206,23 @@ export function HomePage() {
                   variant="surface"
                   size={{ base: "sm", md: "md" }}
                 >
+                  <LuSparkles />
                   <Text fontSize={{ base: "sm", md: "md" }}>Generate</Text>
                 </Button>
                 <Button
-                  onClick={() => navigate("/run")}
+                  onClick={() => navigate("/workflows")}
                   variant="surface"
                   size={{ base: "sm", md: "md" }}
                 >
-                  <Text fontSize={{ base: "sm", md: "md" }}>Run</Text>
+                  <LuPlay />
+                  <Text fontSize={{ base: "sm", md: "md" }}>Workflows</Text>
                 </Button>
                 <Button
                   onClick={() => navigate("/plugins")}
                   colorPalette="floorp"
                   size={{ base: "sm", md: "md" }}
                 >
+                  <LuPackage />
                   <Text fontSize={{ base: "sm", md: "md" }}>Plugins</Text>
                 </Button>
               </HStack>
@@ -263,9 +267,16 @@ export function HomePage() {
               >
                 {loading
                   ? (
-                    <Flex justify="center" py={8}>
-                      <Spinner />
-                    </Flex>
+                    <SimpleGrid
+                      columns={{ base: 1, sm: 2, md: 3 }}
+                      gap={4}
+                      w="full"
+                      pb={4}
+                    >
+                      {[...Array(6)].map((_, i) => (
+                        <CardSkeleton key={i} />
+                      ))}
+                    </SimpleGrid>
                   )
                   : (
                     <SimpleGrid
@@ -312,7 +323,7 @@ export function HomePage() {
           <HStack gap={2} align="flex-end">
             <Textarea
               ref={textareaRef}
-              placeholder="e.g. Download the latest report and email it to my team"
+              placeholder="例: 最新のレポートをダウンロードして、チームにメールで送信する"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={(e) => {
@@ -365,8 +376,8 @@ export function HomePage() {
             display={{ base: "none", sm: "flex" }}
           >
             <Text fontSize={{ base: "xs", md: "sm" }}>
-              Press <Kbd fontSize={{ base: "xs", md: "sm" }}>⌘</Kbd> +{" "}
-              <Kbd fontSize={{ base: "xs", md: "sm" }}>Enter</Kbd> to send
+              <Kbd fontSize={{ base: "xs", md: "sm" }}>⌘</Kbd> +{" "}
+              <Kbd fontSize={{ base: "xs", md: "sm" }}>Enter</Kbd> で送信
             </Text>
           </HStack>
         </Box>

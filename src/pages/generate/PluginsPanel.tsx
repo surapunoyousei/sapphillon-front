@@ -2,12 +2,21 @@ import {
   Badge,
   HStack,
   Input,
+  InputGroup,
   Separator,
   Text,
   VStack,
 } from "@chakra-ui/react";
+import { LuSearch } from "react-icons/lu";
+import { EmptyState } from "@/components/ui/empty-state";
+import { LuPackage } from "react-icons/lu";
 
 export function PluginsPanel() {
+  const plugins = [
+    { name: "Floorp ", version: "0.0.1", enabled: true },
+    { name: "Fetch", version: "0.0.1", enabled: true },
+  ];
+  
   return (
     <VStack
       align="stretch"
@@ -25,19 +34,26 @@ export function PluginsPanel() {
       <HStack justify="space-between" align="center" flexWrap="wrap" gap={2}>
         <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>Plugins</Text>
         <HStack gap={2}>
+          <InputGroup size="sm" maxW={{ base: "32", sm: "40" }}>
           <Input 
-            size="sm"
             placeholder="Search plugins…" 
-            maxW={{ base: "32", sm: "40" }}
             fontSize={{ base: "xs", sm: "sm" }}
             minH={{ base: "36px", md: "auto" }}
           />
+          </InputGroup>
         </HStack>
       </HStack>
       <Separator />
       <VStack align="stretch" gap={2} minH={0} overflowY="auto">
-        {pluginItem("Floorp ", "0.0.1", true)}
-        {pluginItem("Fetch", "0.0.1", true)}
+        {plugins.length === 0 ? (
+          <EmptyState
+            icon={<LuPackage />}
+            title="プラグインがありません"
+            description="プラグインをインストールして、ワークフローで使用できるようにしましょう。"
+          />
+        ) : (
+          plugins.map((plugin) => pluginItem(plugin.name, plugin.version, plugin.enabled))
+        )}
       </VStack>
     </VStack>
   );

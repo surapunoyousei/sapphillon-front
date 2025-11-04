@@ -19,11 +19,38 @@ export function parseWorkflowCode(code: string): ParseResult {
     });
     
     // Look for workflow function: function workflow() { ... }
-    // No export, no async - just a simple function declaration
-    const workflowFunction = ast.program.body.find(
+    // Support both sync and async functions
+    // Look for: function workflow(), async function workflow(), or export async function workflow()
+    let workflowFunction = ast.program.body.find(
       (node) =>
         node.type === "FunctionDeclaration" && node.id?.name === "workflow"
     ) as FunctionDeclaration | undefined;
+    
+    // Also check for exported functions
+    if (!workflowFunction) {
+      const exportNode = ast.program.body.find(
+        (node) =>
+          node.type === "ExportNamedDeclaration" &&
+          node.declaration?.type === "FunctionDeclaration" &&
+          (node.declaration as FunctionDeclaration).id?.name === "workflow"
+      );
+      if (exportNode && exportNode.type === "ExportNamedDeclaration") {
+        workflowFunction = exportNode.declaration as FunctionDeclaration;
+      }
+    }
+    
+    // Check for export default function workflow()
+    if (!workflowFunction) {
+      const defaultExport = ast.program.body.find(
+        (node) =>
+          node.type === "ExportDefaultDeclaration" &&
+          node.declaration.type === "FunctionDeclaration" &&
+          (node.declaration as FunctionDeclaration).id?.name === "workflow"
+      );
+      if (defaultExport && defaultExport.type === "ExportDefaultDeclaration") {
+        workflowFunction = defaultExport.declaration as FunctionDeclaration;
+      }
+    }
     
     if (!workflowFunction) {
       return {
@@ -237,9 +264,11 @@ export function stripTypeScriptSyntax(code: string): string {
         generate;
     
     const { code: jsCode } = generator(ast, {
-      comments: false,
+      comments: true,
       compact: false,
       concise: false,
+      retainLines: false,
+      retainFunctionParens: true,
     });
     
     return jsCode as string;

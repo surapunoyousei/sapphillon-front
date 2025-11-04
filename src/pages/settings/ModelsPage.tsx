@@ -25,7 +25,7 @@ import {
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { LuCheck, LuPencil, LuPlus, LuTrash2, LuX } from "react-icons/lu";
+import { LuCheck, LuDatabase, LuPencil, LuPlus, LuTrash2, LuX } from "react-icons/lu";
 import { clients } from "@/lib/grpc-clients";
 import { create } from "@bufbuild/protobuf";
 import {
@@ -41,6 +41,8 @@ import type { Provider } from "@/gen/sapphillon/ai/v1/provider_pb";
 import { ListProvidersRequestSchema } from "@/gen/sapphillon/ai/v1/provider_service_pb";
 import { Field } from "@/components/ui/field";
 import { toaster } from "@/components/ui/toaster-instance";
+import { EmptyState } from "@/components/ui/empty-state";
+import { TableSkeleton } from "@/components/ui/skeleton";
 
 // バリデーションスキーマ
 const modelFormSchema = z.object({
@@ -459,15 +461,20 @@ export function ModelsPage() {
           <Card.Body p={0}>
             {loading
               ? (
-                <Flex justify="center" align="center" p={8}>
-                  <Spinner size="lg" />
-                </Flex>
+                <TableSkeleton rows={5} />
               )
               : models.length === 0
               ? (
-                <Box p={8} textAlign="center">
-                  <Text color="fg.muted">モデルが登録されていません。</Text>
-                </Box>
+                <EmptyState
+                  icon={<LuDatabase />}
+                  title="モデルが登録されていません"
+                  description="LLMモデルを追加して、ワークフローで使用できるようにしましょう。モデルはプロバイダに関連付けられます。"
+                  action={{
+                    label: "モデルを追加",
+                    onClick: startCreate,
+                    icon: <LuPlus />,
+                  }}
+                />
               )
               : (
                 <Table.Root>

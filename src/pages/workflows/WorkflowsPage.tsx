@@ -14,6 +14,8 @@ import {
     VStack,
 } from "@chakra-ui/react";
 import {
+    LuArrowDown,
+    LuArrowUp,
     LuFileText,
     LuPlus,
     LuRefreshCw,
@@ -53,7 +55,16 @@ function WorkflowRow({
         ?.[workflow.workflowResults.length - 1];
 
     return (
-        <Table.Row>
+        <Table.Row
+            css={{
+                cursor: "pointer",
+                transition: "background-color 0.2s",
+                "&:hover": {
+                    backgroundColor: "var(--chakra-colors-bg-subtle)",
+                },
+            }}
+            onClick={() => onView(workflow.id)}
+        >
             <Table.Cell>
                 <VStack align="start" gap={1}>
                     <Text 
@@ -86,6 +97,7 @@ function WorkflowRow({
             <Table.Cell display={{ base: "none", md: "table-cell" }}>
                 {latestResult
                     ? (
+                        <VStack align="start" gap={1}>
                         <HStack gap={2}>
                             <Box
                                 w={2}
@@ -99,7 +111,21 @@ function WorkflowRow({
                             />
                             <Text 
                                 fontSize="sm" 
-                                color="fg.muted"
+                                    fontWeight="medium"
+                                    color={latestResult.resultType === 0
+                                        ? "green.700"
+                                        : latestResult.resultType === 1
+                                        ? "red.700"
+                                        : "fg.muted"}
+                                    css={{
+                                        _dark: {
+                                            color: latestResult.resultType === 0
+                                                ? "var(--chakra-colors-green-300)"
+                                                : latestResult.resultType === 1
+                                                ? "var(--chakra-colors-red-300)"
+                                                : "var(--chakra-colors-fg-muted)",
+                                        },
+                                    }}
                                 whiteSpace="nowrap"
                             >
                                 {latestResult.resultType === 0
@@ -107,6 +133,16 @@ function WorkflowRow({
                                     : "Failed"}
                             </Text>
                         </HStack>
+                            {latestResult.createdAt && (
+                                <Text 
+                                    fontSize="xs" 
+                                    color="fg.muted"
+                                    whiteSpace="nowrap"
+                                >
+                                    {formatDate(latestResult.createdAt)}
+                                </Text>
+                            )}
+                        </VStack>
                     )
                     : (
                         <Text 
@@ -118,18 +154,24 @@ function WorkflowRow({
                         </Text>
                     )}
             </Table.Cell>
-            <Table.Cell>
+            <Table.Cell onClick={(e) => e.stopPropagation()}>
                 <HStack gap={2}>
                     <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => onView(workflow.id)}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onView(workflow.id);
+                        }}
                     >
                         View
                     </Button>
                     <Button 
                         size="sm" 
                         variant="outline"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                        }}
                     >
                         Run
                     </Button>
@@ -153,6 +195,7 @@ export function WorkflowsPage() {
         nextPageToken,
         filter,
         setFilter,
+        orderBy,
         setOrderBy,
         refetch,
         loadNextPage,
@@ -166,6 +209,18 @@ export function WorkflowsPage() {
             }));
         },
         [setFilter],
+    );
+
+    // Get sort icon for a field
+    const getSortIcon = React.useCallback(
+        (field: string) => {
+            const order = orderBy.find((o) => o.field === field);
+            if (!order) return null;
+            return order.direction === OrderByDirection.ASC 
+                ? <LuArrowUp size={14} /> 
+                : <LuArrowDown size={14} />;
+        },
+        [orderBy],
     );
 
     const handleSort = React.useCallback(
@@ -354,8 +409,12 @@ export function WorkflowsPage() {
                                                     onClick={() =>
                                                         handleSort("display_name")}
                                                     minW="200px"
+                                                    _hover={{ bg: "bg.subtle" }}
                                                 >
-                                                    Name
+                                                    <HStack gap={2}>
+                                                        <Text>Name</Text>
+                                                        {getSortIcon("display_name")}
+                                                    </HStack>
                                                 </Table.ColumnHeader>
                                                 <Table.ColumnHeader
                                                     minW="120px"

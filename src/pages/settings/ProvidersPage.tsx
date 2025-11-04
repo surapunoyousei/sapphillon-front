@@ -17,7 +17,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { LuCheck, LuPencil, LuPlus, LuTrash2, LuX } from "react-icons/lu";
+import { LuCheck, LuPencil, LuPlus, LuServer, LuTrash2, LuX } from "react-icons/lu";
 import { clients } from "@/lib/grpc-clients";
 import { create } from "@bufbuild/protobuf";
 import {
@@ -30,6 +30,8 @@ import { ProviderSchema } from "@/gen/sapphillon/ai/v1/provider_pb";
 import type { Provider } from "@/gen/sapphillon/ai/v1/provider_pb";
 import { Field } from "@/components/ui/field";
 import { toaster } from "@/components/ui/toaster-instance";
+import { EmptyState } from "@/components/ui/empty-state";
+import { TableSkeleton } from "@/components/ui/skeleton";
 
 // バリデーションスキーマ
 const providerFormSchema = z.object({
@@ -200,20 +202,12 @@ export function ProvidersPage() {
         });
     };
 
-    if (loading) {
-        return (
-            <Flex justify="center" align="center" h="50vh">
-                <Spinner size="xl" />
-            </Flex>
-        );
-    }
-
     return (
         <Box p={6}>
             <VStack align="stretch" gap={6}>
                 <Flex justify="space-between" align="center">
                     <Heading size="xl">LLMプロバイダ管理</Heading>
-                    {!isCreating && (
+                    {!isCreating && !loading && (
                         <Button
                             colorPalette="floorp"
                             onClick={startCreate}
@@ -305,13 +299,22 @@ export function ProvidersPage() {
                         <Heading size="md">プロバイダ一覧</Heading>
                     </Card.Header>
                     <Card.Body p={0}>
-                        {providers.length === 0
+                        {loading
                             ? (
-                                <Box p={8} textAlign="center">
-                                    <Text color="fg.muted">
-                                        プロバイダが登録されていません。
-                                    </Text>
-                                </Box>
+                                <TableSkeleton rows={3} />
+                            )
+                            : providers.length === 0
+                            ? (
+                                <EmptyState
+                                    icon={<LuServer />}
+                                    title="プロバイダが登録されていません"
+                                    description="LLMプロバイダを追加して、モデルを使い始めましょう。プロバイダは、APIキーとエンドポイントを使ってLLMサービスに接続します。"
+                                    action={{
+                                        label: "プロバイダを追加",
+                                        onClick: startCreate,
+                                        icon: <LuPlus />,
+                                    }}
+                                />
                             )
                             : (
                                 <Table.Root>

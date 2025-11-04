@@ -661,6 +661,68 @@ function workflow() {
         workflowResults: [],
       })
     );
+
+    // ワークフロー8: 条件分岐とループのサンプル
+    workflows.push(
+      create(WorkflowSchema, {
+        id: "workflow-8",
+        displayName: "条件分岐とループのデモ",
+        description: "if-else文やfor文を使った処理の例",
+        workflowLanguage: WorkflowLanguage.TYPESCRIPT,
+        workflowCode: [
+          {
+            id: "code-8",
+            codeRevision: 1,
+            code: `// 条件分岐とループのサンプル
+function workflow() {
+  const data = fetchData();
+  const results = [];
+  
+  // ループで各データを処理
+  for (let i = 0; i < data.length; i++) {
+    const item = data[i];
+    
+    // 条件分岐で処理を変える
+    if (item.status === "active") {
+      // アクティブなアイテムの処理
+      const processed = processActiveItem(item);
+      results.push(processed);
+    } else if (item.status === "pending") {
+      // ペンディングのアイテムの処理
+      const reviewed = reviewPendingItem(item);
+      results.push(reviewed);
+    } else {
+      // その他のアイテムはスキップ
+      console.log("Skipping item:", item.id);
+    }
+  }
+  
+  // エラーハンドリング
+  try {
+    saveResults(results);
+    sendNotification("処理が完了しました");
+  } catch (error) {
+    console.error("エラーが発生しました:", error);
+    sendAlert("処理に失敗しました");
+  } finally {
+    cleanup();
+  }
+  
+  return { success: true, processedCount: results.length };
+}`,
+            language: WorkflowLanguage.TYPESCRIPT,
+            createdAt: createTimestamp(),
+            result: [],
+            pluginPackages: [],
+            pluginFunctionIds: [],
+            allowedPermissions: [],
+          },
+        ],
+        createdAt: createTimestamp(),
+        updatedAt: createTimestamp(),
+        workflowResults: [],
+      })
+    );
   }
 }
 

@@ -16,6 +16,9 @@ import type {
 } from "@babel/types";
 import React, { useMemo, useRef, useState } from "react";
 import { parseWorkflowCode, stripTypeScriptSyntax } from "./ast-utils";
+import { CodeHighlighter } from "./CodeHighlighter";
+import { groupStatementsIntoActions } from "./action-grouper";
+import { ActionNode } from "./ActionNode";
 import {
   LuChevronDown,
   LuChevronRight,
@@ -813,7 +816,7 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
   workflow,
   withBackground = true,
 }) => {
-  const [viewMode, setViewMode] = useState<"steps" | "code">("steps");
+  const [viewMode, setViewMode] = useState<"actions" | "steps" | "code">("actions");
   const containerRef = useRef<HTMLDivElement>(null);
 
   const latestCode = workflow.workflowCode[workflow.workflowCode.length - 1]
@@ -824,6 +827,12 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
     if (!latestCode) return { workflowBody: null, parseError: null };
     return parseWorkflowCode(latestCode);
   }, [latestCode]);
+
+  // Group statements into actions
+  const actions = useMemo(() => {
+    if (!workflowBody) return [];
+    return groupStatementsIntoActions(workflowBody);
+  }, [workflowBody]);
 
   // Strip TypeScript syntax and render raw JavaScript for the latest code
   const rawJsCode = useMemo(() => {
@@ -883,6 +892,29 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
 
       {/* Content */}
       <Box position="absolute" inset={0} overflow="auto" zIndex={1}>
+        {viewMode === "actions" && (
+          <>
+            {!latestCode
+              ? <Text fontSize={{ base: "sm", md: "md" }}>No code available to display.</Text>
+              : parseError
+              ? (
+                <Box p={{ base: 2, md: 4 }} color="red.500" whiteSpace="pre-wrap">
+                  <Text fontWeight="bold" fontSize={{ base: "sm", md: "md" }}>Error parsing workflow code:</Text>
+                  <Code colorScheme="red" fontSize={{ base: "xs", md: "sm" }}>{parseError.message}</Code>
+                </Box>
+              )
+              : actions.length > 0
+              ? (
+                <VStack align="stretch" gap={{ base: 2, md: 3 }} w="100%" p={{ base: 2, md: 3 }} pb={{ base: "60px", md: "80px" }}>
+                  {actions.map((action, index) => (
+                    <ActionNode key={index} action={action} index={index} />
+                  ))}
+                </VStack>
+              )
+              : <Text fontSize={{ base: "sm", md: "md" }}>No actions found.</Text>}
+          </>
+        )}
+        
         {viewMode === "steps" && (
           <>
             {!latestCode
@@ -907,18 +939,13 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
         )}
 
         {viewMode === "code" && (
-          <Box 
-            as="pre" 
-            fontFamily="mono" 
-            fontSize={{ base: "xs", md: "sm" }} 
-            m={0} 
-            p={{ base: 2, md: 3 }} 
-            overflowX="auto"
-            whiteSpace="pre-wrap"
-            wordBreak="break-all"
-            overflowWrap="anywhere"
+          <Box
+            p={{ base: 2, md: 3 }}
+            bg="gray.50"
+            _dark={{ bg: "gray.900" }}
+            minH="100%"
           >
-            {rawJsCode}
+            <CodeHighlighter code={rawJsCode} language="javascript" />
           </Box>
         )}
       </Box>
@@ -927,10 +954,19 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
       <Box position="absolute" top={{ base: 1, md: 2 }} right={{ base: 1, md: 2 }} zIndex={2}>
         <ButtonGroup size="xs" attached variant="outline">
           <Button
+            onClick={() => setViewMode("actions")}
+            colorScheme={viewMode === "actions" ? "blue" : "gray"}
+            variant={viewMode === "actions" ? "solid" : "outline"}
+            fontSize={{ base: "xs", md: "sm" }}
+            px={{ base: 2, md: 3 }}
+            minH={{ base: "32px", md: "auto" }}
+          >
+            Actions
+          </Button>
+          <Button
             onClick={() => setViewMode("steps")}
             colorScheme={viewMode === "steps" ? "blue" : "gray"}
             variant={viewMode === "steps" ? "solid" : "outline"}
-            background={viewMode === "steps" ? "black" : "white"}
             fontSize={{ base: "xs", md: "sm" }}
             px={{ base: 2, md: 3 }}
             minH={{ base: "32px", md: "auto" }}
@@ -941,7 +977,6 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
             onClick={() => setViewMode("code")}
             colorScheme={viewMode === "code" ? "blue" : "gray"}
             variant={viewMode === "code" ? "solid" : "outline"}
-            background={viewMode === "code" ? "black" : "white"}
             fontSize={{ base: "xs", md: "sm" }}
             px={{ base: 2, md: 3 }}
             minH={{ base: "32px", md: "auto" }}
