@@ -1,3 +1,11 @@
+/**
+ * @fileoverview アクションノードコンポーネント
+ *
+ * ワークフローアクション（複数のステップをグループ化したもの）を表示
+ *
+ * @module components/workflow/ActionNode
+ */
+
 import { Badge, Box, Card, HStack, Text, VStack } from "@chakra-ui/react";
 import {
   LuArrowRight,
@@ -6,70 +14,37 @@ import {
   LuDatabase,
   LuGitBranch,
   LuMousePointer,
-  LuPlay,
 } from "react-icons/lu";
 import React, { useState } from "react";
-import type { WorkflowAction } from "./action-grouper";
-import generate from "@babel/generator";
-import type { Statement } from "@babel/types";
+import { generateReadableCode } from "./utils/code-generator";
+import {
+  ACTION_TYPES,
+  getActionColor,
+  type ActionType,
+  type ImportanceLevel,
+} from "./constants";
+import type { ActionNodeProps } from "./types";
 
-const generateCode = (node: Statement) => {
-  try {
-    // @ts-expect-error @babel/generator's ESM/CJS module is a bit weird.
-    const generator = generate.default ?? generate;
-    const { code } = generator(node, {
-      compact: false,
-      comments: false,
-      concise: false,
-    });
-    return code;
-  } catch {
-    return "";
-  }
-};
-
-const getActionIcon = (type: string, size = 20) => {
+/**
+ * アクションタイプに応じたアイコンを返す
+ */
+const getActionIcon = (type: ActionType, size = 20) => {
   switch (type) {
-    case "navigation":
+    case ACTION_TYPES.NAVIGATION:
       return <LuArrowRight size={size} />;
-    case "interaction":
+    case ACTION_TYPES.INTERACTION:
       return <LuMousePointer size={size} />;
-    case "data-extraction":
+    case ACTION_TYPES.DATA_EXTRACTION:
       return <LuDatabase size={size} />;
-    case "control-flow":
+    case ACTION_TYPES.CONTROL_FLOW:
       return <LuGitBranch size={size} />;
-    case "return":
+    case ACTION_TYPES.RETURN:
       return <LuCornerDownRight size={size} />;
-    case "computation":
+    case ACTION_TYPES.COMPUTATION:
     default:
       return <LuCode size={size} />;
   }
 };
-
-const getActionColor = (type: string, importance: string) => {
-  if (importance === "high") {
-    switch (type) {
-      case "navigation":
-        return "blue";
-      case "interaction":
-        return "purple";
-      case "data-extraction":
-        return "green";
-      case "control-flow":
-        return "orange";
-      case "return":
-        return "pink";
-      default:
-        return "gray";
-    }
-  }
-  return "gray";
-};
-
-export interface ActionNodeProps {
-  action: WorkflowAction;
-  index: number;
-}
 
 export const ActionNode: React.FC<ActionNodeProps> = ({ action, index }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -219,7 +194,7 @@ export const ActionNode: React.FC<ActionNodeProps> = ({ action, index }) => {
                       whiteSpace="pre-wrap"
                       wordBreak="break-word"
                     >
-                      {generateCode(statement)}
+                      {generateReadableCode(statement)}
                     </Text>
                   </Box>
                 ))}

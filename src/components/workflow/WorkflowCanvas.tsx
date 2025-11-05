@@ -1,3 +1,12 @@
+/**
+ * @fileoverview ワークフローをビジュアルに表示するキャンバスコンポーネント
+ *
+ * JavaScriptコードをBabelでAST（抽象構文木）としてパースし、
+ * ステップごとに視覚化します。コードビューとの切り替えも可能です。
+ *
+ * @module components/workflow/WorkflowCanvas
+ */
+
 import type { Workflow } from "@/gen/sapphillon/v1/workflow_pb";
 import { Box, Button, ButtonGroup, Code, Text, VStack } from "@chakra-ui/react";
 import generate from "@babel/generator";
@@ -33,8 +42,13 @@ import {
   LuZap,
 } from "react-icons/lu";
 
+/**
+ * WorkflowCanvasコンポーネントのProps
+ */
 export interface WorkflowCanvasProps {
+  /** 表示するワークフロー定義 */
   workflow: Workflow;
+  /** 背景グリッドを表示するか（デフォルト: true） */
   withBackground?: boolean;
 }
 
@@ -193,7 +207,7 @@ const nodeHasImportant = (node: Node | null | undefined) => {
 // Helper function to find plugin function definition
 const findFunctionDefinition = (functionName: string, workflow?: Workflow) => {
   if (!workflow) return null;
-  
+
   const latestCode = workflow.workflowCode[workflow.workflowCode.length - 1];
   if (!latestCode) return null;
 
@@ -214,7 +228,12 @@ const findFunctionDefinition = (functionName: string, workflow?: Workflow) => {
 };
 
 const AstNode: React.FC<
-  { node: Statement; depth?: number; importantOnly?: boolean; workflow?: Workflow }
+  {
+    node: Statement;
+    depth?: number;
+    importantOnly?: boolean;
+    workflow?: Workflow;
+  }
 > = (
   { node, depth = 0, importantOnly = false, workflow },
 ) => {
@@ -234,7 +253,11 @@ const AstNode: React.FC<
           borderColor: "red.700",
         }}
       >
-        <Text color="red.700" _dark={{ color: "red.500" }} fontSize={{ base: "xs", md: "sm" }}>
+        <Text
+          color="red.700"
+          _dark={{ color: "red.500" }}
+          fontSize={{ base: "xs", md: "sm" }}
+        >
           Invalid node
         </Text>
       </Box>
@@ -373,7 +396,12 @@ const AstNode: React.FC<
 
         {/* Header row */}
         <Box px={{ base: 1.5, md: 2.5 }} py={{ base: 1, md: 1.5 }}>
-          <Box display="flex" alignItems="center" gap={{ base: 1, md: 2 }} minH="24px">
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={{ base: 1, md: 2 }}
+            minH="24px"
+          >
             {/* Toggle */}
             {expandable
               ? (
@@ -394,8 +422,18 @@ const AstNode: React.FC<
                   h={{ base: "16px", md: "18px" }}
                 >
                   {collapsed
-                    ? <LuChevronRight size={12} style={{ width: "100%", height: "100%" }} />
-                    : <LuChevronDown size={12} style={{ width: "100%", height: "100%" }} />}
+                    ? (
+                      <LuChevronRight
+                        size={12}
+                        style={{ width: "100%", height: "100%" }}
+                      />
+                    )
+                    : (
+                      <LuChevronDown
+                        size={12}
+                        style={{ width: "100%", height: "100%" }}
+                      />
+                    )}
                 </Box>
               )
               : null}
@@ -473,7 +511,10 @@ const AstNode: React.FC<
             color="gray.600"
             _dark={{ color: "gray.400" }}
             mb={1}
-            ml={{ base: `${depth * INDENT_PX_MOBILE + 4}px`, md: `${depth * INDENT_PX + 4}px` }}
+            ml={{
+              base: `${depth * INDENT_PX_MOBILE + 4}px`,
+              md: `${depth * INDENT_PX + 4}px`,
+            }}
           >
             {label}
           </Text>
@@ -489,7 +530,10 @@ const AstNode: React.FC<
               <Box
                 key={index}
                 position="relative"
-                pl={{ base: `${depth * INDENT_PX_MOBILE + 8}px`, md: `${depth * INDENT_PX + 12}px` }}
+                pl={{
+                  base: `${depth * INDENT_PX_MOBILE + 8}px`,
+                  md: `${depth * INDENT_PX + 12}px`,
+                }}
               >
                 <AstNode
                   node={stmt}
@@ -564,18 +608,22 @@ const AstNode: React.FC<
         const callExpr = expr.expression;
         const fn = oneLine(generateCode(callExpr.callee), 40);
         const isImportant = isImportantCall(fn);
-        
+
         // Extract function name from callee
-        const functionName = callExpr.callee.type === "Identifier" 
-          ? callExpr.callee.name 
+        const functionName = callExpr.callee.type === "Identifier"
+          ? callExpr.callee.name
           : null;
-        
+
         // Try to find function definition
-        const funcDef = functionName ? findFunctionDefinition(functionName, workflow) : null;
-        
+        const funcDef = functionName
+          ? findFunctionDefinition(functionName, workflow)
+          : null;
+
         return (
           <NodeContainer
-            title={funcDef ? funcDef.name : (isImportant ? "重要処理" : "ツールを実行")}
+            title={funcDef
+              ? funcDef.name
+              : (isImportant ? "重要処理" : "ツールを実行")}
             icon={isImportant
               ? <LuTriangleAlert size={16} />
               : <LuSettings size={16} />}
@@ -586,14 +634,22 @@ const AstNode: React.FC<
             palette={isImportant ? "orange" : "teal"}
           >
             {funcDef && (
-              <VStack align="stretch" gap={1} fontSize={{ base: "2xs", md: "xs" }}>
+              <VStack
+                align="stretch"
+                gap={1}
+                fontSize={{ base: "2xs", md: "xs" }}
+              >
                 {funcDef.description && (
                   <Text color="gray.600" _dark={{ color: "gray.400" }}>
                     {funcDef.description}
                   </Text>
                 )}
                 {funcDef.packageName && (
-                  <Text color="gray.500" _dark={{ color: "gray.500" }} fontSize="2xs">
+                  <Text
+                    color="gray.500"
+                    _dark={{ color: "gray.500" }}
+                    fontSize="2xs"
+                  >
                     パッケージ: {funcDef.packageName}
                   </Text>
                 )}
@@ -816,7 +872,9 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
   workflow,
   withBackground = true,
 }) => {
-  const [viewMode, setViewMode] = useState<"actions" | "steps" | "code">("actions");
+  const [viewMode, setViewMode] = useState<"actions" | "steps" | "code">(
+    "actions",
+  );
   const containerRef = useRef<HTMLDivElement>(null);
 
   const latestCode = workflow.workflowCode[workflow.workflowCode.length - 1]
@@ -895,46 +953,95 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
         {viewMode === "actions" && (
           <>
             {!latestCode
-              ? <Text fontSize={{ base: "sm", md: "md" }}>No code available to display.</Text>
+              ? (
+                <Text fontSize={{ base: "sm", md: "md" }}>
+                  No code available to display.
+                </Text>
+              )
               : parseError
               ? (
-                <Box p={{ base: 2, md: 4 }} color="red.500" whiteSpace="pre-wrap">
-                  <Text fontWeight="bold" fontSize={{ base: "sm", md: "md" }}>Error parsing workflow code:</Text>
-                  <Code colorScheme="red" fontSize={{ base: "xs", md: "sm" }}>{parseError.message}</Code>
+                <Box
+                  p={{ base: 2, md: 4 }}
+                  color="red.500"
+                  whiteSpace="pre-wrap"
+                >
+                  <Text fontWeight="bold" fontSize={{ base: "sm", md: "md" }}>
+                    Error parsing workflow code:
+                  </Text>
+                  <Code colorScheme="red" fontSize={{ base: "xs", md: "sm" }}>
+                    {parseError.message}
+                  </Code>
                 </Box>
               )
               : actions.length > 0
               ? (
-                <VStack align="stretch" gap={{ base: 2, md: 3 }} w="100%" p={{ base: 2, md: 3 }} pb={{ base: "60px", md: "80px" }}>
+                <VStack
+                  align="stretch"
+                  gap={{ base: 2, md: 3 }}
+                  w="100%"
+                  p={{ base: 2, md: 3 }}
+                  pb={{ base: "60px", md: "80px" }}
+                >
                   {actions.map((action, index) => (
                     <ActionNode key={index} action={action} index={index} />
                   ))}
                 </VStack>
               )
-              : <Text fontSize={{ base: "sm", md: "md" }}>No actions found.</Text>}
+              : (
+                <Text fontSize={{ base: "sm", md: "md" }}>
+                  No actions found.
+                </Text>
+              )}
           </>
         )}
-        
+
         {viewMode === "steps" && (
           <>
             {!latestCode
-              ? <Text fontSize={{ base: "sm", md: "md" }}>No code available to display.</Text>
+              ? (
+                <Text fontSize={{ base: "sm", md: "md" }}>
+                  No code available to display.
+                </Text>
+              )
               : parseError
               ? (
-                <Box p={{ base: 2, md: 4 }} color="red.500" whiteSpace="pre-wrap">
-                  <Text fontWeight="bold" fontSize={{ base: "sm", md: "md" }}>Error parsing workflow code:</Text>
-                  <Code colorScheme="red" fontSize={{ base: "xs", md: "sm" }}>{parseError.message}</Code>
+                <Box
+                  p={{ base: 2, md: 4 }}
+                  color="red.500"
+                  whiteSpace="pre-wrap"
+                >
+                  <Text fontWeight="bold" fontSize={{ base: "sm", md: "md" }}>
+                    Error parsing workflow code:
+                  </Text>
+                  <Code colorScheme="red" fontSize={{ base: "xs", md: "sm" }}>
+                    {parseError.message}
+                  </Code>
                 </Box>
               )
               : workflowBody
               ? (
-                <VStack align="stretch" gap={{ base: 1, md: 1.5 }} w="100%" p={{ base: 2, md: 3 }} pb={{ base: "60px", md: "80px" }}>
+                <VStack
+                  align="stretch"
+                  gap={{ base: 1, md: 1.5 }}
+                  w="100%"
+                  p={{ base: 2, md: 3 }}
+                  pb={{ base: "60px", md: "80px" }}
+                >
                   {workflowBody.map((statement, index) => (
-                    <AstNode key={index} node={statement} depth={0} workflow={workflow} />
+                    <AstNode
+                      key={index}
+                      node={statement}
+                      depth={0}
+                      workflow={workflow}
+                    />
                   ))}
                 </VStack>
               )
-              : <Text fontSize={{ base: "sm", md: "md" }}>`workflow()` function not found.</Text>}
+              : (
+                <Text fontSize={{ base: "sm", md: "md" }}>
+                  `workflow()` function not found.
+                </Text>
+              )}
           </>
         )}
 
@@ -951,7 +1058,12 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
       </Box>
 
       {/* View toggle */}
-      <Box position="absolute" top={{ base: 1, md: 2 }} right={{ base: 1, md: 2 }} zIndex={2}>
+      <Box
+        position="absolute"
+        top={{ base: 1, md: 2 }}
+        right={{ base: 1, md: 2 }}
+        zIndex={2}
+      >
         <ButtonGroup size="xs" attached variant="outline">
           <Button
             onClick={() => setViewMode("actions")}
@@ -988,3 +1100,32 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
     </Box>
   );
 };
+
+/**
+ * ワークフローキャンバスコンポーネント
+ *
+ * ワークフローのJavaScriptコードを解析し、視覚的なフローチャートとして表示します。
+ * - **Steps**: AST（抽象構文木）としてステップごとに表示
+ * - **Actions**: 関連するステップをグループ化してアクションとして表示
+ * - **Code**: 生のJavaScriptコード（TypeScript構文を除去）
+ *
+ * ## 機能
+ * - Babelを使用したコード解析
+ * - 変数宣言、条件分岐、ループ、Try-Catchなどの視覚化
+ * - 展開/折りたたみ可能なノード
+ * - ダークモード対応
+ * - レスポンシブデザイン
+ *
+ * @example
+ * ```tsx
+ * import { WorkflowCanvas } from '@/components/workflow/WorkflowCanvas';
+ *
+ * function WorkflowViewer({ workflow }) {
+ *   return (
+ *     <Box h="500px">
+ *       <WorkflowCanvas workflow={workflow} withBackground />
+ *     </Box>
+ *   );
+ * }
+ * ```
+ */

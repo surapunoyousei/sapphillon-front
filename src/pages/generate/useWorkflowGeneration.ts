@@ -1,3 +1,9 @@
+/**
+ * @fileoverview ワークフロー生成と実行を管理するカスタムフック
+ *
+ * @module pages/generate/useWorkflowGeneration
+ */
+
 import React from "react";
 import { clients } from "@/lib/grpc-clients";
 import type {
@@ -16,13 +22,98 @@ import {
   WorkflowSchema,
 } from "@/gen/sapphillon/v1/workflow_pb";
 
+/**
+ * ワークフロー生成中のイベント
+ */
 export type GenerationEvent = {
+  /** イベント発生時刻（Unixタイムスタンプ） */
   t: number;
+  /** イベント種別 */
   kind: "message" | "error" | "done";
+  /** イベントのペイロード（種別により異なる） */
   payload?: unknown;
 };
 
-export function useWorkflowGeneration() {
+/**
+ * useWorkflowGenerationフックの戻り値
+ */
+export interface UseWorkflowGenerationReturn {
+  /** 現在ストリーミング中かどうか */
+  streaming: boolean;
+  /** 生成中に発生したイベントのリスト */
+  events: GenerationEvent[];
+  /** 最後に受信したワークフロー定義 */
+  latest: GenerateWorkflowResponse | null;
+  /** ワークフロー実行結果 */
+  runRes: RunWorkflowResponse | null;
+  /** ワークフロー生成を開始 */
+  start: (prompt: string) => Promise<void>;
+  /** ストリーミングを停止 */
+  stop: () => void;
+  /** イベントログをクリア */
+  clearEvents: () => void;
+  /** 最後に生成されたワークフローを実行 */
+  runLatest: () => Promise<void>;
+}
+
+/**
+ * ワークフロー生成・実行フック
+ *
+ * プロンプトからワークフローを生成し、実行するための状態管理とロジックを提供します。
+ * ストリーミングによるリアルタイム生成、中断、実行を含みます。
+ *
+ * @returns ワークフロー生成・実行のための状態と関数
+ *
+ * @example
+ * ```tsx
+ * function WorkflowGenerator() {
+ *   const { streaming, latest, start, stop, runLatest } = useWorkflowGeneration();
+ *   const [prompt, setPrompt] = React.useState("");
+ *
+ *   return (
+ *     <div>
+ *       <Textarea
+ *         value={prompt}
+ *         onChange={(e) => setPrompt(e.target.value)}
+ *         placeholder="例: メールを送信して、結果をスプレッドシートに記録"
+ *       />
+ *       <Button
+ *         onClick={() => start(prompt)}
+ *         isLoading={streaming}
+ *       >
+ *         生成開始
+ *       </Button>
+ *       {streaming && <Button onClick={stop}>停止</Button>}
+ *       {latest && (
+ *         <Button onClick={runLatest}>
+ *           ワークフローを実行
+ *         </Button>
+ *       )}
+ *     </div>
+ *   );
+ * }
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // イベントログの表示
+ * function EventLog() {
+ *   const { events } = useWorkflowGeneration();
+ *
+ *   return (
+ *     <VStack>
+ *       {events.map((event, i) => (
+ *         <Box key={i}>
+ *           <Badge>{event.kind}</Badge>
+ *           <Text>{new Date(event.t).toLocaleTimeString()}</Text>
+ *         </Box>
+ *       ))}
+ *     </VStack>
+ *   );
+ * }
+ * ```
+ */
+export function useWorkflowGeneration(): UseWorkflowGenerationReturn {
   const [streaming, setStreaming] = React.useState(false);
   const [events, setEvents] = React.useState<GenerationEvent[]>([]);
   const [latest, setLatest] = React.useState<GenerateWorkflowResponse | null>(

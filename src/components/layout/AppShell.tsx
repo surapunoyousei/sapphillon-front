@@ -1,3 +1,12 @@
+/**
+ * @fileoverview アプリケーション全体のレイアウトシェル
+ *
+ * トップナビ、サイドナビ、ステータスバー、オムニバーを含む
+ * 統一されたレイアウトを提供します。
+ *
+ * @module components/layout/AppShell
+ */
+
 import React from "react";
 import { Box, Drawer, Flex } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
@@ -10,10 +19,46 @@ import { MemoryRouter, useInRouterContext } from "react-router-dom";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcut";
 import { GLOBAL_SHORTCUTS, createShortcut } from "@/lib/keyboard-shortcuts";
 
+/**
+ * AppShellコンポーネントのProps
+ */
 export interface AppShellProps {
+  /** レイアウト内に表示する子要素 */
   children?: React.ReactNode;
 }
 
+/**
+ * アプリケーションレイアウトシェル
+ *
+ * 全ページで共通のレイアウト構造を提供します。
+ * - トップナビゲーションバー
+ * - サイドナビゲーション（モバイルではドロワー）
+ * - メインコンテンツエリア
+ * - ステータスバー
+ * - オムニバー（⌘K で起動）
+ *
+ * ## 機能
+ * - レスポンシブデザイン
+ * - キーボードショートカット（⌘K でオムニバー）
+ * - ルーター対応
+ * - モバイル用ドロワーメニュー
+ *
+ * @example
+ * ```tsx
+ * import { AppShell } from '@/components/layout/AppShell';
+ *
+ * function App() {
+ *   return (
+ *     <AppShell>
+ *       <Routes>
+ *         <Route path="/" element={<HomePage />} />
+ *         <Route path="/generate" element={<GeneratePage />} />
+ *       </Routes>
+ *     </AppShell>
+ *   );
+ * }
+ * ```
+ */
 export function AppShell({ children }: AppShellProps) {
   const [omniOpen, setOmniOpen] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
@@ -74,7 +119,12 @@ export function AppShell({ children }: AppShellProps) {
                   <Drawer.Title>Menu</Drawer.Title>
                 </Drawer.Header>
                 <Drawer.CloseTrigger />
-                <Drawer.Body p={2} display="flex" flexDirection="column" h="full">
+                <Drawer.Body
+                  p={2}
+                  display="flex"
+                  flexDirection="column"
+                  h="full"
+                >
                   <SideNav onNavigate={() => setMobileMenuOpen(false)} />
                 </Drawer.Body>
               </Drawer.Content>

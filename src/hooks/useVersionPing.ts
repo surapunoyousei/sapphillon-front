@@ -1,9 +1,74 @@
+/**
+ * @fileoverview バックエンドのバージョン確認とヘルスチェック
+ *
+ * @module hooks/useVersionPing
+ */
+
 import React from "react";
 import { clients } from "@/lib/grpc-clients";
 
+/**
+ * gRPC接続のステータス
+ */
 export type GrpcStatus = "connecting" | "connected" | "disconnected";
 
-export function useVersionPing(intervalMs = 10000) {
+/**
+ * バージョンPingフックの戻り値
+ */
+export interface UseVersionPingReturn {
+  /** 現在の接続ステータス */
+  status: GrpcStatus;
+  /** バックエンドのバージョン文字列 */
+  version: string;
+  /** 最後に発生したエラー（存在する場合） */
+  error: unknown;
+  /** 最後に更新された時刻（Unixタイムスタンプ） */
+  lastUpdated: number;
+  /** 手動で再取得する関数 */
+  refetch: () => Promise<void>;
+}
+
+/**
+ * バックエンドのバージョン情報を定期的に取得するフック
+ *
+ * 定期的にバックエンドにpingを送り、バージョン情報と接続状態を監視します。
+ * ヘルスチェックやステータス表示に使用します。
+ *
+ * @param intervalMs - ping間隔（ミリ秒）。デフォルトは10秒
+ * @returns バージョン情報と接続状態
+ *
+ * @example
+ * ```tsx
+ * function StatusIndicator() {
+ *   const { status, version, lastUpdated } = useVersionPing(5000); // 5秒間隔
+ *
+ *   return (
+ *     <div>
+ *       <Badge colorScheme={status === "connected" ? "green" : "red"}>
+ *         {status}
+ *       </Badge>
+ *       <Text>Version: {version || "Unknown"}</Text>
+ *       <Text>Last checked: {new Date(lastUpdated).toLocaleTimeString()}</Text>
+ *     </div>
+ *   );
+ * }
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // 手動で再取得
+ * function RefreshButton() {
+ *   const { refetch, status } = useVersionPing();
+ *
+ *   return (
+ *     <Button onClick={refetch} isLoading={status === "connecting"}>
+ *       Refresh
+ *     </Button>
+ *   );
+ * }
+ * ```
+ */
+export function useVersionPing(intervalMs = 10000): UseVersionPingReturn {
   const [status, setStatus] = React.useState<GrpcStatus>("connecting");
   const [version, setVersion] = React.useState<string>("");
   const [error, setError] = React.useState<unknown>(undefined);
