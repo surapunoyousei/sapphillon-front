@@ -81,6 +81,65 @@ const oneLine = (code: string | null | undefined, max = 80, mobileMax = 40) => {
   return s.slice(0, effectiveMax - 1) + "…";
 };
 
+// ステートメントの簡潔な説明を生成
+const describeStatementSimple = (stmt: Statement): string => {
+  const code = generateCode(stmt);
+  if (
+    stmt.type === "ExpressionStatement" &&
+    stmt.expression.type === "CallExpression"
+  ) {
+    const callExpr = stmt.expression;
+    const callee = generateCode(callExpr.callee);
+    if (callee.includes("goto") || callee.includes("navigate")) {
+      return "ページに移動";
+    } else if (callee.includes("click")) {
+      return "要素をクリック";
+    } else if (callee.includes("type") || callee.includes("fill")) {
+      return "テキストを入力";
+    } else if (callee.includes("textContent") || callee.includes("innerHTML")) {
+      return "テキストを取得";
+    }
+    return oneLine(callee, 40);
+  } else if (stmt.type === "VariableDeclaration") {
+    const varDecl = stmt as VariableDeclaration;
+    if (varDecl.declarations && varDecl.declarations[0]) {
+      const varName = varDecl.declarations[0].id.type === "Identifier"
+        ? varDecl.declarations[0].id.name
+        : null;
+      if (varName) {
+        return `変数 ${varName} を準備`;
+      }
+    }
+    return "変数を準備";
+  } else if (stmt.type === "ReturnStatement") {
+    return "結果を返す";
+  }
+  return oneLine(code, 40);
+};
+
+// ブロック内のステートメントを簡潔に説明
+const describeBlockContent = (body: Statement | Statement[]): string => {
+  const statements = Array.isArray(body)
+    ? body
+    : body.type === "BlockStatement"
+    ? (body as { body?: Statement[] }).body || []
+    : [body];
+
+  if (statements.length === 0) {
+    return "（処理なし）";
+  }
+
+  const descriptions = statements
+    .slice(0, 3) // 最初の3つだけ表示
+    .map((stmt) => describeStatementSimple(stmt));
+
+  if (statements.length > 3) {
+    descriptions.push(`他 ${statements.length - 3} 件`);
+  }
+
+  return descriptions.join(" → ");
+};
+
 // Simple inline token highlighter for variable-like expressions.
 const TokenizedInlineCode: React.FC<{ code?: string }> = ({ code }) => {
   const s = code ?? "";
@@ -685,7 +744,14 @@ const AstNode: React.FC<
           </NodeContainer>
         );
       }
-      const summary = oneLine(`if (${generateCode(ifStmt.test)})`);
+      const conditionCode = oneLine(`if (${generateCode(ifStmt.test)})`);
+      const thenContent = describeBlockContent(ifStmt.consequent);
+      const elseContent = ifStmt.alternate
+        ? describeBlockContent(ifStmt.alternate)
+        : null;
+      const summary = elseContent
+        ? `${conditionCode} → 合致時: ${thenContent} | 非合致時: ${elseContent}`
+        : `${conditionCode} → ${thenContent}`;
       return (
         <NodeContainer
           title="条件分岐"
@@ -697,19 +763,71 @@ const AstNode: React.FC<
           palette="amber"
         >
           <VStack w="100%" align="stretch" gap={2} mb={2}>
+            <Box
+              bg="amber.50"
+              p={2}
+              rounded="md"
+              borderLeft="3px solid"
+              borderColor="amber.400"
+              _dark={{ bg: "amber.950", borderColor: "amber.600" }}
+            >
+              <Text
+                fontSize="xs"
+                fontWeight="medium"
+                color="amber.900"
+                _dark={{ color: "amber.200" }}
+                mb={1}
+              >
+                もし合致した場合:
+              </Text>
+              <Text
+                fontSize="xs"
+                color="amber.700"
+                _dark={{ color: "amber.300" }}
+              >
+                {thenContent}
+              </Text>
+            </Box>
             <BodyRenderer
               body={ifStmt.consequent}
               depth={depth + 1}
               importantOnly={importantOnly}
-              label="もし合致した場合"
+              label=""
             />
             {ifStmt.alternate && (
-              <BodyRenderer
-                body={ifStmt.alternate}
-                depth={depth + 1}
-                importantOnly={importantOnly}
-                label="合致しなかった場合"
-              />
+              <>
+                <Box
+                  bg="amber.50"
+                  p={2}
+                  rounded="md"
+                  borderLeft="3px solid"
+                  borderColor="amber.400"
+                  _dark={{ bg: "amber.950", borderColor: "amber.600" }}
+                >
+                  <Text
+                    fontSize="xs"
+                    fontWeight="medium"
+                    color="amber.900"
+                    _dark={{ color: "amber.200" }}
+                    mb={1}
+                  >
+                    合致しなかった場合:
+                  </Text>
+                  <Text
+                    fontSize="xs"
+                    color="amber.700"
+                    _dark={{ color: "amber.300" }}
+                  >
+                    {elseContent || "（処理なし）"}
+                  </Text>
+                </Box>
+                <BodyRenderer
+                  body={ifStmt.alternate}
+                  depth={depth + 1}
+                  importantOnly={importantOnly}
+                  label=""
+                />
+              </>
             )}
           </VStack>
         </NodeContainer>
@@ -718,9 +836,11 @@ const AstNode: React.FC<
     case "ForInStatement":
     case "ForOfStatement": {
       const loopStmt = node as ForInStatement | ForOfStatement;
-      const summary = oneLine(
+      const loopCode = oneLine(
         `${generateCode(loopStmt.left)} in/of ${generateCode(loopStmt.right)}`,
       );
+      const bodyContent = describeBlockContent(loopStmt.body);
+      const summary = `${loopCode} → ${bodyContent}`;
       return (
         <NodeContainer
           title="繰り返し"
@@ -731,10 +851,32 @@ const AstNode: React.FC<
           defaultCollapsed={depth > 0}
           palette="blue"
         >
+          <Box
+            bg="blue.50"
+            p={2}
+            rounded="md"
+            borderLeft="3px solid"
+            borderColor="blue.400"
+            mb={2}
+            _dark={{ bg: "blue.950", borderColor: "blue.600" }}
+          >
+            <Text
+              fontSize="xs"
+              fontWeight="medium"
+              color="blue.900"
+              _dark={{ color: "blue.200" }}
+              mb={1}
+            >
+              繰り返し処理:
+            </Text>
+            <Text fontSize="xs" color="blue.700" _dark={{ color: "blue.300" }}>
+              {bodyContent}
+            </Text>
+          </Box>
           <BodyRenderer
             body={loopStmt.body}
             depth={depth + 1}
-            label="繰り返し処理"
+            label=""
             importantOnly={importantOnly}
           />
         </NodeContainer>
@@ -742,7 +884,9 @@ const AstNode: React.FC<
     }
     case "WhileStatement": {
       const whileStmt = node as WhileStatement;
-      const summary = oneLine(`while (${generateCode(whileStmt.test)})`);
+      const conditionCode = oneLine(`while (${generateCode(whileStmt.test)})`);
+      const bodyContent = describeBlockContent(whileStmt.body);
+      const summary = `${conditionCode} → ${bodyContent}`;
       return (
         <NodeContainer
           title="繰り返し"
@@ -753,10 +897,32 @@ const AstNode: React.FC<
           defaultCollapsed={depth > 0}
           palette="blue"
         >
+          <Box
+            bg="blue.50"
+            p={2}
+            rounded="md"
+            borderLeft="3px solid"
+            borderColor="blue.400"
+            mb={2}
+            _dark={{ bg: "blue.950", borderColor: "blue.600" }}
+          >
+            <Text
+              fontSize="xs"
+              fontWeight="medium"
+              color="blue.900"
+              _dark={{ color: "blue.200" }}
+              mb={1}
+            >
+              繰り返し処理:
+            </Text>
+            <Text fontSize="xs" color="blue.700" _dark={{ color: "blue.300" }}>
+              {bodyContent}
+            </Text>
+          </Box>
           <BodyRenderer
             body={whileStmt.body}
             depth={depth + 1}
-            label="繰り返し処理"
+            label=""
             importantOnly={importantOnly}
           />
         </NodeContainer>
@@ -764,11 +930,13 @@ const AstNode: React.FC<
     }
     case "ForStatement": {
       const forStmt = node as ForStatement;
-      const summary = oneLine(
-        `${generateCode(forStmt.init)}; ${generateCode(forStmt.test)}; ${
+      const forCode = oneLine(
+        `for (${generateCode(forStmt.init)}; ${generateCode(forStmt.test)}; ${
           generateCode(forStmt.update)
-        }`,
+        })`,
       );
+      const bodyContent = describeBlockContent(forStmt.body);
+      const summary = `${forCode} → ${bodyContent}`;
       return (
         <NodeContainer
           title="繰り返し"
@@ -779,10 +947,32 @@ const AstNode: React.FC<
           defaultCollapsed={depth > 0}
           palette="blue"
         >
+          <Box
+            bg="blue.50"
+            p={2}
+            rounded="md"
+            borderLeft="3px solid"
+            borderColor="blue.400"
+            mb={2}
+            _dark={{ bg: "blue.950", borderColor: "blue.600" }}
+          >
+            <Text
+              fontSize="xs"
+              fontWeight="medium"
+              color="blue.900"
+              _dark={{ color: "blue.200" }}
+              mb={1}
+            >
+              繰り返し処理:
+            </Text>
+            <Text fontSize="xs" color="blue.700" _dark={{ color: "blue.300" }}>
+              {bodyContent}
+            </Text>
+          </Box>
           <BodyRenderer
             body={forStmt.body}
             depth={depth + 1}
-            label="繰り返し処理"
+            label=""
             importantOnly={importantOnly}
           />
         </NodeContainer>
@@ -983,7 +1173,7 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
                   pb={{ base: "60px", md: "80px" }}
                 >
                   {actions.map((action, index) => (
-                    <ActionNode key={index} action={action} index={index} />
+                    <ActionNode key={index} action={action} />
                   ))}
                 </VStack>
               )

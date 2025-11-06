@@ -337,9 +337,12 @@ export function GeneratePage() {
   const processedPromptRef = React.useRef<string | null>(null);
   React.useEffect(() => {
     const trimmedPrompt = initialPrompt?.trim();
-    
+
     // プロンプトがあり、まだ処理していない場合のみ実行
-    if (trimmedPrompt && processedPromptRef.current !== trimmedPrompt && !streaming) {
+    if (
+      trimmedPrompt && processedPromptRef.current !== trimmedPrompt &&
+      !streaming
+    ) {
       processedPromptRef.current = trimmedPrompt;
       // start関数内のstreamingチェックで重複実行を防ぐ
       start(trimmedPrompt);

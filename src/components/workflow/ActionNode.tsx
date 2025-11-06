@@ -11,15 +11,32 @@ import {
   LuArrowRight,
   LuChevronRight,
   LuCode,
+  LuCornerDownLeft,
   LuCornerDownRight,
   LuDatabase,
   LuGitBranch,
   LuMousePointer,
+  LuRepeat,
+  LuShield,
+  LuVariable,
 } from "react-icons/lu";
 import React, { useState } from "react";
-import { generateReadableCode } from "./utils/code-generator";
+import { generateCode, generateReadableCode } from "./utils/code-generator";
 import { ACTION_TYPES, type ActionType, getActionColor } from "./constants";
 import type { WorkflowAction } from "./action-grouper";
+import type {
+  BlockStatement,
+  ExpressionStatement,
+  ForInStatement,
+  ForOfStatement,
+  ForStatement,
+  IfStatement,
+  ReturnStatement,
+  Statement,
+  TryStatement,
+  VariableDeclaration,
+  WhileStatement,
+} from "@babel/types";
 
 interface ActionNodeProps {
   action: WorkflowAction;
@@ -47,7 +64,8 @@ const getActionIcon = (type: ActionType, size = 20) => {
 };
 
 export const ActionNode: React.FC<ActionNodeProps> = ({ action }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  // 制御フローの場合はデフォルトで展開
+  const [isExpanded, setIsExpanded] = useState(action.type === "control-flow");
   const colorScheme = getActionColor(action.type, action.importance);
 
   return (
@@ -118,8 +136,8 @@ export const ActionNode: React.FC<ActionNodeProps> = ({ action }) => {
             </HStack>
           )}
 
-          {/* Human-readable description (always shown) */}
-          {action.humanReadable && (
+          {/* Human-readable description (only shown for non-control-flow) */}
+          {action.type !== "control-flow" && action.humanReadable && (
             <Box
               bg={{
                 base: `${colorScheme}.50`,
@@ -139,8 +157,26 @@ export const ActionNode: React.FC<ActionNodeProps> = ({ action }) => {
             </Box>
           )}
 
-          {/* Detailed steps (expanded state) */}
-          {isExpanded && action.details && action.details.length > 0 && (
+          {/* Nested control flow content (expanded state) */}
+          {isExpanded && action.type === "control-flow" &&
+            action.statements.length > 0 && (
+            <VStack align="stretch" gap={3} mt={2}>
+              {action.statements.map((statement, idx) => (
+                <NestedControlFlowCard
+                  key={idx}
+                  statement={statement}
+                  depth={0}
+                  colorScheme={colorScheme}
+                />
+              ))}
+            </VStack>
+          )}
+
+          {/* Detailed steps (fallback for non-control-flow) */}
+          {isExpanded &&
+            action.type !== "control-flow" &&
+            action.details &&
+            action.details.length > 0 && (
             <VStack align="stretch" gap={2} mt={2} pl={4}>
               {action.details.map((detail: string, idx: number) => (
                 <HStack key={idx} gap={2} align="start">
@@ -211,6 +247,635 @@ export const ActionNode: React.FC<ActionNodeProps> = ({ action }) => {
             </Box>
           )}
         </VStack>
+      </Card.Body>
+    </Card.Root>
+  );
+};
+
+/**
+ * ネストされた制御フローをCardとして表示するコンポーネント
+ */
+const NestedControlFlowCard: React.FC<{
+  statement: Statement;
+  depth: number;
+  colorScheme: string;
+}> = ({ statement, depth, colorScheme }) => {
+  // Hooks must be called at the top level
+  const [isExpanded, setIsExpanded] = useState(depth === 0);
+
+  // ステートメントの説明を生成
+  const getStatementDescription = (stmt: Statement): string => {
+    const code = generateCode(stmt);
+    if (
+      stmt.type === "ExpressionStatement" &&
+      stmt.expression.type === "CallExpression"
+    ) {
+      const callee = generateCode(stmt.expression.callee);
+      if (callee.includes("goto") || callee.includes("navigate")) {
+        return "ページに移動";
+      } else if (callee.includes("click")) {
+        return "要素をクリック";
+      } else if (callee.includes("type") || callee.includes("fill")) {
+        return "テキストを入力";
+      } else if (
+        callee.includes("textContent") || callee.includes("innerHTML")
+      ) {
+        return "テキストを取得";
+      }
+      return callee.length > 40 ? `${callee.substring(0, 37)}...` : callee;
+    } else if (stmt.type === "VariableDeclaration") {
+      const varDecl = stmt;
+      if (varDecl.declarations && varDecl.declarations[0]) {
+        const varName = varDecl.declarations[0].id.type === "Identifier"
+          ? varDecl.declarations[0].id.name
+          : null;
+        if (varName) {
+          return `変数 ${varName} を準備`;
+        }
+      }
+      return "変数を準備";
+    } else if (stmt.type === "ReturnStatement") {
+      return "結果を返す";
+    }
+    return code.length > 40 ? `${code.substring(0, 37)}...` : code;
+  };
+
+  // ブロック内のステートメントを取得
+  const getBlockStatements = (
+    body: Statement | BlockStatement,
+  ): Statement[] => {
+    if (body.type === "BlockStatement") {
+      return body.body;
+    }
+    return [body];
+  };
+
+  if (statement.type === "IfStatement") {
+    const ifStmt = statement as IfStatement;
+    const condition = ifStmt.test ? generateCode(ifStmt.test) : "";
+    const conditionText = condition.length > 50
+      ? `${condition.substring(0, 47)}...`
+      : condition;
+
+    return (
+      <Card.Root
+        variant="outline"
+        size="sm"
+        borderLeft={`${4 + depth * 2}px solid`}
+        borderColor={`${colorScheme}.${400 + depth * 50}`}
+        bg={depth > 0 ? "bg.muted" : "bg"}
+        ml={depth * 4}
+      >
+        <Card.Body>
+          <VStack align="stretch" gap={2}>
+            <HStack justify="space-between">
+              <HStack gap={2}>
+                <Box color={`${colorScheme}.500`}>
+                  <LuGitBranch size={16} />
+                </Box>
+                <VStack align="start" gap={0}>
+                  <Text fontWeight="medium" fontSize="sm">
+                    条件分岐
+                  </Text>
+                  <Text fontSize="xs" color="fg.muted">
+                    if ({conditionText})
+                  </Text>
+                </VStack>
+              </HStack>
+              <Box
+                transform={isExpanded ? "rotate(90deg)" : "rotate(0deg)"}
+                transition="transform 0.2s"
+                cursor="pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(!isExpanded);
+                }}
+              >
+                <LuChevronRight size={12} />
+              </Box>
+            </HStack>
+
+            {isExpanded && (
+              <VStack align="stretch" gap={2} mt={1}>
+                {/* Then block */}
+                <Box
+                  bg={`${colorScheme}.50`}
+                  _dark={{
+                    bg: `${colorScheme}.950`,
+                    borderColor: `${colorScheme}.700`,
+                  }}
+                  p={2}
+                  rounded="md"
+                  borderLeft="2px solid"
+                  borderColor={`${colorScheme}.300`}
+                >
+                  <Text
+                    fontSize="xs"
+                    fontWeight="medium"
+                    color={`${colorScheme}.900`}
+                    _dark={{ color: `${colorScheme}.200` }}
+                    mb={1}
+                  >
+                    もし合致した場合:
+                  </Text>
+                  <VStack align="stretch" gap={1.5} mt={2}>
+                    {getBlockStatements(ifStmt.consequent).map((stmt, idx) => (
+                      <NestedControlFlowCard
+                        key={idx}
+                        statement={stmt}
+                        depth={depth + 1}
+                        colorScheme={colorScheme}
+                      />
+                    ))}
+                  </VStack>
+                </Box>
+
+                {/* Else block */}
+                {ifStmt.alternate && (
+                  <Box
+                    bg={`${colorScheme}.50`}
+                    _dark={{
+                      bg: `${colorScheme}.950`,
+                      borderColor: `${colorScheme}.700`,
+                    }}
+                    p={2}
+                    rounded="md"
+                    borderLeft="2px solid"
+                    borderColor={`${colorScheme}.300`}
+                  >
+                    <Text
+                      fontSize="xs"
+                      fontWeight="medium"
+                      color={`${colorScheme}.900`}
+                      _dark={{ color: `${colorScheme}.200` }}
+                      mb={1}
+                    >
+                      合致しなかった場合:
+                    </Text>
+                    <VStack align="stretch" gap={1.5} mt={2}>
+                      {ifStmt.alternate.type === "BlockStatement"
+                        ? getBlockStatements(ifStmt.alternate).map((
+                          stmt,
+                          idx,
+                        ) => (
+                          <NestedControlFlowCard
+                            key={idx}
+                            statement={stmt}
+                            depth={depth + 1}
+                            colorScheme={colorScheme}
+                          />
+                        ))
+                        : (
+                          <NestedControlFlowCard
+                            statement={ifStmt.alternate}
+                            depth={depth + 1}
+                            colorScheme={colorScheme}
+                          />
+                        )}
+                    </VStack>
+                  </Box>
+                )}
+              </VStack>
+            )}
+          </VStack>
+        </Card.Body>
+      </Card.Root>
+    );
+  }
+
+  if (
+    statement.type === "ForStatement" ||
+    statement.type === "WhileStatement" ||
+    statement.type === "ForInStatement" ||
+    statement.type === "ForOfStatement"
+  ) {
+    const loopStmt = statement as
+      | ForStatement
+      | WhileStatement
+      | ForInStatement
+      | ForOfStatement;
+    let loopTitle = "繰り返し";
+    let loopDesc = "";
+
+    if (statement.type === "ForStatement") {
+      const forStmt = statement as ForStatement;
+      const init = forStmt.init ? generateCode(forStmt.init) : "";
+      const test = forStmt.test ? generateCode(forStmt.test) : "";
+      loopDesc = `for (${init}; ${test}; ...)`;
+      loopTitle = "繰り返し（for）";
+    } else if (statement.type === "WhileStatement") {
+      const whileStmt = statement as WhileStatement;
+      const test = whileStmt.test ? generateCode(whileStmt.test) : "";
+      loopDesc = `while (${test})`;
+      loopTitle = "繰り返し（while）";
+    } else if (statement.type === "ForOfStatement") {
+      const forOfStmt = statement as ForOfStatement;
+      const left = generateCode(forOfStmt.left);
+      const right = generateCode(forOfStmt.right);
+      loopDesc = `for (${left} of ${right})`;
+      loopTitle = "繰り返し（for...of）";
+    } else if (statement.type === "ForInStatement") {
+      const forInStmt = statement as ForInStatement;
+      const left = generateCode(forInStmt.left);
+      const right = generateCode(forInStmt.right);
+      loopDesc = `for (${left} in ${right})`;
+      loopTitle = "繰り返し（for...in）";
+    }
+
+    return (
+      <Card.Root
+        variant="outline"
+        size="sm"
+        borderLeft={`${4 + depth * 2}px solid`}
+        borderColor={`${colorScheme}.${400 + depth * 50}`}
+        bg={depth > 0 ? "bg.muted" : "bg"}
+        ml={depth * 4}
+      >
+        <Card.Body>
+          <VStack align="stretch" gap={2}>
+            <HStack justify="space-between">
+              <HStack gap={2}>
+                <Box color={`${colorScheme}.500`}>
+                  <LuRepeat size={16} />
+                </Box>
+                <VStack align="start" gap={0}>
+                  <Text fontWeight="medium" fontSize="sm">
+                    {loopTitle}
+                  </Text>
+                  <Text fontSize="xs" color="fg.muted">
+                    {loopDesc.length > 50
+                      ? `${loopDesc.substring(0, 47)}...`
+                      : loopDesc}
+                  </Text>
+                </VStack>
+              </HStack>
+              <Box
+                transform={isExpanded ? "rotate(90deg)" : "rotate(0deg)"}
+                transition="transform 0.2s"
+                cursor="pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(!isExpanded);
+                }}
+              >
+                <LuChevronRight size={12} />
+              </Box>
+            </HStack>
+
+            {isExpanded && loopStmt.body && (
+              <Box
+                bg={`${colorScheme}.50`}
+                _dark={{
+                  bg: `${colorScheme}.950`,
+                  borderColor: `${colorScheme}.700`,
+                }}
+                p={2}
+                rounded="md"
+                borderLeft="2px solid"
+                borderColor={`${colorScheme}.300`}
+                mt={2}
+              >
+                <Text
+                  fontSize="xs"
+                  fontWeight="medium"
+                  color={`${colorScheme}.900`}
+                  _dark={{ color: `${colorScheme}.200` }}
+                  mb={2}
+                >
+                  繰り返し処理:
+                </Text>
+                <VStack align="stretch" gap={1.5}>
+                  {getBlockStatements(loopStmt.body).map((stmt, idx) => (
+                    <NestedControlFlowCard
+                      key={idx}
+                      statement={stmt}
+                      depth={depth + 1}
+                      colorScheme={colorScheme}
+                    />
+                  ))}
+                </VStack>
+              </Box>
+            )}
+          </VStack>
+        </Card.Body>
+      </Card.Root>
+    );
+  }
+
+  // TryStatement
+  if (statement.type === "TryStatement") {
+    const tryStmt = statement as TryStatement;
+
+    return (
+      <Card.Root
+        variant="outline"
+        size="sm"
+        borderLeft={`${4 + depth * 2}px solid`}
+        borderColor={`red.${400 + depth * 50}`}
+        bg={depth > 0 ? "bg.muted" : "bg"}
+        ml={depth * 4}
+      >
+        <Card.Body>
+          <VStack align="stretch" gap={2}>
+            <HStack justify="space-between">
+              <HStack gap={2}>
+                <Box color="red.500">
+                  <LuShield size={16} />
+                </Box>
+                <VStack align="start" gap={0}>
+                  <Text fontWeight="medium" fontSize="sm">
+                    エラー処理
+                  </Text>
+                  <Text fontSize="xs" color="fg.muted">
+                    try...catch
+                  </Text>
+                </VStack>
+              </HStack>
+              <Box
+                transform={isExpanded ? "rotate(90deg)" : "rotate(0deg)"}
+                transition="transform 0.2s"
+                cursor="pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(!isExpanded);
+                }}
+              >
+                <LuChevronRight size={12} />
+              </Box>
+            </HStack>
+
+            {isExpanded && (
+              <VStack align="stretch" gap={2} mt={1}>
+                {/* Try block */}
+                <Box
+                  bg="red.50"
+                  _dark={{ bg: "red.950", borderColor: "red.700" }}
+                  p={2}
+                  rounded="md"
+                  borderLeft="2px solid"
+                  borderColor="red.300"
+                >
+                  <Text
+                    fontSize="xs"
+                    fontWeight="medium"
+                    color="red.900"
+                    _dark={{ color: "red.200" }}
+                    mb={1}
+                  >
+                    通常実行:
+                  </Text>
+                  <VStack align="stretch" gap={1.5} mt={2}>
+                    {tryStmt.block?.body.map((stmt, idx) => (
+                      <NestedControlFlowCard
+                        key={idx}
+                        statement={stmt}
+                        depth={depth + 1}
+                        colorScheme="red"
+                      />
+                    ))}
+                  </VStack>
+                </Box>
+
+                {/* Catch block */}
+                {tryStmt.handler && (
+                  <Box
+                    bg="red.50"
+                    _dark={{ bg: "red.950", borderColor: "red.700" }}
+                    p={2}
+                    rounded="md"
+                    borderLeft="2px solid"
+                    borderColor="red.300"
+                  >
+                    <Text
+                      fontSize="xs"
+                      fontWeight="medium"
+                      color="red.900"
+                      _dark={{ color: "red.200" }}
+                      mb={1}
+                    >
+                      エラーが発生した場合:
+                      {tryStmt.handler.param &&
+                        tryStmt.handler.param.type === "Identifier" &&
+                        ` (${tryStmt.handler.param.name})`}
+                    </Text>
+                    <VStack align="stretch" gap={1.5} mt={2}>
+                      {tryStmt.handler.body.body.map((stmt, idx) => (
+                        <NestedControlFlowCard
+                          key={idx}
+                          statement={stmt}
+                          depth={depth + 1}
+                          colorScheme="red"
+                        />
+                      ))}
+                    </VStack>
+                  </Box>
+                )}
+              </VStack>
+            )}
+          </VStack>
+        </Card.Body>
+      </Card.Root>
+    );
+  }
+
+  // VariableDeclaration
+  if (statement.type === "VariableDeclaration") {
+    const varDecl = statement as VariableDeclaration;
+    const decl = varDecl.declarations[0];
+    if (decl && decl.id.type === "Identifier") {
+      const varName = decl.id.name;
+      const initCode = decl.init ? generateCode(decl.init) : "";
+      const initValue = initCode.length > 50
+        ? `${initCode.substring(0, 47)}...`
+        : initCode;
+
+      let title = `変数 ${varName}`;
+      let description = initValue ? `= ${initValue}` : "を準備";
+
+      if (initCode.includes("newPage")) {
+        title = `新しいブラウザページ ${varName}`;
+        description = "を作成";
+      } else if (initCode.includes("title")) {
+        title = `ページのタイトル`;
+        description = `を取得して ${varName} に保存`;
+      } else if (
+        initCode.includes("textContent") || initCode.includes("innerHTML")
+      ) {
+        title = `要素のテキスト`;
+        description = `を取得して ${varName} に保存`;
+      }
+
+      return (
+        <Card.Root
+          variant="outline"
+          size="sm"
+          borderLeft={`${3 + depth * 2}px solid`}
+          borderColor="purple.400"
+          bg={depth > 0 ? "bg.muted" : "bg"}
+          ml={depth * 4}
+        >
+          <Card.Body p={2}>
+            <HStack gap={2}>
+              <Box color="purple.500">
+                <LuVariable size={14} />
+              </Box>
+              <VStack align="start" gap={0} flex={1}>
+                <Text fontWeight="medium" fontSize="xs" color="fg">
+                  {title}
+                </Text>
+                {description && (
+                  <Text fontSize="2xs" color="fg.muted">
+                    {description}
+                  </Text>
+                )}
+              </VStack>
+            </HStack>
+          </Card.Body>
+        </Card.Root>
+      );
+    }
+  }
+
+  // ExpressionStatement (function calls)
+  if (statement.type === "ExpressionStatement") {
+    const exprStmt = statement as ExpressionStatement;
+    if (exprStmt.expression.type === "CallExpression") {
+      const callExpr = exprStmt.expression;
+      const callee = generateCode(callExpr.callee);
+      const args = callExpr.arguments.map((arg) => {
+        const argCode = generateCode(arg as unknown as Statement);
+        return argCode.length > 30 ? `${argCode.substring(0, 27)}...` : argCode;
+      });
+      const argsText = args.length > 0 ? `(${args.join(", ")})` : "()";
+
+      let icon = <LuCode size={14} />;
+      let title = callee;
+      let description = argsText;
+      let cardColor = "teal";
+
+      if (callee.includes("goto") || callee.includes("navigate")) {
+        icon = <LuArrowRight size={14} />;
+        title = "ページに移動";
+        description = args.length > 0 ? `→ ${args[0]}` : "";
+        cardColor = "blue";
+      } else if (callee.includes("click")) {
+        icon = <LuMousePointer size={14} />;
+        title = "要素をクリック";
+        description = "";
+        cardColor = "green";
+      } else if (callee.includes("type") || callee.includes("fill")) {
+        icon = <LuMousePointer size={14} />;
+        title = "テキストを入力";
+        description = args.length > 0 ? `→ ${args[0]}` : "";
+        cardColor = "green";
+      } else if (
+        callee.includes("textContent") || callee.includes("innerHTML")
+      ) {
+        icon = <LuDatabase size={14} />;
+        title = "テキストを取得";
+        description = "";
+        cardColor = "purple";
+      } else if (callee.includes("console.log")) {
+        title = "コンソールに出力";
+        description = args.length > 0 ? `→ ${args[0]}` : "";
+        cardColor = "gray";
+      } else if (callee.includes("console.error")) {
+        title = "エラーを出力";
+        description = args.length > 0 ? `→ ${args[0]}` : "";
+        cardColor = "red";
+      }
+
+      return (
+        <Card.Root
+          variant="outline"
+          size="sm"
+          borderLeft={`${3 + depth * 2}px solid`}
+          borderColor={`${cardColor}.400`}
+          bg={depth > 0 ? "bg.muted" : "bg"}
+          ml={depth * 4}
+        >
+          <Card.Body p={2}>
+            <HStack gap={2}>
+              <Box color={`${cardColor}.500`}>{icon}</Box>
+              <VStack align="start" gap={0} flex={1}>
+                <Text fontWeight="medium" fontSize="xs" color="fg">
+                  {title}
+                </Text>
+                {description && (
+                  <Text fontSize="2xs" color="fg.muted" fontFamily="monospace">
+                    {description}
+                  </Text>
+                )}
+                {!description && callee.length > 0 && (
+                  <Text fontSize="2xs" color="fg.muted" fontFamily="monospace">
+                    {callee.length > 40
+                      ? `${callee.substring(0, 37)}...`
+                      : callee}
+                    {argsText}
+                  </Text>
+                )}
+              </VStack>
+            </HStack>
+          </Card.Body>
+        </Card.Root>
+      );
+    }
+  }
+
+  // ReturnStatement
+  if (statement.type === "ReturnStatement") {
+    const returnStmt = statement as ReturnStatement;
+    const returnValue = returnStmt.argument
+      ? generateCode(returnStmt.argument)
+      : "";
+    const returnText = returnValue.length > 50
+      ? `${returnValue.substring(0, 47)}...`
+      : returnValue;
+
+    return (
+      <Card.Root
+        variant="outline"
+        size="sm"
+        borderLeft={`${3 + depth * 2}px solid`}
+        borderColor="green.400"
+        bg={depth > 0 ? "bg.muted" : "bg"}
+        ml={depth * 4}
+      >
+        <Card.Body p={2}>
+          <HStack gap={2}>
+            <Box color="green.500">
+              <LuCornerDownLeft size={14} />
+            </Box>
+            <VStack align="start" gap={0} flex={1}>
+              <Text fontWeight="medium" fontSize="xs" color="fg">
+                結果を返す
+              </Text>
+              {returnText && (
+                <Text fontSize="2xs" color="fg.muted" fontFamily="monospace">
+                  {returnText}
+                </Text>
+              )}
+            </VStack>
+          </HStack>
+        </Card.Body>
+      </Card.Root>
+    );
+  }
+
+  // その他のステートメント（フォールバック）
+  return (
+    <Card.Root
+      variant="outline"
+      size="sm"
+      borderLeft={`${2 + depth * 2}px solid`}
+      borderColor={`${colorScheme}.${300 + depth * 50}`}
+      bg={depth > 0 ? "bg.muted" : "bg.subtle"}
+      ml={depth * 4}
+    >
+      <Card.Body p={2}>
+        <Text fontSize="xs" color="fg">
+          {getStatementDescription(statement)}
+        </Text>
       </Card.Body>
     </Card.Root>
   );

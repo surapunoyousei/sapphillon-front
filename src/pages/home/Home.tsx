@@ -9,7 +9,6 @@ import {
   IconButton,
   Kbd,
   SimpleGrid,
-  Spinner,
   Text,
   Textarea,
   VStack,
@@ -24,49 +23,30 @@ import {
 } from "react-icons/lu";
 import { useWorkflowsList } from "@/pages/workflows/useWorkflowsList";
 import type { Workflow } from "@/gen/sapphillon/v1/workflow_pb";
-import { clients } from "@/lib/grpc-clients";
-import { create } from "@bufbuild/protobuf";
-import {
-  RunWorkflowRequestSchema,
-  WorkflowSourceByIdSchema,
-} from "@/gen/sapphillon/v1/workflow_service_pb";
 import { CardSkeleton } from "@/components/ui/skeleton";
 
 function WorkflowCard({ workflow }: { workflow: Workflow }) {
-  const [running, setRunning] = React.useState(false);
+  const navigate = useNavigate();
   const latestCode = workflow.workflowCode?.[workflow.workflowCode.length - 1];
 
-  const handleRun = React.useCallback(async () => {
-    if (!latestCode || running) return;
+  const handleView = React.useCallback(() => {
+    navigate(`/workflows/${workflow.id}`);
+  }, [navigate, workflow.id]);
 
-    setRunning(true);
-    try {
-      const request = create(RunWorkflowRequestSchema, {
-        source: {
-          case: "byId",
-          value: create(WorkflowSourceByIdSchema, {
-            workflowId: workflow.id,
-            workflowCodeId: latestCode.id,
-          }),
-        },
-      });
-
-      await clients.workflow.runWorkflow(request);
-      // TODO: 実行結果を表示する（Toastなど）
-    } catch (error) {
-      console.error("Failed to run workflow:", error);
-      // TODO: エラーを表示する
-    } finally {
-      setRunning(false);
-    }
-  }, [workflow, latestCode, running]);
+  const handleRun = React.useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      navigate(`/workflows/${workflow.id}/run`);
+    },
+    [navigate, workflow.id],
+  );
 
   return (
     <Card.Root
       cursor="pointer"
       _hover={{ borderColor: "border.emphasized", shadow: "md" }}
       transition="all 0.2s"
-      onClick={handleRun}
+      onClick={handleView}
     >
       <Card.Body p={4}>
         <VStack align="stretch" gap={3}>
@@ -102,13 +82,10 @@ function WorkflowCard({ workflow }: { workflow: Workflow }) {
             <Button
               size="sm"
               colorPalette="floorp"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRun();
-              }}
-              disabled={running || !latestCode}
+              onClick={handleRun}
+              disabled={!latestCode}
             >
-              {running ? <Spinner size="xs" /> : <LuPlay />}
+              <LuPlay />
             </Button>
           </HStack>
         </VStack>

@@ -1,11 +1,10 @@
-import React from "react";
 import { Box, Tabs } from "@chakra-ui/react";
 import { ProvidersPage } from "./ProvidersPage";
 import { ModelsPage } from "./ModelsPage";
 
 export function SettingsPage() {
     return (
-        <Box minH="100vh">
+        <Box h="full" overflow="auto">
             <Tabs.Root defaultValue="providers" variant="enclosed">
                 <Tabs.List>
                     <Tabs.Trigger value="providers">プロバイダ</Tabs.Trigger>

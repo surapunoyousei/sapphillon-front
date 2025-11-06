@@ -105,6 +105,8 @@ const isControlFlow = (statement: Statement): boolean => {
   return [
     "IfStatement",
     "ForStatement",
+    "ForInStatement",
+    "ForOfStatement",
     "WhileStatement",
     "SwitchStatement",
     "TryStatement",
@@ -312,6 +314,8 @@ const generateHumanReadableDescription = (
         }
       } else if (statement.type === "ForOfStatement") {
         loopDesc = "各要素に対して繰り返す：";
+      } else if (statement.type === "ForInStatement") {
+        loopDesc = "各プロパティに対して繰り返す：";
       }
 
       details.push(loopDesc);
@@ -415,15 +419,48 @@ export function groupStatementsIntoActions(
 
     // Control flow (if, for, while, etc.)
     if (isControlFlow(statement)) {
+      // 制御フローの詳細な説明を生成
+      const { readable, details } = generateHumanReadableDescription([
+        statement,
+      ]);
+
+      // タイトルと説明を動的に生成
+      let title = "条件分岐・ループ処理";
+      let description = "条件に応じて異なる処理を実行";
+
+      if (statement.type === "IfStatement") {
+        const ifStmt = statement as IfStatement;
+        const condition = ifStmt.test ? generateCode(ifStmt.test) : "";
+        const conditionDesc = describeCondition(condition);
+        title = "条件分岐";
+        description = `もし${conditionDesc}の場合`;
+      } else if (statement.type === "ForStatement") {
+        title = "繰り返し処理（for）";
+        description = "指定回数繰り返します";
+      } else if (statement.type === "WhileStatement") {
+        const whileStmt = statement as WhileStatement;
+        const condition = whileStmt.test ? generateCode(whileStmt.test) : "";
+        const conditionDesc = describeCondition(condition);
+        title = "繰り返し処理（while）";
+        description = `${conditionDesc}の間、繰り返します`;
+      } else if (
+        statement.type === "ForOfStatement" ||
+        statement.type === "ForInStatement"
+      ) {
+        title = "繰り返し処理（for...of/in）";
+        description = "各要素に対して繰り返します";
+      }
+
       actions.push({
         type: "control-flow",
-        title: "条件分岐・ループ処理",
-        description: "条件に応じて異なる処理を実行",
-        humanReadable: "条件を判定して、該当する処理を実行します",
+        title,
+        description,
+        humanReadable: readable || "条件を判定して、該当する処理を実行します",
         statements: [statement],
         importance: "high",
         icon: "branch",
-        details: ["条件を確認", "該当する処理を実行"],
+        details:
+          details.length > 0 ? details : ["条件を確認", "該当する処理を実行"],
       });
       i++;
       continue;

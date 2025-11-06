@@ -80,7 +80,12 @@ export const workflowHandler: ServiceImpl<typeof WorkflowService> = {
           {
             id: `code-${Date.now()}`,
             codeRevision: 1,
-            code: `// Generated workflow from: ${request.prompt}\nexport async function run() {\n  // TODO: Implement workflow logic\n  return { success: true };\n}`,
+            code: `// Generated workflow from: ${request.prompt}
+function workflow() {
+  // TODO: Implement workflow logic
+  return { success: true };
+}
+workflow();`,
             language: WFLang.TYPESCRIPT,
             createdAt: {
               seconds: BigInt(Math.floor(Date.now() / 1000)),
