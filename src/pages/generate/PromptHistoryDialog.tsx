@@ -20,6 +20,7 @@ import {
 } from "react-icons/lu";
 import type { PromptHistoryItem } from "@/hooks/usePromptHistory";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useI18n } from "@/hooks/useI18n";
 
 interface PromptHistoryDialogProps {
   open: boolean;
@@ -43,6 +44,7 @@ function HistoryItem({
   onRemove: () => void;
   onToggleStar: () => void;
 }) {
+  const { t } = useI18n();
   const formattedDate = React.useMemo(() => {
     const date = new Date(item.timestamp);
     const now = new Date();
@@ -51,17 +53,17 @@ function HistoryItem({
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return "たった今";
-    if (diffMins < 60) return `${diffMins}分前`;
-    if (diffHours < 24) return `${diffHours}時間前`;
-    if (diffDays < 7) return `${diffDays}日前`;
+    if (diffMins < 1) return t("common.time.justNow");
+    if (diffMins < 60) return t("common.time.minutesAgo", { count: diffMins });
+    if (diffHours < 24) return t("common.time.hoursAgo", { count: diffHours });
+    if (diffDays < 7) return t("common.time.daysAgo", { count: diffDays });
 
     return date.toLocaleDateString("ja-JP", {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
     });
-  }, [item.timestamp]);
+  }, [item.timestamp, t]);
 
   return (
     <Box
@@ -84,7 +86,7 @@ function HistoryItem({
           </HStack>
           <HStack gap={1}>
             <IconButton
-              aria-label={item.starred ? "お気に入り解除" : "お気に入りに追加"}
+              aria-label={item.starred ? t("history.removeFromFavorites") : t("history.addToFavorites")}
               size="xs"
               variant="ghost"
               onClick={(e) => {
@@ -96,7 +98,7 @@ function HistoryItem({
               <LuStar fill={item.starred ? "currentColor" : "none"} />
             </IconButton>
             <IconButton
-              aria-label="削除"
+              aria-label={t("history.delete")}
               size="xs"
               variant="ghost"
               colorPalette="red"
@@ -135,6 +137,7 @@ export function PromptHistoryDialog({
   onToggleStar,
   onClear,
 }: PromptHistoryDialogProps) {
+  const { t } = useI18n();
   const [searchQuery, setSearchQuery] = React.useState("");
   const [activeTab, setActiveTab] = React.useState<"all" | "starred">("all");
 
@@ -169,11 +172,11 @@ export function PromptHistoryDialog({
           <Dialog.Header>
             <HStack justify="space-between" w="full">
               <Text fontWeight="medium" fontSize={{ base: "md", md: "lg" }}>
-                プロンプト履歴
+                {t("history.title")}
               </Text>
               <Dialog.CloseTrigger asChild>
                 <IconButton
-                  aria-label="閉じる"
+                  aria-label={t("history.close")}
                   variant="ghost"
                   size="sm"
                 >
@@ -193,7 +196,7 @@ export function PromptHistoryDialog({
                   onClick={() => setActiveTab("all")}
                   flex="1"
                 >
-                  すべて
+                  {t("history.all")}
                   {history.length > 0 && (
                     <Badge ml={1} size="xs">
                       {history.length}
@@ -207,7 +210,7 @@ export function PromptHistoryDialog({
                   flex="1"
                 >
                   <LuStar size={14} />
-                  お気に入り
+                  {t("history.starred")}
                   {starredHistory.length > 0 && (
                     <Badge ml={1} size="xs">
                       {starredHistory.length}
@@ -232,7 +235,7 @@ export function PromptHistoryDialog({
               >
                 <LuSearch size={16} color="var(--chakra-colors-fg-muted)" />
                 <Input
-                  placeholder="履歴を検索..."
+                  placeholder={t("history.searchPlaceholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   size="sm"
@@ -243,7 +246,7 @@ export function PromptHistoryDialog({
                 />
                 {searchQuery && (
                   <IconButton
-                    aria-label="クリア"
+                    aria-label={t("history.clear")}
                     size="xs"
                     variant="ghost"
                     onClick={() => setSearchQuery("")}
@@ -261,17 +264,17 @@ export function PromptHistoryDialog({
                   icon={<LuClock />}
                   title={
                     searchQuery
-                      ? "検索結果がありません"
+                      ? t("history.noSearchResults")
                       : activeTab === "starred"
-                      ? "お気に入りがありません"
-                      : "履歴がありません"
+                      ? t("history.noStarred")
+                      : t("history.noHistory")
                   }
                   description={
                     searchQuery
-                      ? "別のキーワードで検索してみてください"
+                      ? t("history.noSearchResultsDescription")
                       : activeTab === "starred"
-                      ? "履歴アイテムにスターを付けるとここに表示されます"
-                      : "ワークフローを生成すると、プロンプトがここに表示されます"
+                      ? t("history.noStarredDescription")
+                      : t("history.noHistoryDescription")
                   }
                 />
               ) : (
@@ -302,7 +305,7 @@ export function PromptHistoryDialog({
                     w="full"
                   >
                     <LuTrash2 />
-                    すべての履歴をクリア
+                    {t("history.clearAll")}
                   </Button>
                 </Box>
               </>

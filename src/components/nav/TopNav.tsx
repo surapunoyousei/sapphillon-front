@@ -10,6 +10,7 @@
 import { ColorModeButton } from "@/components/ui/color-mode";
 import { useColorMode } from "@/components/ui/use-color-mode";
 import { LuMenu } from "react-icons/lu";
+import { useI18n } from "@/hooks/useI18n";
 
 export interface TopNavProps {
   onOpenOmni?: () => void;
@@ -20,6 +21,7 @@ export interface TopNavProps {
 export function TopNav(
   { onOpenOmni, onOpenMenu, showMenuButton = false }: TopNavProps,
 ) {
+  const { t } = useI18n();
   const lightLogoUrl = new URL(
     "../../assets/Floorp_Logo_OS_C_Light.png",
     import.meta.url,
@@ -54,7 +56,7 @@ export function TopNav(
       <HStack gap={{ base: 1, md: 1.5 }} flexShrink={0}>
         {showMenuButton && (
           <IconButton
-            aria-label="Open menu"
+            aria-label={t("nav.openMenu")}
             size="sm"
             variant="ghost"
             onClick={onOpenMenu}
@@ -86,7 +88,7 @@ export function TopNav(
         <Box
           role="button"
           tabIndex={0}
-          aria-label="Open Omni Bar"
+          aria-label={t("nav.openOmniBar")}
           onClick={() => onOpenOmni?.()}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") onOpenOmni?.();
@@ -117,7 +119,7 @@ export function TopNav(
             h="full"
           >
             <Text fontSize="xs" whiteSpace="nowrap" lineHeight="1.5">
-              Search or run…
+              {t("nav.searchOrRun")}
             </Text>
             <HStack display={"flex"} align="center" gap={0.5}>
               <Kbd fontSize="xs">⌘</Kbd>

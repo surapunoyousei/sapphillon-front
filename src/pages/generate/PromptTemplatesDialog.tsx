@@ -19,6 +19,7 @@ import {
   searchTemplates,
 } from "@/lib/prompt-templates";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useI18n } from "@/hooks/useI18n";
 
 interface PromptTemplatesDialogProps {
   open: boolean;
@@ -82,6 +83,7 @@ export function PromptTemplatesDialog({
   onClose,
   onSelectTemplate,
 }: PromptTemplatesDialogProps) {
+  const { t } = useI18n();
   const [searchQuery, setSearchQuery] = React.useState("");
   const [activeCategory, setActiveCategory] = React.useState<
     PromptTemplate["category"] | "all"
@@ -115,12 +117,12 @@ export function PromptTemplatesDialog({
     value: PromptTemplate["category"] | "all";
     label: string;
   }> = [
-    { value: "all", label: "すべて" },
-    { value: "automation", label: "自動化" },
-    { value: "data", label: "データ処理" },
-    { value: "communication", label: "コミュニケーション" },
-    { value: "development", label: "開発" },
-    { value: "other", label: "その他" },
+    { value: "all", label: t("templates.category.all") },
+    { value: "automation", label: t("templates.category.automation") },
+    { value: "data", label: t("templates.category.data") },
+    { value: "communication", label: t("templates.category.communication") },
+    { value: "development", label: t("templates.category.development") },
+    { value: "other", label: t("templates.category.other") },
   ];
 
   return (
@@ -138,10 +140,10 @@ export function PromptTemplatesDialog({
           <Dialog.Header>
             <HStack justify="space-between" w="full">
               <Text fontWeight="medium" fontSize={{ base: "md", md: "lg" }}>
-                プロンプトテンプレート
+                {t("templates.title")}
               </Text>
               <Dialog.CloseTrigger asChild>
-                <IconButton aria-label="閉じる" variant="ghost" size="sm">
+                <IconButton aria-label={t("templates.close")} variant="ghost" size="sm">
                   <LuX />
                 </IconButton>
               </Dialog.CloseTrigger>
@@ -166,7 +168,7 @@ export function PromptTemplatesDialog({
               >
                 <LuSearch size={16} color="var(--chakra-colors-fg-muted)" />
                 <Input
-                  placeholder="テンプレートを検索..."
+                  placeholder={t("templates.searchPlaceholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   size="sm"
@@ -177,7 +179,7 @@ export function PromptTemplatesDialog({
                 />
                 {searchQuery && (
                   <IconButton
-                    aria-label="クリア"
+                    aria-label={t("templates.clear")}
                     size="xs"
                     variant="ghost"
                     onClick={() => setSearchQuery("")}
@@ -245,8 +247,8 @@ export function PromptTemplatesDialog({
                   ? (
                     <EmptyState
                       icon={<LuFileText />}
-                      title="テンプレートが見つかりません"
-                      description="別のカテゴリやキーワードで探してみてください"
+                      title={t("templates.notFound")}
+                      description={t("templates.notFoundDescription")}
                     />
                   )
                   : (
@@ -266,7 +268,7 @@ export function PromptTemplatesDialog({
 
           <Dialog.Footer>
             <Text fontSize="xs" color="fg.muted">
-              テンプレートを選択すると、プロンプト入力欄に自動入力されます
+              {t("templates.footer")}
             </Text>
           </Dialog.Footer>
         </Dialog.Content>

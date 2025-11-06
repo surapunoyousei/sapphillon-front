@@ -1,14 +1,17 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { routes } from "@/routes/registry";
+import { getRoutes } from "@/routes/registry";
 import { Box, HStack, Text, VStack } from "@chakra-ui/react";
 import { ColorModeButton } from "@/components/ui/color-mode";
+import { useI18n } from "@/hooks/useI18n";
 
 export interface SideNavProps {
   onNavigate?: () => void;
 }
 
 export function SideNav({ onNavigate }: SideNavProps = {}) {
+  const { t } = useI18n();
+  const routes = React.useMemo(() => getRoutes(t), [t]);
   return (
     <VStack align="stretch" p={2} gap={1} h="full">
       {routes.map((r) => (
@@ -30,7 +33,7 @@ export function SideNav({ onNavigate }: SideNavProps = {}) {
       >
         <HStack gap={2} align="center">
           <Text fontSize="sm" color="fg.muted">
-            Theme
+            {t("nav.theme")}
           </Text>
           <ColorModeButton />
         </HStack>

@@ -1,8 +1,10 @@
 import React from "react";
 import { Badge, Box, HStack, Spacer, Text } from "@chakra-ui/react";
 import { useVersionPing } from "@/hooks";
+import { useI18n } from "@/hooks/useI18n";
 
 export function StatusBar() {
+  const { t } = useI18n();
   const [grpc, setGrpc] = React.useState<
     "connected" | "connecting" | "disconnected"
   >("connecting");
@@ -33,7 +35,7 @@ export function StatusBar() {
       }}
     >
       <HStack gap={2} flexShrink={0}>
-        <Text whiteSpace="nowrap">Automotor Status</Text>
+        <Text whiteSpace="nowrap">{t("statusBar.automotorStatus")}</Text>
         <Badge
           colorPalette={grpc === "connected"
             ? "green"
@@ -42,7 +44,7 @@ export function StatusBar() {
             : "red"}
           fontSize={{ base: "xs", md: "sm" }}
         >
-          {grpc}
+          {t(`statusBar.${grpc}`)}
         </Badge>
       </HStack>
 
@@ -61,7 +63,7 @@ export function StatusBar() {
         ? (
           <HStack gap={2} flexShrink={0}>
             <Text display={{ base: "none", sm: "block" }} whiteSpace="nowrap">
-              Version:
+              {t("statusBar.version")}
             </Text>
             <Badge colorPalette="gray" fontSize={{ base: "xs", md: "sm" }}>
               {version}

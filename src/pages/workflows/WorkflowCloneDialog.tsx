@@ -14,6 +14,7 @@ import {
 import { LuCopy, LuX } from "react-icons/lu";
 import type { Workflow } from "@/gen/sapphillon/v1/workflow_pb";
 import { useWorkflowClone } from "@/hooks/useWorkflowClone";
+import { useI18n } from "@/hooks/useI18n";
 
 interface WorkflowCloneDialogProps {
   open: boolean;
@@ -28,6 +29,7 @@ export function WorkflowCloneDialog({
   workflow,
   onSuccess,
 }: WorkflowCloneDialogProps) {
+  const { t } = useI18n();
   const { cloneWorkflow, cloning, error } = useWorkflowClone();
   const [newName, setNewName] = React.useState("");
   const [newDescription, setNewDescription] = React.useState("");
@@ -35,18 +37,18 @@ export function WorkflowCloneDialog({
   // ダイアログが開かれた時にデフォルト値を設定
   React.useEffect(() => {
     if (open) {
-      setNewName(`${workflow.displayName || "ワークフロー"} (コピー)`);
+      setNewName(`${workflow.displayName || t("common.untitledWorkflow")} (${t("common.copy")})`);
       setNewDescription(
         workflow.description
-          ? `${workflow.description} (複製)`
-          : "複製されたワークフロー"
+          ? `${workflow.description} (${t("clone.clone")})`
+          : t("clone.clone")
       );
     }
-  }, [open, workflow]);
+  }, [open, workflow, t]);
 
   const handleClone = React.useCallback(async () => {
     const cloned = await cloneWorkflow(workflow, {
-      newName: newName.trim() || `${workflow.displayName} (コピー)`,
+      newName: newName.trim() || `${workflow.displayName} (${t("common.copy")})`,
     });
 
     if (cloned) {
@@ -55,7 +57,7 @@ export function WorkflowCloneDialog({
       onSuccess?.(cloned);
       onClose();
     }
-  }, [cloneWorkflow, workflow, newName, newDescription, onSuccess, onClose]);
+  }, [cloneWorkflow, workflow, newName, newDescription, onSuccess, onClose, t]);
 
   const handleKeyDown = React.useCallback(
     (e: React.KeyboardEvent) => {
@@ -81,12 +83,12 @@ export function WorkflowCloneDialog({
               <HStack gap={2}>
                 <LuCopy />
                 <Text fontWeight="medium" fontSize={{ base: "md", md: "lg" }}>
-                  ワークフローを複製
+                  {t("clone.title")}
                 </Text>
               </HStack>
               <Dialog.CloseTrigger asChild>
                 <IconButton
-                  aria-label="閉じる"
+                  aria-label={t("clone.close")}
                   variant="ghost"
                   size="sm"
                   disabled={cloning}
@@ -102,40 +104,40 @@ export function WorkflowCloneDialog({
               {/* 元のワークフロー情報 */}
               <VStack align="stretch" gap={1}>
                 <Text fontSize="sm" fontWeight="medium">
-                  複製元:
+                  {t("clone.source")}
                 </Text>
                 <Text fontSize="sm" color="fg.muted">
-                  {workflow.displayName || "無題のワークフロー"}
+                  {workflow.displayName || t("common.untitledWorkflow")}
                 </Text>
               </VStack>
 
               {/* 新しい名前 */}
               <Field.Root>
-                <Field.Label>新しい名前</Field.Label>
+                <Field.Label>{t("clone.newName")}</Field.Label>
                 <Input
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  placeholder="ワークフロー名を入力"
+                  placeholder={t("clone.newNamePlaceholder")}
                   autoFocus
                   disabled={cloning}
                 />
                 <Field.HelperText>
-                  複製されたワークフローの名前を指定してください
+                  {t("clone.newNameHelper")}
                 </Field.HelperText>
               </Field.Root>
 
               {/* 新しい説明 */}
               <Field.Root>
-                <Field.Label>説明（オプション）</Field.Label>
+                <Field.Label>{t("clone.description")}</Field.Label>
                 <Textarea
                   value={newDescription}
                   onChange={(e) => setNewDescription(e.target.value)}
-                  placeholder="ワークフローの説明を入力"
+                  placeholder={t("clone.descriptionPlaceholder")}
                   rows={3}
                   disabled={cloning}
                 />
                 <Field.HelperText>
-                  このワークフローの目的や用途を記述してください
+                  {t("clone.descriptionHelper")}
                 </Field.HelperText>
               </Field.Root>
 
@@ -157,7 +159,7 @@ export function WorkflowCloneDialog({
                   }}
                 >
                   <Text fontSize="sm" fontWeight="medium" color="red.700">
-                    複製エラー
+                    {t("clone.error")}
                   </Text>
                   <Text fontSize="xs" color="red.600">
                     {error.message}
@@ -175,7 +177,7 @@ export function WorkflowCloneDialog({
                 disabled={cloning}
                 flex="1"
               >
-                キャンセル
+                {t("clone.cancel")}
               </Button>
               <Button
                 colorPalette="floorp"
@@ -186,12 +188,12 @@ export function WorkflowCloneDialog({
                 {cloning ? (
                   <HStack gap={2}>
                     <Spinner size="xs" />
-                    <Text>複製中...</Text>
+                    <Text>{t("clone.cloning")}</Text>
                   </HStack>
                 ) : (
                   <>
                     <LuCopy />
-                    <Text>複製</Text>
+                    <Text>{t("clone.clone")}</Text>
                   </>
                 )}
               </Button>

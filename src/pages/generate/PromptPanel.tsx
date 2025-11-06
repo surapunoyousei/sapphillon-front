@@ -24,6 +24,7 @@ import React from "react";
 import { usePromptHistory } from "@/hooks/usePromptHistory";
 import { PromptHistoryDialog } from "./PromptHistoryDialog";
 import { PromptTemplatesDialog } from "./PromptTemplatesDialog";
+import { useI18n } from "@/hooks/useI18n";
 
 export function PromptPanel({
   prompt,
@@ -38,6 +39,7 @@ export function PromptPanel({
   onStop: () => void;
   streaming: boolean;
 }) {
+  const { t } = useI18n();
   const {
     history,
     starredHistory,
@@ -96,11 +98,11 @@ export function PromptPanel({
       <VStack align="stretch" gap={2}>
         <HStack gap={2} flexWrap="wrap" minH="40px" alignItems="center">
           <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>
-            Prompt
+            {t("generate.prompt")}
           </Text>
           {characterCount > 0 && (
             <Badge colorPalette="gray" fontSize="xs">
-              {characterCount} 文字
+              {characterCount} {t("generate.characters")}
             </Badge>
           )}
           <Spacer minW={2} />
@@ -116,7 +118,7 @@ export function PromptPanel({
               flexShrink={0}
             >
               <LuFileText size={14} />
-              <Text fontSize={{ base: "xs", sm: "sm" }}>テンプレート</Text>
+              <Text fontSize={{ base: "xs", sm: "sm" }}>{t("generate.template")}</Text>
             </Button>
 
             {/* 履歴ボタン（メニュー付き） */}
@@ -129,7 +131,7 @@ export function PromptPanel({
                   flexShrink={0}
                 >
                   <LuClock size={14} />
-                  <Text fontSize={{ base: "xs", sm: "sm" }}>履歴</Text>
+                  <Text fontSize={{ base: "xs", sm: "sm" }}>{t("generate.history")}</Text>
                   {history.length > 0 && (
                     <Badge ml={1} size="xs" colorPalette="blue">
                       {history.length}
@@ -168,7 +170,7 @@ export function PromptPanel({
                   fontSize="xs"
                 >
                   <LuClock size={14} />
-                  すべての履歴を表示
+                  {t("generate.viewAllHistory")}
                 </MenuItem>
               </MenuContent>
             </MenuRoot>
@@ -183,7 +185,7 @@ export function PromptPanel({
               flexShrink={0}
             >
               <LuEraser size={14} />
-              <Text fontSize={{ base: "xs", sm: "sm" }}>Clear</Text>
+              <Text fontSize={{ base: "xs", sm: "sm" }}>{t("generate.clear")}</Text>
             </Button>
 
             {/* 生成ボタン */}
@@ -199,13 +201,13 @@ export function PromptPanel({
                 ? (
                   <HStack gap={1}>
                     <Spinner size="xs" />
-                    <Text fontSize={{ base: "xs", sm: "sm" }}>Generating…</Text>
+                    <Text fontSize={{ base: "xs", sm: "sm" }}>{t("generate.generating")}</Text>
                   </HStack>
                 )
                 : (
                   <>
                     <LuSparkles size={14} />
-                    <Text fontSize={{ base: "xs", sm: "sm" }}>Generate</Text>
+                    <Text fontSize={{ base: "xs", sm: "sm" }}>{t("common.generate")}</Text>
                   </>
                 )}
             </Button>
@@ -221,15 +223,15 @@ export function PromptPanel({
               flexShrink={0}
             >
               <LuSquare size={14} />
-              <Text fontSize={{ base: "xs", sm: "sm" }}>Stop</Text>
+              <Text fontSize={{ base: "xs", sm: "sm" }}>{t("generate.stop")}</Text>
             </Button>
           </HStack>
         </HStack>
 
         <Textarea
-          rows={{ base: 3, md: 4 }}
+          rows={4}
           resize="vertical"
-          placeholder="例: 最新のレポートをダウンロードして、チームにメールで送信する"
+          placeholder={t("home.placeholder")}
           value={prompt}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -238,7 +240,7 @@ export function PromptPanel({
 
         <HStack justify="space-between" gap={2} flexWrap="wrap">
           <Text fontSize="xs" color="fg.muted">
-            ⌘/Ctrl + Enter で実行
+            {t("generate.executeHint")}
           </Text>
           <HStack gap={2} fontSize="xs" color="fg.muted">
             <Button
@@ -246,7 +248,7 @@ export function PromptPanel({
               variant="ghost"
               onClick={() => setTemplatesDialogOpen(true)}
             >
-              テンプレートから選択
+              {t("generate.selectFromTemplate")}
             </Button>
             {history.length > 0 && (
               <Button
@@ -254,7 +256,7 @@ export function PromptPanel({
                 variant="ghost"
                 onClick={() => setHistoryDialogOpen(true)}
               >
-                履歴から選択
+                {t("generate.selectFromHistory")}
               </Button>
             )}
           </HStack>

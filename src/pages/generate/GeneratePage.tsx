@@ -24,6 +24,7 @@ import type {
   GenerateWorkflowResponse,
   RunWorkflowResponse,
 } from "@/gen/sapphillon/v1/workflow_service_pb";
+import { useI18n } from "@/hooks/useI18n";
 type WorkflowDefinition = GenerateWorkflowResponse["workflowDefinition"];
 
 type LayoutCommonProps = {
@@ -53,6 +54,7 @@ function MobileLayout({
   runLatest,
   onOpenWorkflowDialog,
 }: MobileLayoutProps) {
+  const { t } = useI18n();
   return (
     <VStack
       align="stretch"
@@ -92,15 +94,15 @@ function MobileLayout({
         display="flex"
         flexDirection="column"
       >
-        <Tabs.List bg="bg" borderWidth="1px" borderRadius="md" p={1}>
+          <Tabs.List bg="bg" borderWidth="1px" borderRadius="md" p={1}>
           <Tabs.Trigger value="workflow" flex={1}>
-            <Text fontSize={{ base: "xs", sm: "sm" }}>Workflow</Text>
+            <Text fontSize={{ base: "xs", sm: "sm" }}>{t("generate.workflow")}</Text>
           </Tabs.Trigger>
           <Tabs.Trigger value="plugins" flex={1}>
-            <Text fontSize={{ base: "xs", sm: "sm" }}>Plugins</Text>
+            <Text fontSize={{ base: "xs", sm: "sm" }}>{t("common.plugins")}</Text>
           </Tabs.Trigger>
           <Tabs.Trigger value="run" flex={1}>
-            <Text fontSize={{ base: "xs", sm: "sm" }}>Run</Text>
+            <Text fontSize={{ base: "xs", sm: "sm" }}>{t("run.title")}</Text>
           </Tabs.Trigger>
         </Tabs.List>
 
@@ -115,10 +117,10 @@ function MobileLayout({
           <VStack align="stretch" gap={2} h="full" minH={0}>
             <HStack justify="space-between" px={2}>
               <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>
-                Workflow Steps
+                {t("generate.workflowSteps")}
               </Text>
               <IconButton
-                aria-label="Expand workflow"
+                aria-label={t("generate.expandWorkflow")}
                 size="sm"
                 variant="ghost"
                 onClick={onOpenWorkflowDialog}
@@ -190,6 +192,7 @@ function DesktopLayout({
   minRight,
   minBottom,
 }: DesktopLayoutProps) {
+  const { t } = useI18n();
   return (
     <Box
       display="grid"
@@ -237,10 +240,10 @@ function DesktopLayout({
             >
               <HStack justify="space-between" mb={1}>
                 <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>
-                  Workflow Steps
+                  {t("generate.workflowSteps")}
                 </Text>
                 <IconButton
-                  aria-label="Expand workflow"
+                  aria-label={t("generate.expandWorkflow")}
                   size="sm"
                   variant="ghost"
                   onClick={onOpenWorkflowDialog}
@@ -275,7 +278,7 @@ function DesktopLayout({
         onKeyDown={onGutterKeyDown("right")}
         role="separator"
         aria-orientation="vertical"
-        aria-label="Resize right pane"
+        aria-label={t("layout.resizeRightPane")}
         tabIndex={0}
         cursor="col-resize"
         _hover={{ bg: "border" }}
@@ -294,7 +297,7 @@ function DesktopLayout({
         onKeyDown={onGutterKeyDown("bottom")}
         role="separator"
         aria-orientation="horizontal"
-        aria-label="Resize run panel"
+        aria-label={t("layout.resizeRunPanel")}
         tabIndex={0}
         cursor="row-resize"
         _hover={{ bg: "border" }}
@@ -315,6 +318,7 @@ function DesktopLayout({
 }
 
 export function GeneratePage() {
+  const { t } = useI18n();
   const location = useLocation();
   const initialPrompt = (location.state as { prompt?: string })?.prompt || "";
   const [prompt, setPrompt] = React.useState(initialPrompt);
@@ -412,7 +416,7 @@ export function GeneratePage() {
           >
             <Dialog.Header>
               <Text fontWeight="medium" fontSize={{ base: "md", md: "lg" }}>
-                Workflow
+                {t("generate.workflow")}
               </Text>
             </Dialog.Header>
             <Dialog.CloseTrigger />
@@ -429,7 +433,7 @@ export function GeneratePage() {
             </Dialog.Body>
             <Dialog.Footer>
               <Button onClick={onClose} size={{ base: "sm", md: "md" }}>
-                Close
+                {t("generate.close")}
               </Button>
             </Dialog.Footer>
           </Dialog.Content>

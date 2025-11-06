@@ -9,8 +9,10 @@ import {
 } from "@chakra-ui/react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LuPackage } from "react-icons/lu";
+import { useI18n } from "@/hooks/useI18n";
 
 export function PluginsPanel() {
+  const { t } = useI18n();
   const plugins = [
     { name: "Floorp ", version: "0.0.1", enabled: true },
     { name: "Fetch", version: "0.0.1", enabled: true },
@@ -32,12 +34,12 @@ export function PluginsPanel() {
     >
       <HStack justify="space-between" align="center" flexWrap="wrap" gap={2}>
         <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>
-          Plugins
+          {t("common.plugins")}
         </Text>
         <HStack gap={2}>
           <InputGroup maxW={{ base: "32", sm: "40" }}>
             <Input
-              placeholder="Search plugins…"
+              placeholder={t("plugins.searchPlaceholder")}
               fontSize={{ base: "xs", sm: "sm" }}
               minH={{ base: "36px", md: "auto" }}
             />
@@ -50,13 +52,13 @@ export function PluginsPanel() {
           ? (
             <EmptyState
               icon={<LuPackage />}
-              title="プラグインがありません"
-              description="プラグインをインストールして、ワークフローで使用できるようにしましょう。"
+              title={t("plugins.emptyTitle")}
+              description={t("plugins.emptyDescription")}
             />
           )
           : (
             plugins.map((plugin) =>
-              pluginItem(plugin.name, plugin.version, plugin.enabled)
+              pluginItem(plugin.name, plugin.version, plugin.enabled, t)
             )
           )}
       </VStack>
@@ -64,7 +66,7 @@ export function PluginsPanel() {
   );
 }
 
-function pluginItem(name: string, version: string, enabled: boolean) {
+function pluginItem(name: string, version: string, enabled: boolean, t: (key: string) => string) {
   return (
     <HStack
       key={name}
@@ -85,7 +87,7 @@ function pluginItem(name: string, version: string, enabled: boolean) {
           fontSize="xs"
           px={{ base: 1, md: 2 }}
         >
-          {enabled ? "enabled" : "disabled"}
+          {enabled ? t("plugins.enabled") : t("plugins.disabled")}
         </Badge>
       </HStack>
     </HStack>

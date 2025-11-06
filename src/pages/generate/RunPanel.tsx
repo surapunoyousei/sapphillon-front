@@ -11,6 +11,7 @@ import type { RunWorkflowResponse } from "@/gen/sapphillon/v1/workflow_service_p
 import { StreamConsole } from "@/components/console";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LuPlay } from "react-icons/lu";
+import { useI18n } from "@/hooks/useI18n";
 
 export type GenerationEvent = {
   t: number;
@@ -33,6 +34,7 @@ export function RunPanel(
     onRun: () => void;
   },
 ) {
+  const { t } = useI18n();
   return (
     <VStack
       align="stretch"
@@ -48,7 +50,7 @@ export function RunPanel(
       overflow="hidden"
     >
       <HStack justify="space-between" flexWrap="wrap" gap={2}>
-        <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>Run</Text>
+        <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>{t("run.title")}</Text>
         <HStack gap={2}>
           <Badge
             colorPalette={streaming ? "blue" : runRes ? "green" : "gray"}
@@ -57,7 +59,7 @@ export function RunPanel(
             py={{ base: 0.5, md: 1 }}
             fontWeight="medium"
           >
-            {streaming ? "実行中" : runRes ? "完了" : "待機中"}
+            {streaming ? t("run.running") : runRes ? t("run.completed") : t("run.waiting")}
           </Badge>
           <Button
             size="sm"
@@ -67,7 +69,7 @@ export function RunPanel(
             colorPalette="floorp"
           >
             <LuPlay size={14} />
-            <Text fontSize={{ base: "xs", sm: "sm" }}>Run</Text>
+            <Text fontSize={{ base: "xs", sm: "sm" }}>{t("run.title")}</Text>
           </Button>
         </HStack>
       </HStack>
@@ -76,8 +78,8 @@ export function RunPanel(
         {events.length === 0 && !streaming && !runRes ? (
           <EmptyState
             icon={<LuPlay />}
-            title="ワークフローを実行していません"
-            description="「Run」ボタンをクリックして、生成されたワークフローを実行してください。"
+            title={t("run.notExecuted")}
+            description={t("run.notExecutedDescription")}
           />
         ) : (
         <StreamConsole events={events} streaming={streaming} />

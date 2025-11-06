@@ -11,6 +11,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
+import { useI18n } from "@/hooks/useI18n";
 
 interface OmniBarItem {
   label: string;
@@ -24,30 +25,32 @@ export interface OmniBarProps {
   onClose: () => void;
 }
 
-const DEFAULT_ITEMS: OmniBarItem[] = [
+const getDefaultItems = (t: (key: string) => string): OmniBarItem[] => [
   {
-    label: "Go to Generate",
+    label: t("omniBar.goToGenerate"),
     hint: "/generate",
     to: "/generate",
     kind: "navigate",
   },
-  { label: "Go to Fix", hint: "/fix", to: "/fix", kind: "navigate" },
-  { label: "Run Workflow", hint: "/run", to: "/run", kind: "navigate" },
-  { label: "Open Plugins", hint: "/plugins", to: "/plugins", kind: "navigate" },
+  { label: t("omniBar.goToFix"), hint: "/fix", to: "/fix", kind: "navigate" },
+  { label: t("omniBar.runWorkflow"), hint: "/run", to: "/run", kind: "navigate" },
+  { label: t("omniBar.openPlugins"), hint: "/plugins", to: "/plugins", kind: "navigate" },
 ];
 
 export function OmniBar({ isOpen, onClose }: OmniBarProps) {
+  const { t } = useI18n();
   const [query, setQuery] = React.useState("");
   const [active, setActive] = React.useState(0);
   const navigate = useNavigate();
 
   const items = React.useMemo(() => {
+    const defaultItems = getDefaultItems(t);
     const q = query.trim().toLowerCase();
-    if (!q) return DEFAULT_ITEMS;
-    return DEFAULT_ITEMS.filter((i) =>
+    if (!q) return defaultItems;
+    return defaultItems.filter((i) =>
       i.label.toLowerCase().includes(q) || i.hint?.toLowerCase().includes(q)
     );
-  }, [query]);
+  }, [query, t]);
 
   React.useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -90,17 +93,17 @@ export function OmniBar({ isOpen, onClose }: OmniBarProps) {
           borderWidth="1px"
         >
           <HStack px={{ base: 2, md: 3 }} py={{ base: 1.5, md: 2 }} borderBottomWidth="1px" justify="space-between">
-            <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>Omni Bar</Text>
+            <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>{t("omniBar.title")}</Text>
             <HStack color="fg.muted" display={{ base: "none", sm: "flex" }} gap={1}>
               <Kbd fontSize="xs">Esc</Kbd>
-              <Text fontSize="xs">to close</Text>
+              <Text fontSize="xs">{t("omniBar.toClose")}</Text>
             </HStack>
           </HStack>
           <Box p={{ base: 2, md: 3 }}>
             <Input
               autoFocus
               size={{ base: "md", md: "lg" }}
-              placeholder="Search commands, navigate, or ask…"
+              placeholder={t("omniBar.searchPlaceholder")}
               onChange={(e) => {
                 setQuery(e.target.value);
                 setActive(0);
@@ -108,7 +111,7 @@ export function OmniBar({ isOpen, onClose }: OmniBarProps) {
             />
             <VStack align="stretch" gap={1} mt={3} maxH={{ base: "50vh", md: "60vh" }} overflowY="auto">
               {items.length === 0
-                ? <Box px={2} py={3} color="fg.muted" fontSize={{ base: "xs", md: "sm" }}>No results</Box>
+                ? <Box px={2} py={3} color="fg.muted" fontSize={{ base: "xs", md: "sm" }}>{t("omniBar.noResults")}</Box>
                 : (
                   items.map((it, idx) => (
                     <Suggestion
@@ -137,12 +140,12 @@ export function OmniBar({ isOpen, onClose }: OmniBarProps) {
               </HStack>
               <HStack gap={1}>
                 <Kbd fontSize="xs">Enter</Kbd>
-                <Text>to run</Text>
+                <Text>{t("omniBar.toRun")}</Text>
               </HStack>
             </HStack>
             <HStack justify="flex-end" mt={2}>
               <Button size="sm" variant="outline" onClick={onClose} minH={{ base: "36px", md: "auto" }}>
-                Close
+                {t("omniBar.close")}
               </Button>
             </HStack>
           </Box>

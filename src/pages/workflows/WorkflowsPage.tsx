@@ -41,6 +41,7 @@ import {
 } from "@/gen/sapphillon/v1/workflow_service_pb";
 import { create } from "@bufbuild/protobuf";
 import { toaster } from "@/components/ui/toaster-instance";
+import { useI18n } from "@/hooks/useI18n";
 
 function formatDate(timestamp?: { seconds: bigint; nanos: number }): string {
     if (!timestamp) return "-";
@@ -67,6 +68,7 @@ function WorkflowRow({
     onClone: (workflow: Workflow) => void;
     onDelete?: (id: string) => void;
 }) {
+    const { t } = useI18n();
     const latestResult = workflow.workflowResults
         ?.[workflow.workflowResults.length - 1];
 
@@ -145,8 +147,8 @@ function WorkflowRow({
                                     whiteSpace="nowrap"
                                 >
                                     {latestResult.resultType === 0
-                                        ? "Success"
-                                        : "Failed"}
+                                        ? t("common.success")
+                                        : t("common.failure")}
                                 </Text>
                             </HStack>
                             {latestResult.ranAt && (
@@ -166,7 +168,7 @@ function WorkflowRow({
                             color="fg.muted"
                             whiteSpace="nowrap"
                         >
-                            No runs
+                            {t("workflows.noRuns")}
                         </Text>
                     )}
             </Table.Cell>
@@ -180,7 +182,7 @@ function WorkflowRow({
                             onView(workflow.id);
                         }}
                     >
-                        View
+                        {t("workflows.view")}
                     </Button>
                     <Button
                         size="sm"
@@ -190,14 +192,14 @@ function WorkflowRow({
                             onRun(workflow.id);
                         }}
                     >
-                        Run
+                        {t("workflows.run")}
                     </Button>
                     <MenuRoot>
                         <MenuTrigger asChild>
                             <IconButton
                                 size="sm"
                                 variant="ghost"
-                                aria-label="その他のアクション"
+                                aria-label={t("workflows.moreActions")}
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <LuEllipsisVertical />
@@ -212,7 +214,7 @@ function WorkflowRow({
                                 }}
                             >
                                 <LuCopy />
-                                複製
+                                {t("workflows.clone")}
                             </MenuItem>
                             {onDelete && (
                                 <MenuItem
@@ -224,7 +226,7 @@ function WorkflowRow({
                                     color="red.500"
                                 >
                                     <LuTrash2 />
-                                    削除
+                                    {t("workflows.delete")}
                                 </MenuItem>
                             )}
                         </MenuContent>
@@ -236,6 +238,7 @@ function WorkflowRow({
 }
 
 export function WorkflowsPage() {
+    const { t } = useI18n();
     const navigate = useNavigate();
     const [isNewWorkflowModalOpen, setIsNewWorkflowModalOpen] = React.useState(
         false,
@@ -281,14 +284,14 @@ export function WorkflowsPage() {
     const handleCloneSuccess = React.useCallback(
         (clonedWorkflow: Workflow) => {
             toaster.create({
-                title: "ワークフローを複製しました",
-                description: `"${clonedWorkflow.displayName}" が作成されました`,
+                title: t("workflows.cloneSuccess"),
+                description: t("workflows.cloneSuccessDescription", { name: clonedWorkflow.displayName }),
                 type: "success",
                 duration: 3000,
             });
             refetch();
         },
-        [refetch],
+        [refetch, t],
     );
 
     // 削除ハンドラー（将来実装）
@@ -296,12 +299,12 @@ export function WorkflowsPage() {
         // TODO: バックエンドAPIの実装後に追加
         console.log("Delete workflow:", id);
         toaster.create({
-            title: "削除機能は未実装です",
-            description: "この機能は近日中に実装予定です",
+            title: t("workflows.deleteNotImplemented"),
+            description: t("workflows.deleteNotImplementedDescription"),
             type: "info",
             duration: 3000,
         });
-    }, []);
+    }, [t]);
 
     // Get sort icon for a field
     const getSortIcon = React.useCallback(
@@ -359,7 +362,7 @@ export function WorkflowsPage() {
                     flexWrap="wrap"
                     gap={4}
                 >
-                    <Heading size="lg">Workflows</Heading>
+                    <Heading size="lg">{t("workflows.title")}</Heading>
                     <HStack gap={2}>
                         <Button
                             onClick={refetch}
@@ -368,7 +371,7 @@ export function WorkflowsPage() {
                             disabled={loading}
                         >
                             <LuRefreshCw />
-                            <Text>Refresh</Text>
+                            <Text>{t("workflows.refresh")}</Text>
                         </Button>
                         <Button
                             colorPalette="floorp"
@@ -376,7 +379,7 @@ export function WorkflowsPage() {
                             onClick={() => setIsNewWorkflowModalOpen(true)}
                         >
                             <LuPlus />
-                            <Text>New Workflow</Text>
+                            <Text>{t("workflows.newWorkflow")}</Text>
                         </Button>
                     </HStack>
                 </Flex>
@@ -409,7 +412,7 @@ export function WorkflowsPage() {
                             color="var(--chakra-colors-fg-muted)"
                         />
                         <Input
-                            placeholder="Search by name..."
+                            placeholder={t("workflows.searchByName")}
                             value={filter.displayName || ""}
                             onChange={(e) => handleSearch(e.target.value)}
                             size="sm"
@@ -430,7 +433,7 @@ export function WorkflowsPage() {
                             <VStack gap={4}>
                                 <Spinner size="lg" />
                                 <Text color="fg.muted">
-                                    Loading workflows...
+                                    {t("workflows.loading")}
                                 </Text>
                             </VStack>
                         </Flex>
@@ -441,7 +444,7 @@ export function WorkflowsPage() {
                             <Card.Body>
                                 <VStack gap={2}>
                                     <Text color="red.500" fontWeight="medium">
-                                        Error loading workflows
+                                        {t("workflows.errorLoading")}
                                     </Text>
                                     <Text fontSize="sm" color="fg.muted">
                                         {error instanceof Error
@@ -453,7 +456,7 @@ export function WorkflowsPage() {
                                         size="sm"
                                         variant="outline"
                                     >
-                                        Retry
+                                        {t("workflows.retry")}
                                     </Button>
                                 </VStack>
                             </Card.Body>
@@ -470,11 +473,10 @@ export function WorkflowsPage() {
                                     />
                                     <VStack gap={2}>
                                         <Text fontWeight="medium" fontSize="lg">
-                                            No workflows found
+                                            {t("workflows.noWorkflowsFound")}
                                         </Text>
                                         <Text color="fg.muted" fontSize="sm">
-                                            Create your first workflow to get
-                                            started
+                                            {t("workflows.createFirstWorkflow")}
                                         </Text>
                                     </VStack>
                                     <Button
@@ -483,7 +485,7 @@ export function WorkflowsPage() {
                                             setIsNewWorkflowModalOpen(true)}
                                     >
                                         <LuPlus />
-                                        <Text>New Workflow</Text>
+                                        <Text>{t("workflows.newWorkflow")}</Text>
                                     </Button>
                                 </VStack>
                             </Card.Body>
@@ -506,7 +508,7 @@ export function WorkflowsPage() {
                                                     _hover={{ bg: "bg.subtle" }}
                                                 >
                                                     <HStack gap={2}>
-                                                        <Text>Name</Text>
+                                                        <Text>{t("workflows.name")}</Text>
                                                         {getSortIcon(
                                                             "display_name",
                                                         )}
@@ -519,10 +521,10 @@ export function WorkflowsPage() {
                                                         md: "table-cell",
                                                     }}
                                                 >
-                                                    Last Run
+                                                    {t("workflows.lastRun")}
                                                 </Table.ColumnHeader>
                                                 <Table.ColumnHeader minW="150px">
-                                                    Actions
+                                                    {t("workflows.actions")}
                                                 </Table.ColumnHeader>
                                             </Table.Row>
                                         </Table.Header>
@@ -554,9 +556,10 @@ export function WorkflowsPage() {
                 {workflows.length > 0 && (
                     <Flex justify="space-between" align="center" mt={4} gap={4}>
                         <Text fontSize="sm" color="fg.muted">
-                            Showing {workflows.length}{" "}
-                            workflow{workflows.length !== 1 ? "s" : ""}
-                            {nextPageToken && " (more available)"}
+                            {workflows.length === 1
+                                ? t("workflows.showing", { count: workflows.length })
+                                : t("workflows.showingPlural", { count: workflows.length })}
+                            {nextPageToken && t("workflows.moreAvailable")}
                         </Text>
                         <HStack gap={2}>
                             {pageToken && (
@@ -569,7 +572,7 @@ export function WorkflowsPage() {
                                         refetch();
                                     }}
                                 >
-                                    Previous
+                                    {t("workflows.previous")}
                                 </Button>
                             )}
                             {nextPageToken && (
@@ -578,7 +581,7 @@ export function WorkflowsPage() {
                                     variant="outline"
                                     onClick={loadNextPage}
                                 >
-                                    Next
+                                    {t("workflows.next")}
                                 </Button>
                             )}
                         </HStack>
@@ -599,14 +602,13 @@ export function WorkflowsPage() {
                         w={{ base: "100vw", md: "auto" }}
                     >
                         <Dialog.Header>
-                            <Heading size="md">Create New Workflow</Heading>
+                            <Heading size="md">{t("workflows.createNewWorkflow")}</Heading>
                         </Dialog.Header>
                         <Dialog.CloseTrigger />
                         <Dialog.Body>
                             <VStack gap={4} align="stretch" py={2}>
                                 <Text color="fg.muted">
-                                    Choose how you want to create a new
-                                    workflow:
+                                    {t("workflows.chooseHowToCreate")}
                                 </Text>
 
                                 <Card.Root
@@ -637,14 +639,13 @@ export function WorkflowsPage() {
                                                     fontWeight="semibold"
                                                     fontSize="md"
                                                 >
-                                                    Generate
+                                                    {t("workflows.generate")}
                                                 </Text>
                                                 <Text
                                                     fontSize="sm"
                                                     color="fg.muted"
                                                 >
-                                                    Generate a new workflow from
-                                                    natural language description
+                                                    {t("workflows.generateDescription")}
                                                 </Text>
                                             </VStack>
                                         </HStack>
@@ -676,7 +677,7 @@ export function WorkflowsPage() {
                                                         fontWeight="semibold"
                                                         fontSize="md"
                                                     >
-                                                        Import
+                                                        {t("workflows.import")}
                                                     </Text>
                                                     <Box
                                                         px={2}
@@ -687,15 +688,14 @@ export function WorkflowsPage() {
                                                         fontWeight="medium"
                                                         color="white"
                                                     >
-                                                        Coming Soon
+                                                        {t("workflows.comingSoon")}
                                                     </Box>
                                                 </HStack>
                                                 <Text
                                                     fontSize="sm"
                                                     color="fg.muted"
                                                 >
-                                                    Import an existing workflow
-                                                    from a file
+                                                    {t("workflows.importDescription")}
                                                 </Text>
                                             </VStack>
                                         </HStack>
@@ -708,7 +708,7 @@ export function WorkflowsPage() {
                                 variant="outline"
                                 onClick={() => setIsNewWorkflowModalOpen(false)}
                             >
-                                Cancel
+                                {t("workflows.cancel")}
                             </Button>
                         </Dialog.Footer>
                     </Dialog.Content>
