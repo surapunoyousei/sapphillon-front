@@ -90,7 +90,7 @@ function WorkflowCard({ workflow }: { workflow: Workflow }) {
     (e: React.MouseEvent) => {
       e.stopPropagation();
       navigate(`/workflows/${workflow.id}/run`, {
-        state: { from: "/home" },
+        state: { from: "/home", autoRun: true },
       });
     },
     [navigate, workflow.id],

@@ -103,12 +103,36 @@ export function WorkflowRunPage() {
 
     // 戻る先を決定（Home から来た場合は Home に戻る）
     const backPath = React.useMemo(() => {
-        const state = location.state as { from?: string } | null;
+        const state = location.state as { from?: string; autoRun?: boolean } | null;
         if (state?.from === "/home") {
             return "/home";
         }
         return `/workflows/${id}`;
     }, [location.state, id]);
+
+    // 自動実行フラグを取得
+    const shouldAutoRun = React.useMemo(() => {
+        const state = location.state as { autoRun?: boolean } | null;
+        return state?.autoRun === true;
+    }, [location.state]);
+
+    // 自動実行が有効で、ワークフローが読み込まれたら実行
+    const hasAutoRunRef = React.useRef(false);
+    React.useEffect(() => {
+        if (
+            shouldAutoRun &&
+            !hasAutoRunRef.current &&
+            workflow &&
+            !loading &&
+            !running &&
+            workflow.workflowCode &&
+            workflow.workflowCode.length > 0
+        ) {
+            hasAutoRunRef.current = true;
+            clearEvents();
+            runByDefinition(workflow);
+        }
+    }, [shouldAutoRun, workflow, loading, running, runByDefinition, clearEvents]);
 
     const latestCode = React.useMemo(() => {
         if (!workflow?.workflowCode || workflow.workflowCode.length === 0) {
