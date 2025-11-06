@@ -7,7 +7,6 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { LuSearch } from "react-icons/lu";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LuPackage } from "react-icons/lu";
 
@@ -16,7 +15,7 @@ export function PluginsPanel() {
     { name: "Floorp ", version: "0.0.1", enabled: true },
     { name: "Fetch", version: "0.0.1", enabled: true },
   ];
-  
+
   return (
     <VStack
       align="stretch"
@@ -32,28 +31,34 @@ export function PluginsPanel() {
       overflow="hidden"
     >
       <HStack justify="space-between" align="center" flexWrap="wrap" gap={2}>
-        <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>Plugins</Text>
+        <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>
+          Plugins
+        </Text>
         <HStack gap={2}>
-          <InputGroup size="sm" maxW={{ base: "32", sm: "40" }}>
-          <Input 
-            placeholder="Search plugins…" 
-            fontSize={{ base: "xs", sm: "sm" }}
-            minH={{ base: "36px", md: "auto" }}
-          />
+          <InputGroup maxW={{ base: "32", sm: "40" }}>
+            <Input
+              placeholder="Search plugins…"
+              fontSize={{ base: "xs", sm: "sm" }}
+              minH={{ base: "36px", md: "auto" }}
+            />
           </InputGroup>
         </HStack>
       </HStack>
       <Separator />
       <VStack align="stretch" gap={2} minH={0} overflowY="auto">
-        {plugins.length === 0 ? (
-          <EmptyState
-            icon={<LuPackage />}
-            title="プラグインがありません"
-            description="プラグインをインストールして、ワークフローで使用できるようにしましょう。"
-          />
-        ) : (
-          plugins.map((plugin) => pluginItem(plugin.name, plugin.version, plugin.enabled))
-        )}
+        {plugins.length === 0
+          ? (
+            <EmptyState
+              icon={<LuPackage />}
+              title="プラグインがありません"
+              description="プラグインをインストールして、ワークフローで使用できるようにしましょう。"
+            />
+          )
+          : (
+            plugins.map((plugin) =>
+              pluginItem(plugin.name, plugin.version, plugin.enabled)
+            )
+          )}
       </VStack>
     </VStack>
   );
@@ -69,11 +74,13 @@ function pluginItem(name: string, version: string, enabled: boolean) {
       p={{ base: 1.5, md: 2 }}
     >
       <VStack align="start" gap={0}>
-        <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>{name}</Text>
+        <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>
+          {name}
+        </Text>
         <Text fontSize="xs" color="fg.muted">v{version}</Text>
       </VStack>
       <HStack gap={3}>
-        <Badge 
+        <Badge
           colorPalette={enabled ? "green" : "gray"}
           fontSize="xs"
           px={{ base: 1, md: 2 }}

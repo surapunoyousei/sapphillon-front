@@ -4,6 +4,7 @@ import { HomePage } from "@/pages/home/Home";
 import { GeneratePage } from "@/pages/generate/GeneratePage";
 import {
   WorkflowParserTest,
+  WorkflowRunPage,
   WorkflowsPage,
   WorkflowViewPage,
 } from "@/pages/workflows";
@@ -18,6 +19,7 @@ function App() {
         <Route path="/generate" element={<GeneratePage />} />
         <Route path="/workflows" element={<WorkflowsPage />} />
         <Route path="/workflows/:id" element={<WorkflowViewPage />} />
+        <Route path="/workflows/:id/run" element={<WorkflowRunPage />} />
         <Route path="/workflows-parser-test" element={<WorkflowParserTest />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/fix" element={<PageBox title="Fix" />} />

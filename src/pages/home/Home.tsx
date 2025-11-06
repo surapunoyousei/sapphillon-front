@@ -15,7 +15,13 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { LuPackage, LuPlay, LuSend, LuSparkles } from "react-icons/lu";
+import {
+  LuPackage,
+  LuPlay,
+  LuSend,
+  LuSparkles,
+  LuWrench,
+} from "react-icons/lu";
 import { useWorkflowsList } from "@/pages/workflows/useWorkflowsList";
 import type { Workflow } from "@/gen/sapphillon/v1/workflow_pb";
 import { clients } from "@/lib/grpc-clients";
@@ -122,7 +128,7 @@ export function HomePage() {
 
   const handleSubmit = React.useCallback(() => {
     if (prompt.trim()) {
-      navigate("/generate");
+      navigate("/generate", { state: { prompt: prompt.trim() } });
     }
   }, [prompt, navigate]);
 
@@ -202,6 +208,23 @@ export function HomePage() {
                 w="full"
               >
                 <Button
+                  onClick={() => {
+                    if (prompt.trim()) {
+                      navigate("/generate", {
+                        state: { prompt: prompt.trim() },
+                      });
+                    } else {
+                      navigate("/generate");
+                    }
+                  }}
+                  colorPalette="floorp"
+                  size={{ base: "sm", md: "md" }}
+                  disabled={!prompt.trim()}
+                >
+                  <LuPlay />
+                  <Text fontSize={{ base: "sm", md: "md" }}>実行</Text>
+                </Button>
+                <Button
                   onClick={() => navigate("/generate")}
                   variant="surface"
                   size={{ base: "sm", md: "md" }}
@@ -214,12 +237,12 @@ export function HomePage() {
                   variant="surface"
                   size={{ base: "sm", md: "md" }}
                 >
-                  <LuPlay />
+                  <LuWrench />
                   <Text fontSize={{ base: "sm", md: "md" }}>Workflows</Text>
                 </Button>
                 <Button
                   onClick={() => navigate("/plugins")}
-                  colorPalette="floorp"
+                  variant="surface"
                   size={{ base: "sm", md: "md" }}
                 >
                   <LuPackage />
@@ -273,9 +296,7 @@ export function HomePage() {
                       w="full"
                       pb={4}
                     >
-                      {[...Array(6)].map((_, i) => (
-                        <CardSkeleton key={i} />
-                      ))}
+                      {[...Array(6)].map((_, i) => <CardSkeleton key={i} />)}
                     </SimpleGrid>
                   )
                   : (

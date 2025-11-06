@@ -11,13 +11,8 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import {
-  LuArrowLeft,
-  LuArrowRight,
-  LuCheck,
-  LuX,
-} from "react-icons/lu";
-import type { OnboardingStep, OnboardingTour } from "@/hooks/useOnboarding";
+import { LuArrowLeft, LuArrowRight, LuCheck, LuX } from "react-icons/lu";
+import type { OnboardingTour } from "@/hooks/useOnboarding";
 
 interface OnboardingTourComponentProps {
   tour: OnboardingTour;
@@ -42,7 +37,7 @@ export function OnboardingTourComponent({
   const progress = ((currentStep + 1) / tour.steps.length) * 100;
 
   const [targetElement, setTargetElement] = React.useState<HTMLElement | null>(
-    null
+    null,
   );
   const [position, setPosition] = React.useState({ top: 0, left: 0 });
 
@@ -58,8 +53,10 @@ export function OnboardingTourComponent({
 
     if (element) {
       const rect = element.getBoundingClientRect();
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+      const scrollTop = window.pageYOffset ||
+        document.documentElement.scrollTop;
+      const scrollLeft = window.pageXOffset ||
+        document.documentElement.scrollLeft;
 
       // Calculate position based on placement
       let top = 0;
@@ -186,17 +183,19 @@ export function OnboardingTourComponent({
                   onClick={handleNext}
                   size="sm"
                 >
-                  {isLastStep ? (
-                    <>
-                      <LuCheck />
-                      完了
-                    </>
-                  ) : (
-                    <>
-                      次へ
-                      <LuArrowRight />
-                    </>
-                  )}
+                  {isLastStep
+                    ? (
+                      <>
+                        <LuCheck />
+                        完了
+                      </>
+                    )
+                    : (
+                      <>
+                        次へ
+                        <LuArrowRight />
+                      </>
+                    )}
                 </Button>
               </HStack>
             </Dialog.Footer>
@@ -225,8 +224,10 @@ export function OnboardingTourComponent({
       {targetElement && (
         <Box
           position="absolute"
-          top={targetElement.getBoundingClientRect().top + window.pageYOffset - 8}
-          left={targetElement.getBoundingClientRect().left + window.pageXOffset - 8}
+          top={targetElement.getBoundingClientRect().top + window.pageYOffset -
+            8}
+          left={targetElement.getBoundingClientRect().left +
+            window.pageXOffset - 8}
           width={targetElement.offsetWidth + 16}
           height={targetElement.offsetHeight + 16}
           border="3px solid"
@@ -306,17 +307,19 @@ export function OnboardingTourComponent({
                 onClick={handleNext}
                 size="xs"
               >
-                {isLastStep ? (
-                  <>
-                    <LuCheck size={12} />
-                    完了
-                  </>
-                ) : (
-                  <>
-                    次へ
-                    <LuArrowRight size={12} />
-                  </>
-                )}
+                {isLastStep
+                  ? (
+                    <>
+                      <LuCheck size={12} />
+                      完了
+                    </>
+                  )
+                  : (
+                    <>
+                      次へ
+                      <LuArrowRight size={12} />
+                    </>
+                  )}
               </Button>
             </HStack>
           </VStack>
@@ -325,5 +328,3 @@ export function OnboardingTourComponent({
     </Portal>
   );
 }
-
-

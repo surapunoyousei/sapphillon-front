@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
     Box,
     Button,
@@ -7,13 +7,15 @@ import {
     Flex,
     Heading,
     HStack,
-    Tabs,
     Text,
     Textarea,
     VStack,
 } from "@chakra-ui/react";
 import { LuCheck, LuX, LuZap } from "react-icons/lu";
-import { parseWorkflowCode, stripTypeScriptSyntax } from "@/components/workflow/ast-utils";
+import {
+    parseWorkflowCode,
+    stripTypeScriptSyntax,
+} from "@/components/workflow/ast-utils";
 import * as parser from "@babel/parser";
 import traverse from "@babel/traverse";
 import generate from "@babel/generator";
@@ -153,10 +155,13 @@ function analyzeWorkflow(code: string): AnalysisResult {
         // workflow関数を探す
         const workflowFunction = ast.program.body.find(
             (node) =>
-                node.type === "FunctionDeclaration" && node.id?.name === "workflow",
+                node.type === "FunctionDeclaration" &&
+                node.id?.name === "workflow",
         );
 
-        if (workflowFunction && workflowFunction.type === "FunctionDeclaration") {
+        if (
+            workflowFunction && workflowFunction.type === "FunctionDeclaration"
+        ) {
             result.functionFound = true;
             result.hasAsync = workflowFunction.async || false;
             result.statementsCount = workflowFunction.body.body.length;
@@ -211,7 +216,8 @@ function analyzeWorkflow(code: string): AnalysisResult {
             },
             CallExpression(path) {
                 try {
-                    const gen = (generate as any).default ?? generate;
+                    // @ts-expect-error @babel/generator's ESM/CJS module is a bit weird.
+                    const gen = generate.default ?? generate;
                     const { code } = gen(path.node.callee, { compact: true });
                     result.callExpressions.push(code);
                 } catch {
@@ -223,7 +229,9 @@ function analyzeWorkflow(code: string): AnalysisResult {
         // TypeScript構文を削除
         result.strippedCode = stripTypeScriptSyntax(code);
     } catch (error) {
-        result.parseError = error instanceof Error ? error.message : String(error);
+        result.parseError = error instanceof Error
+            ? error.message
+            : String(error);
     }
 
     return result;
@@ -234,10 +242,14 @@ export function WorkflowParserTest() {
     const [customCode, setCustomCode] = useState("");
     const [useCustom, setUseCustom] = useState(false);
 
-    const currentCode = useCustom ? customCode : SAMPLE_WORKFLOWS[selectedSample].code;
+    const currentCode = useCustom
+        ? customCode
+        : SAMPLE_WORKFLOWS[selectedSample].code;
 
     const analysis = useMemo(() => analyzeWorkflow(currentCode), [currentCode]);
-    const parseResult = useMemo(() => parseWorkflowCode(currentCode), [currentCode]);
+    const parseResult = useMemo(() => parseWorkflowCode(currentCode), [
+        currentCode,
+    ]);
 
     return (
         <Flex direction="column" h="full" overflow="hidden">
@@ -268,7 +280,10 @@ export function WorkflowParserTest() {
                                     <Button
                                         key={idx}
                                         size="sm"
-                                        variant={!useCustom && selectedSample === idx ? "solid" : "outline"}
+                                        variant={!useCustom &&
+                                                selectedSample === idx
+                                            ? "solid"
+                                            : "outline"}
                                         onClick={() => {
                                             setSelectedSample(idx);
                                             setUseCustom(false);
@@ -317,11 +332,14 @@ export function WorkflowParserTest() {
                             <Card.Body>
                                 <VStack align="stretch" gap={2}>
                                     <HStack>
-                                        {analysis.parseSuccess ? (
-                                            <LuCheck color="green" size={20} />
-                                        ) : (
-                                            <LuX color="red" size={20} />
-                                        )}
+                                        {analysis.parseSuccess
+                                            ? (
+                                                <LuCheck
+                                                    color="green"
+                                                    size={20}
+                                                />
+                                            )
+                                            : <LuX color="red" size={20} />}
                                         <Text>
                                             {analysis.parseSuccess
                                                 ? "パース成功"
@@ -334,14 +352,19 @@ export function WorkflowParserTest() {
                                         </Code>
                                     )}
                                     <HStack>
-                                        {analysis.functionFound ? (
-                                            <LuCheck color="green" size={20} />
-                                        ) : (
-                                            <LuX color="red" size={20} />
-                                        )}
+                                        {analysis.functionFound
+                                            ? (
+                                                <LuCheck
+                                                    color="green"
+                                                    size={20}
+                                                />
+                                            )
+                                            : <LuX color="red" size={20} />}
                                         <Text>
                                             workflow()関数{" "}
-                                            {analysis.functionFound ? "検出" : "未検出"}
+                                            {analysis.functionFound
+                                                ? "検出"
+                                                : "未検出"}
                                         </Text>
                                     </HStack>
                                 </VStack>
@@ -376,7 +399,9 @@ export function WorkflowParserTest() {
                                     <HStack justify="space-between">
                                         <Text>TypeScript構文:</Text>
                                         <Text fontWeight="medium">
-                                            {analysis.hasTypeScript ? "Yes" : "No"}
+                                            {analysis.hasTypeScript
+                                                ? "Yes"
+                                                : "No"}
                                         </Text>
                                     </HStack>
                                 </VStack>
@@ -422,19 +447,25 @@ export function WorkflowParserTest() {
                         <Card.Root>
                             <Card.Header>
                                 <Heading size="sm">
-                                    関数呼び出し ({analysis.callExpressions.length})
+                                    関数呼び出し ({analysis.callExpressions
+                                        .length})
                                 </Heading>
                             </Card.Header>
                             <Card.Body>
                                 <VStack align="stretch" gap={1}>
-                                    {analysis.callExpressions.slice(0, 10).map((call, idx) => (
+                                    {analysis.callExpressions.slice(0, 10).map((
+                                        call,
+                                        idx,
+                                    ) => (
                                         <Code key={idx} fontSize="xs">
                                             {call}
                                         </Code>
                                     ))}
                                     {analysis.callExpressions.length > 10 && (
                                         <Text fontSize="xs" color="fg.muted">
-                                            ... 他 {analysis.callExpressions.length - 10} 件
+                                            ... 他{" "}
+                                            {analysis.callExpressions.length -
+                                                10} 件
                                         </Text>
                                     )}
                                 </VStack>
@@ -445,7 +476,9 @@ export function WorkflowParserTest() {
                         {analysis.hasTypeScript && (
                             <Card.Root>
                                 <Card.Header>
-                                    <Heading size="sm">TypeScript構文除去後</Heading>
+                                    <Heading size="sm">
+                                        TypeScript構文除去後
+                                    </Heading>
                                 </Card.Header>
                                 <Card.Body>
                                     <Code
@@ -474,7 +507,8 @@ export function WorkflowParserTest() {
                                 </Card.Header>
                                 <Card.Body>
                                     <Text fontSize="sm" color="green.600">
-                                        {parseResult.workflowBody.length} 個のステートメントを検出しました
+                                        {parseResult.workflowBody.length}{" "}
+                                        個のステートメントを検出しました
                                     </Text>
                                 </Card.Body>
                             </Card.Root>
@@ -485,4 +519,3 @@ export function WorkflowParserTest() {
         </Flex>
     );
 }
-

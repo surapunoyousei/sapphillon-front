@@ -90,7 +90,7 @@ export function useWorkflowsList() {
     if (pageToken) {
       setPageToken("");
     }
-  }, [filter, orderBy, pageSize]);
+  }, [filter, orderBy, pageSize, pageToken]);
 
   return {
     workflows,

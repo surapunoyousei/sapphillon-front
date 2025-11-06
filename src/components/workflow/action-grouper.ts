@@ -1,8 +1,23 @@
-import type { Statement, IfStatement, ForStatement, WhileStatement, ForInStatement, ForOfStatement, TryStatement } from "@babel/types";
+import type {
+  Statement,
+  Expression,
+  IfStatement,
+  ForStatement,
+  WhileStatement,
+  ForInStatement,
+  ForOfStatement,
+  TryStatement,
+} from "@babel/types";
 import generate from "@babel/generator";
 
 export interface WorkflowAction {
-  type: "navigation" | "interaction" | "data-extraction" | "computation" | "control-flow" | "return";
+  type:
+    | "navigation"
+    | "interaction"
+    | "data-extraction"
+    | "computation"
+    | "control-flow"
+    | "return";
   title: string;
   description: string;
   humanReadable: string; // 人間が読める詳細な説明
@@ -13,7 +28,7 @@ export interface WorkflowAction {
   details?: string[]; // ステップごとの自然言語説明
 }
 
-const generateCode = (node: Statement) => {
+const generateCode = (node: Statement | Expression) => {
   try {
     // @ts-expect-error @babel/generator's ESM/CJS module is a bit weird.
     const generator = generate.default ?? generate;
@@ -44,18 +59,42 @@ const extractStringValue = (code: string): string | null => {
 };
 
 const isNavigationAction = (code: string): boolean => {
-  const navKeywords = ["goto", "navigate", "open", "visit", "newPage", "createPage"];
-  return navKeywords.some(keyword => code.includes(keyword));
+  const navKeywords = [
+    "goto",
+    "navigate",
+    "open",
+    "visit",
+    "newPage",
+    "createPage",
+  ];
+  return navKeywords.some((keyword) => code.includes(keyword));
 };
 
 const isInteractionAction = (code: string): boolean => {
-  const interactionKeywords = ["click", "type", "fill", "select", "submit", "press", "hover", "focus"];
-  return interactionKeywords.some(keyword => code.includes(keyword));
+  const interactionKeywords = [
+    "click",
+    "type",
+    "fill",
+    "select",
+    "submit",
+    "press",
+    "hover",
+    "focus",
+  ];
+  return interactionKeywords.some((keyword) => code.includes(keyword));
 };
 
 const isDataExtractionAction = (code: string): boolean => {
-  const extractionKeywords = ["textContent", "innerHTML", "getAttribute", "evaluate", "$$eval", "$eval", "title"];
-  return extractionKeywords.some(keyword => code.includes(keyword));
+  const extractionKeywords = [
+    "textContent",
+    "innerHTML",
+    "getAttribute",
+    "evaluate",
+    "$$eval",
+    "$eval",
+    "title",
+  ];
+  return extractionKeywords.some((keyword) => code.includes(keyword));
 };
 
 const isReturnStatement = (statement: Statement): boolean => {
@@ -63,16 +102,22 @@ const isReturnStatement = (statement: Statement): boolean => {
 };
 
 const isControlFlow = (statement: Statement): boolean => {
-  return ["IfStatement", "ForStatement", "WhileStatement", "SwitchStatement", "TryStatement"].includes(statement.type);
+  return [
+    "IfStatement",
+    "ForStatement",
+    "WhileStatement",
+    "SwitchStatement",
+    "TryStatement",
+  ].includes(statement.type);
 };
 
 // 条件式を自然言語に変換（コードを含める）
 const describeCondition = (code: string): string => {
   // 簡単なクリーンアップ（余分な空白を削除）
   const cleaned = code.trim();
-  
+
   // コードをバッククォートで囲んで返す（演算子のみ自然言語に変換）
-  let result = cleaned
+  const result = cleaned
     .replace(/===/g, " が ")
     .replace(/==/g, " が ")
     .replace(/!==/g, " が異なる ")
@@ -83,7 +128,7 @@ const describeCondition = (code: string): string => {
     .replace(/</g, " より小さい ")
     .replace(/&&/g, " かつ ")
     .replace(/\|\|/g, " または ");
-  
+
   return `\`${result}\``;
 };
 
@@ -100,13 +145,13 @@ const extractInitValue = (code: string): string | null => {
 // ステートメント単体を自然言語に変換
 const describeStatement = (statement: Statement): string => {
   const code = generateCode(statement);
-  
+
   if (statement.type === "VariableDeclaration") {
     const decl = statement.declarations[0];
     if (decl && decl.id.type === "Identifier") {
       const name = decl.id.name;
       const initValue = extractInitValue(code);
-      
+
       if (code.includes("newPage")) {
         return `新しいブラウザページ \`${name}\` を作成`;
       } else if (code.includes("title")) {
@@ -148,7 +193,7 @@ const describeStatement = (statement: Statement): string => {
       return `配列に要素を追加`;
     } else {
       // その他の式は実際のコードを表示
-      const simplified = code.replace(/;$/, '').trim();
+      const simplified = code.replace(/;$/, "").trim();
       if (simplified.length < 60) {
         return `\`${simplified}\` を実行`;
       }
@@ -161,83 +206,98 @@ const describeStatement = (statement: Statement): string => {
     if (returnMatch) {
       let returnValue = returnMatch[1].trim();
       // セミコロンがあれば削除
-      if (returnValue.endsWith(';')) {
+      if (returnValue.endsWith(";")) {
         returnValue = returnValue.slice(0, -1).trim();
       }
       // 改行を削除してスペースに置き換え（オブジェクトを1行にする）
-      returnValue = returnValue.replace(/\s+/g, ' ');
+      returnValue = returnValue.replace(/\s+/g, " ");
       // 長すぎる場合は省略
       if (returnValue.length > 80) {
-        returnValue = returnValue.substring(0, 77) + '...';
+        returnValue = returnValue.substring(0, 77) + "...";
       }
       return `\`${returnValue}\` を返す`;
     }
     return `実行結果を返却`;
   } else if (statement.type === "IfStatement") {
     return `条件を確認`;
-  } else if (statement.type === "ForStatement" || statement.type === "WhileStatement") {
+  } else if (
+    statement.type === "ForStatement" ||
+    statement.type === "WhileStatement"
+  ) {
     return `繰り返し処理`;
   } else if (statement.type === "TryStatement") {
     return `エラーハンドリング`;
   }
-  
+
   return `処理を実行`;
 };
 
 // ブロック内のステートメントを簡潔に説明
-const describeBlock = (statements: Statement[], prefix: string = ""): string[] => {
+const describeBlock = (
+  statements: Statement[],
+  prefix: string = ""
+): string[] => {
   const descriptions: string[] = [];
-  
-  statements.forEach((stmt, idx) => {
+
+  statements.forEach((stmt) => {
     const desc = describeStatement(stmt);
     descriptions.push(`${prefix}${desc}`);
   });
-  
+
   return descriptions;
 };
 
 // 自然言語の詳細説明を生成
-const generateHumanReadableDescription = (statements: Statement[], varName?: string): { readable: string, details: string[] } => {
+const generateHumanReadableDescription = (
+  statements: Statement[]
+): { readable: string; details: string[] } => {
   const details: string[] = [];
-  
-  statements.forEach(statement => {
-    const code = generateCode(statement);
-    
+
+  statements.forEach((statement) => {
     if (statement.type === "IfStatement") {
       // 条件分岐の説明
       const ifStmt = statement as IfStatement;
       const condition = ifStmt.test ? generateCode(ifStmt.test) : "";
       const conditionDesc = describeCondition(condition);
       details.push(`もし${conditionDesc}なら：`);
-      
+
       // then ブロックの説明
       if (ifStmt.consequent) {
-        const consequentStatements = ifStmt.consequent.type === "BlockStatement" 
-          ? ifStmt.consequent.body 
-          : [ifStmt.consequent];
+        const consequentStatements =
+          ifStmt.consequent.type === "BlockStatement"
+            ? ifStmt.consequent.body
+            : [ifStmt.consequent];
         const thenDescs = describeBlock(consequentStatements, "  ✓ ");
         details.push(...thenDescs);
       }
-      
+
       // else ブロックの説明
       if (ifStmt.alternate) {
         if (ifStmt.alternate.type === "IfStatement") {
           details.push(`そうでなければ、次の条件を確認：`);
-          const elseIfDescs = generateHumanReadableDescription([ifStmt.alternate]);
-          details.push(...elseIfDescs.details.map(d => `  ${d}`));
+          const elseIfDescs = generateHumanReadableDescription([
+            ifStmt.alternate,
+          ]);
+          details.push(...elseIfDescs.details.map((d) => `  ${d}`));
         } else {
           details.push(`そうでなければ：`);
-          const alternateStatements = ifStmt.alternate.type === "BlockStatement"
-            ? ifStmt.alternate.body
-            : [ifStmt.alternate];
+          const alternateStatements =
+            ifStmt.alternate.type === "BlockStatement"
+              ? ifStmt.alternate.body
+              : [ifStmt.alternate];
           const elseDescs = describeBlock(alternateStatements, "  ✓ ");
           details.push(...elseDescs);
         }
       }
-    } else if (statement.type === "ForStatement" || statement.type === "WhileStatement" || statement.type === "ForInStatement" || statement.type === "ForOfStatement") {
+    } else if (
+      statement.type === "ForStatement" ||
+      statement.type === "WhileStatement" ||
+      statement.type === "ForInStatement" ||
+      statement.type === "ForOfStatement"
+    ) {
       // ループの説明
       let loopDesc = "繰り返し処理：";
-      
+
       if (statement.type === "ForStatement") {
         const forStmt = statement as ForStatement;
         if (forStmt.init) {
@@ -253,15 +313,20 @@ const generateHumanReadableDescription = (statements: Statement[], varName?: str
       } else if (statement.type === "ForOfStatement") {
         loopDesc = "各要素に対して繰り返す：";
       }
-      
+
       details.push(loopDesc);
-      
+
       // ループ内の処理
-      const loopStmt = statement as ForStatement | WhileStatement | ForInStatement | ForOfStatement;
+      const loopStmt = statement as
+        | ForStatement
+        | WhileStatement
+        | ForInStatement
+        | ForOfStatement;
       if (loopStmt.body) {
-        const bodyStatements = loopStmt.body.type === "BlockStatement"
-          ? loopStmt.body.body
-          : [loopStmt.body];
+        const bodyStatements =
+          loopStmt.body.type === "BlockStatement"
+            ? loopStmt.body.body
+            : [loopStmt.body];
         const bodyDescs = describeBlock(bodyStatements, "  ↻ ");
         details.push(...bodyDescs);
       }
@@ -269,23 +334,24 @@ const generateHumanReadableDescription = (statements: Statement[], varName?: str
       // try-catch の説明
       const tryStmt = statement as TryStatement;
       details.push(`エラーが発生する可能性のある処理：`);
-      
+
       // try ブロック
       if (tryStmt.block) {
         const tryDescs = describeBlock(tryStmt.block.body, "  ▸ ");
         details.push(...tryDescs);
       }
-      
+
       // catch ブロック
       if (tryStmt.handler) {
-        const errorVar = tryStmt.handler.param && tryStmt.handler.param.type === "Identifier" 
-          ? tryStmt.handler.param.name 
-          : "エラー";
+        const errorVar =
+          tryStmt.handler.param && tryStmt.handler.param.type === "Identifier"
+            ? tryStmt.handler.param.name
+            : "エラー";
         details.push(`もしエラーが発生したら（${errorVar}）：`);
         const catchDescs = describeBlock(tryStmt.handler.body.body, "  ⚠ ");
         details.push(...catchDescs);
       }
-      
+
       // finally ブロック
       if (tryStmt.finalizer) {
         details.push(`最後に必ず実行：`);
@@ -302,21 +368,22 @@ const generateHumanReadableDescription = (statements: Statement[], varName?: str
       details.push(desc);
     }
   });
-  
+
   const readable = details.join(" → ");
   return { readable, details };
 };
 
-export function groupStatementsIntoActions(statements: Statement[]): WorkflowAction[] {
+export function groupStatementsIntoActions(
+  statements: Statement[]
+): WorkflowAction[] {
   const actions: WorkflowAction[] = [];
   let i = 0;
   const variableMap = new Map<string, Statement[]>();
 
   // First pass: build variable dependency map
-  statements.forEach(statement => {
-    const code = generateCode(statement);
+  statements.forEach((statement) => {
     const varName = extractVariableName(statement);
-    
+
     if (varName) {
       variableMap.set(varName, [statement]);
     }
@@ -325,12 +392,13 @@ export function groupStatementsIntoActions(statements: Statement[]): WorkflowAct
   // Second pass: group statements into actions
   while (i < statements.length) {
     const statement = statements[i];
-    const code = generateCode(statement);
     const varName = extractVariableName(statement);
 
     // Return statement
     if (isReturnStatement(statement)) {
-      const { readable, details } = generateHumanReadableDescription([statement]);
+      const { readable, details } = generateHumanReadableDescription([
+        statement,
+      ]);
       actions.push({
         type: "return",
         title: "実行結果を返す",
@@ -365,12 +433,12 @@ export function groupStatementsIntoActions(statements: Statement[]): WorkflowAct
     if (varName) {
       const relatedStatements: Statement[] = [statement];
       let j = i + 1;
-      
+
       // Look ahead for statements using this variable
       while (j < statements.length) {
         const nextStatement = statements[j];
         const nextCode = generateCode(nextStatement);
-        
+
         // If the next statement uses this variable, group them
         if (nextCode.includes(varName)) {
           relatedStatements.push(nextStatement);
@@ -381,16 +449,22 @@ export function groupStatementsIntoActions(statements: Statement[]): WorkflowAct
       }
 
       // Determine action type based on related statements
-      const combinedCode = relatedStatements.map(s => generateCode(s)).join(" ");
-      const { readable, details } = generateHumanReadableDescription(relatedStatements, varName);
-      
+      const combinedCode = relatedStatements
+        .map((s) => generateCode(s))
+        .join(" ");
+      const { readable, details } =
+        generateHumanReadableDescription(relatedStatements);
+
       if (isNavigationAction(combinedCode)) {
         const url = extractStringValue(combinedCode);
         actions.push({
           type: "navigation",
           title: "ページを開く",
-          description: url ? `「${url}」にアクセスします` : "指定されたページにアクセスします",
-          humanReadable: readable || `ブラウザで${varName}を使ってページを操作します`,
+          description: url
+            ? `「${url}」にアクセスします`
+            : "指定されたページにアクセスします",
+          humanReadable:
+            readable || `ブラウザで${varName}を使ってページを操作します`,
           statements: relatedStatements,
           importance: "high",
           variables: [varName],
@@ -435,9 +509,12 @@ export function groupStatementsIntoActions(statements: Statement[]): WorkflowAct
     }
 
     // Standalone navigation action
+    const code = generateCode(statement);
     if (isNavigationAction(code)) {
       const url = extractStringValue(code);
-      const { readable, details } = generateHumanReadableDescription([statement]);
+      const { readable, details } = generateHumanReadableDescription([
+        statement,
+      ]);
       actions.push({
         type: "navigation",
         title: "ページを開く",
@@ -454,7 +531,9 @@ export function groupStatementsIntoActions(statements: Statement[]): WorkflowAct
 
     // Standalone interaction action
     if (isInteractionAction(code)) {
-      const { readable, details } = generateHumanReadableDescription([statement]);
+      const { readable, details } = generateHumanReadableDescription([
+        statement,
+      ]);
       actions.push({
         type: "interaction",
         title: "ページ要素を操作",
@@ -471,7 +550,9 @@ export function groupStatementsIntoActions(statements: Statement[]): WorkflowAct
 
     // Standalone data extraction
     if (isDataExtractionAction(code)) {
-      const { readable, details } = generateHumanReadableDescription([statement]);
+      const { readable, details } = generateHumanReadableDescription([
+        statement,
+      ]);
       actions.push({
         type: "data-extraction",
         title: "データを取得",
@@ -487,11 +568,13 @@ export function groupStatementsIntoActions(statements: Statement[]): WorkflowAct
     }
 
     // Default: computation/variable assignment
-    const { readable, details } = generateHumanReadableDescription([statement], varName);
+    const { readable, details } = generateHumanReadableDescription([statement]);
     actions.push({
       type: "computation",
       title: varName ? `変数を準備` : "計算処理",
-      description: varName ? `「${varName}」を準備します` : "データの準備や計算を行います",
+      description: varName
+        ? `「${varName}」を準備します`
+        : "データの準備や計算を行います",
       humanReadable: readable || "データを準備します",
       statements: [statement],
       importance: "low",
@@ -504,5 +587,3 @@ export function groupStatementsIntoActions(statements: Statement[]): WorkflowAct
 
   return actions;
 }
-
-

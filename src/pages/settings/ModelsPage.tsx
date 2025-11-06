@@ -15,7 +15,6 @@ import {
   SelectRoot,
   SelectTrigger,
   SelectValueText,
-  Spinner,
   Stack,
   Table,
   Text,
@@ -25,7 +24,14 @@ import {
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { LuCheck, LuDatabase, LuPencil, LuPlus, LuTrash2, LuX } from "react-icons/lu";
+import {
+  LuCheck,
+  LuDatabase,
+  LuPencil,
+  LuPlus,
+  LuTrash2,
+  LuX,
+} from "react-icons/lu";
 import { clients } from "@/lib/grpc-clients";
 import { create } from "@bufbuild/protobuf";
 import {
@@ -460,9 +466,7 @@ export function ModelsPage() {
           </Card.Header>
           <Card.Body p={0}>
             {loading
-              ? (
-                <TableSkeleton rows={5} />
-              )
+              ? <TableSkeleton rows={5} />
               : models.length === 0
               ? (
                 <EmptyState

@@ -8,7 +8,6 @@ import {
     HStack,
     IconButton,
     Input,
-    Spinner,
     Stack,
     Table,
     Text,
@@ -17,7 +16,14 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { LuCheck, LuPencil, LuPlus, LuServer, LuTrash2, LuX } from "react-icons/lu";
+import {
+    LuCheck,
+    LuPencil,
+    LuPlus,
+    LuServer,
+    LuTrash2,
+    LuX,
+} from "react-icons/lu";
 import { clients } from "@/lib/grpc-clients";
 import { create } from "@bufbuild/protobuf";
 import {
@@ -300,9 +306,7 @@ export function ProvidersPage() {
                     </Card.Header>
                     <Card.Body p={0}>
                         {loading
-                            ? (
-                                <TableSkeleton rows={3} />
-                            )
+                            ? <TableSkeleton rows={3} />
                             : providers.length === 0
                             ? (
                                 <EmptyState

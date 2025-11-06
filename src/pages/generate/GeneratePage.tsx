@@ -11,6 +11,7 @@ import {
   useDisclosure,
   VStack,
 } from "@chakra-ui/react";
+import { useLocation } from "react-router-dom";
 import { PromptPanel } from "./PromptPanel";
 import { PluginsPanel } from "./PluginsPanel";
 import { RunPanel } from "./RunPanel";
@@ -314,7 +315,9 @@ function DesktopLayout({
 }
 
 export function GeneratePage() {
-  const [prompt, setPrompt] = React.useState("");
+  const location = useLocation();
+  const initialPrompt = (location.state as { prompt?: string })?.prompt || "";
+  const [prompt, setPrompt] = React.useState(initialPrompt);
   const {
     gridCols,
     gridRows,
@@ -329,6 +332,19 @@ export function GeneratePage() {
 
   const onStart = React.useCallback(() => start(prompt), [start, prompt]);
   const latestDefinition = latest?.workflowDefinition;
+
+  // 初期プロンプトがある場合は自動的に生成を開始
+  const processedPromptRef = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    const trimmedPrompt = initialPrompt?.trim();
+    
+    // プロンプトがあり、まだ処理していない場合のみ実行
+    if (trimmedPrompt && processedPromptRef.current !== trimmedPrompt && !streaming) {
+      processedPromptRef.current = trimmedPrompt;
+      // start関数内のstreamingチェックで重複実行を防ぐ
+      start(trimmedPrompt);
+    }
+  }, [initialPrompt, streaming, start]);
 
   return (
     <>

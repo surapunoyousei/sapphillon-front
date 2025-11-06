@@ -57,11 +57,13 @@ function formatDate(timestamp?: { seconds: bigint; nanos: number }): string {
 function WorkflowRow({
     workflow,
     onView,
+    onRun,
     onClone,
     onDelete,
 }: {
     workflow: Workflow;
     onView: (id: string) => void;
+    onRun: (id: string) => void;
     onClone: (workflow: Workflow) => void;
     onDelete?: (id: string) => void;
 }) {
@@ -185,7 +187,7 @@ function WorkflowRow({
                         variant="outline"
                         onClick={(e) => {
                             e.stopPropagation();
-                            // TODO: Run workflow
+                            onRun(workflow.id);
                         }}
                     >
                         Run
@@ -532,6 +534,10 @@ export function WorkflowsPage() {
                                                     onView={(id) =>
                                                         navigate(
                                                             `/workflows/${id}`,
+                                                        )}
+                                                    onRun={(id) =>
+                                                        navigate(
+                                                            `/workflows/${id}/run`,
                                                         )}
                                                     onClone={handleClone}
                                                     onDelete={handleDelete}

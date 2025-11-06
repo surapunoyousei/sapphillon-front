@@ -9,6 +9,7 @@
 import { Badge, Box, Card, HStack, Text, VStack } from "@chakra-ui/react";
 import {
   LuArrowRight,
+  LuChevronRight,
   LuCode,
   LuCornerDownRight,
   LuDatabase,
@@ -17,13 +18,12 @@ import {
 } from "react-icons/lu";
 import React, { useState } from "react";
 import { generateReadableCode } from "./utils/code-generator";
-import {
-  ACTION_TYPES,
-  getActionColor,
-  type ActionType,
-  type ImportanceLevel,
-} from "./constants";
-import type { ActionNodeProps } from "./types";
+import { ACTION_TYPES, type ActionType, getActionColor } from "./constants";
+import type { WorkflowAction } from "./action-grouper";
+
+interface ActionNodeProps {
+  action: WorkflowAction;
+}
 
 /**
  * アクションタイプに応じたアイコンを返す
@@ -46,7 +46,7 @@ const getActionIcon = (type: ActionType, size = 20) => {
   }
 };
 
-export const ActionNode: React.FC<ActionNodeProps> = ({ action, index }) => {
+export const ActionNode: React.FC<ActionNodeProps> = ({ action }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const colorScheme = getActionColor(action.type, action.importance);
 
@@ -98,15 +98,20 @@ export const ActionNode: React.FC<ActionNodeProps> = ({ action, index }) => {
               transform={isExpanded ? "rotate(90deg)" : "rotate(0deg)"}
               transition="transform 0.2s"
             >
-              <LuPlay size={12} />
+              <LuChevronRight size={12} />
             </Box>
           </HStack>
 
           {/* Variables */}
           {action.variables && action.variables.length > 0 && (
             <HStack gap={1} flexWrap="wrap">
-              {action.variables.map((varName) => (
-                <Badge key={varName} colorPalette="purple" size="xs" variant="subtle">
+              {action.variables.map((varName: string) => (
+                <Badge
+                  key={varName}
+                  colorPalette="purple"
+                  size="xs"
+                  variant="subtle"
+                >
                   {varName}
                 </Badge>
               ))}
@@ -137,7 +142,7 @@ export const ActionNode: React.FC<ActionNodeProps> = ({ action, index }) => {
           {/* Detailed steps (expanded state) */}
           {isExpanded && action.details && action.details.length > 0 && (
             <VStack align="stretch" gap={2} mt={2} pl={4}>
-              {action.details.map((detail, idx) => (
+              {action.details.map((detail: string, idx: number) => (
                 <HStack key={idx} gap={2} align="start">
                   <Box color={`${colorScheme}.500`} mt={0.5}>
                     <LuCornerDownRight size={14} />
@@ -161,9 +166,13 @@ export const ActionNode: React.FC<ActionNodeProps> = ({ action, index }) => {
                 cursor="pointer"
                 onClick={(e) => {
                   e.stopPropagation();
-                  const codeBlock = e.currentTarget.nextElementSibling;
+                  const codeBlock = e.currentTarget.nextElementSibling as
+                    | HTMLElement
+                    | null;
                   if (codeBlock) {
-                    codeBlock.style.display = codeBlock.style.display === "none" ? "block" : "none";
+                    codeBlock.style.display = codeBlock.style.display === "none"
+                      ? "block"
+                      : "none";
                   }
                 }}
                 _hover={{ color: "fg" }}
@@ -206,4 +215,3 @@ export const ActionNode: React.FC<ActionNodeProps> = ({ action, index }) => {
     </Card.Root>
   );
 };
-
