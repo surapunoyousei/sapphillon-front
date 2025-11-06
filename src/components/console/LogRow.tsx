@@ -4,15 +4,16 @@ import {
   Box,
   Button,
   HStack,
+  Portal,
   Text,
   Tooltip,
-  Portal,
 } from "@chakra-ui/react";
-import { LuCheck, LuClipboard } from "react-icons/lu";
+import { LuCheck, LuClipboard, LuInfo, LuX } from "react-icons/lu";
+import { useTranslation } from "react-i18next";
 import type { GenerationEvent } from "./utils";
 import { kindMeta } from "./kind-meta";
 import { summarize } from "./row-utils";
-import { stringifyPayload, inlineSnippet, fmtTime } from "./utils";
+import { fmtTime, stringifyPayload } from "./utils";
 
 export interface LogRowProps {
   e: GenerationEvent;
@@ -20,13 +21,27 @@ export interface LogRowProps {
 }
 
 export function LogRow({ e, index }: LogRowProps) {
+  const { t } = useTranslation();
   const meta = kindMeta(e);
   const summary = summarize(e);
   const payload = stringifyPayload(e.payload);
-  const inline = payload ? inlineSnippet(payload, 100) : "";
   const copyText = payload ?? summary;
   const [copied, setCopied] = React.useState(false);
   const timeoutRef = React.useRef<number | null>(null);
+
+  // ログタイプに応じたアイコンとラベルを取得
+  const getLogTypeInfo = () => {
+    switch (e.kind) {
+      case "error":
+        return { Icon: LuX, label: t("common.error"), color: "red" };
+      case "done":
+        return { Icon: LuCheck, label: t("common.done"), color: "green" };
+      default:
+        return { Icon: LuInfo, label: t("common.info"), color: "blue" };
+    }
+  };
+
+  const typeInfo = getLogTypeInfo();
 
   React.useEffect(() => {
     return () => {
@@ -74,6 +89,13 @@ export function LogRow({ e, index }: LogRowProps) {
         bg={meta.border}
       />
       <HStack gap={{ base: 0.5, md: 1 }} align="center" flexWrap="nowrap">
+        <Box
+          as={typeInfo.Icon}
+          boxSize={{ base: "14px", md: "16px" }}
+          color={`${typeInfo.color}.500`}
+          flexShrink={0}
+          aria-hidden="true"
+        />
         <Badge
           colorPalette={meta.palette}
           flexShrink={0}
@@ -81,9 +103,15 @@ export function LogRow({ e, index }: LogRowProps) {
           px={{ base: 0.5, md: 1 }}
           py={0}
         >
-          {e.kind}
+          {typeInfo.label}
         </Badge>
-        <Text fontSize="xs" color="fg.muted" flexShrink={0} w={{ base: "48px", md: "72px" }} display={{ base: "none", sm: "block" }}>
+        <Text
+          fontSize="xs"
+          color="fg.muted"
+          flexShrink={0}
+          w={{ base: "48px", md: "72px" }}
+          display={{ base: "none", sm: "block" }}
+        >
           {fmtTime(e.t)}
         </Text>
         <Box flex={1} minW={0}>
@@ -104,11 +132,6 @@ export function LogRow({ e, index }: LogRowProps) {
                     }}
                   >
                     {summary}
-                    {inline && (
-                      <Text as="span" fontFamily="mono" color="fg.muted" display={{ base: "none", md: "inline" }}>
-                        — {inline}
-                      </Text>
-                    )}
                   </Text>
                 </Tooltip.Trigger>
                 <Portal>
@@ -161,20 +184,14 @@ export function LogRow({ e, index }: LogRowProps) {
               variant="ghost"
               onClick={handleCopy}
               disabled={!copyText}
-              aria-label={copied ? "Copied" : "Copy"}
+              aria-label={copied ? t("common.copied") : t("common.copy")}
               flexShrink={0}
               minH={{ base: "32px", md: "auto" }}
             >
               <Box
                 as={copied ? LuCheck : LuClipboard}
                 aria-hidden="true"
-                css={{ width: 3, height: 3 }}
-                sx={{
-                  "@media (min-width: 768px)": {
-                    width: 4,
-                    height: 4,
-                  },
-                }}
+                boxSize={{ base: "12px", md: "16px" }}
               />
             </Button>
           </Tooltip.Trigger>
@@ -182,7 +199,7 @@ export function LogRow({ e, index }: LogRowProps) {
             <Tooltip.Positioner>
               <Tooltip.Content fontSize="xs">
                 <Tooltip.Arrow />
-                {copied ? "Copied" : "Copy"}
+                {copied ? t("common.copied") : t("common.copy")}
               </Tooltip.Content>
             </Tooltip.Positioner>
           </Portal>
@@ -191,4 +208,3 @@ export function LogRow({ e, index }: LogRowProps) {
     </Box>
   );
 }
-

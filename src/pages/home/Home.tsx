@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  Badge,
   Box,
   Button,
   Card,
@@ -7,7 +8,7 @@ import {
   Heading,
   HStack,
   IconButton,
-  Kbd,
+  Input,
   SimpleGrid,
   Text,
   Textarea,
@@ -15,19 +16,71 @@ import {
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import {
+  LuClock,
   LuPackage,
   LuPlay,
+  LuSearch,
   LuSend,
   LuSparkles,
   LuWrench,
+  LuX,
 } from "react-icons/lu";
 import { useWorkflowsList } from "@/pages/workflows/useWorkflowsList";
 import type { Workflow } from "@/gen/sapphillon/v1/workflow_pb";
 import { CardSkeleton } from "@/components/ui/skeleton";
+import { WorkflowResultType } from "@/gen/sapphillon/v1/workflow_pb";
+import { useI18n } from "@/hooks/useI18n";
+
+function formatDate(
+  timestamp?: { seconds: bigint; nanos: number },
+  locale: string = "ja-JP",
+): string {
+  if (!timestamp) return "";
+  const date = new Date(Number(timestamp.seconds) * 1000);
+  return date.toLocaleString(locale === "ja" ? "ja-JP" : "en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatRelativeTime(
+  timestamp: { seconds: bigint; nanos: number } | undefined,
+  t: (key: string, options?: { count?: number }) => string,
+  locale: string = "ja",
+): string {
+  if (!timestamp) return "";
+  const now = new Date();
+  const date = new Date(Number(timestamp.seconds) * 1000);
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 60) return t("common.time.justNow");
+  if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60);
+    return t("common.time.minutesAgo", { count: minutes });
+  }
+  if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600);
+    return t("common.time.hoursAgo", { count: hours });
+  }
+  if (diffInSeconds < 604800) {
+    const days = Math.floor(diffInSeconds / 86400);
+    return t("common.time.daysAgo", { count: days });
+  }
+  return formatDate(timestamp, locale);
+}
 
 function WorkflowCard({ workflow }: { workflow: Workflow }) {
+  const { t, currentLanguage } = useI18n();
   const navigate = useNavigate();
   const latestCode = workflow.workflowCode?.[workflow.workflowCode.length - 1];
+  const latestResult = workflow.workflowResults
+    ?.[workflow.workflowResults.length - 1];
+  const hasResult = latestResult !== undefined;
+  const isSuccess =
+    latestResult?.resultType === WorkflowResultType.SUCCESS_UNSPECIFIED;
 
   const handleView = React.useCallback(() => {
     navigate(`/workflows/${workflow.id}`);
@@ -36,7 +89,9 @@ function WorkflowCard({ workflow }: { workflow: Workflow }) {
   const handleRun = React.useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      navigate(`/workflows/${workflow.id}/run`);
+      navigate(`/workflows/${workflow.id}/run`, {
+        state: { from: "/home" },
+      });
     },
     [navigate, workflow.id],
   );
@@ -44,7 +99,11 @@ function WorkflowCard({ workflow }: { workflow: Workflow }) {
   return (
     <Card.Root
       cursor="pointer"
-      _hover={{ borderColor: "border.emphasized", shadow: "md" }}
+      _hover={{
+        borderColor: "border.emphasized",
+        shadow: "md",
+        transform: "translateY(-2px)",
+      }}
       transition="all 0.2s"
       onClick={handleView}
     >
@@ -62,7 +121,7 @@ function WorkflowCard({ workflow }: { workflow: Workflow }) {
                   overflow: "hidden",
                 }}
               >
-                {workflow.displayName || "Untitled Workflow"}
+                {workflow.displayName || t("common.untitledWorkflow")}
               </Text>
               {workflow.description && (
                 <Text
@@ -88,6 +147,33 @@ function WorkflowCard({ workflow }: { workflow: Workflow }) {
               <LuPlay />
             </Button>
           </HStack>
+
+          {/* Metadata */}
+          <HStack gap={2} flexWrap="wrap" fontSize="xs" color="fg.muted">
+            {workflow.updatedAt && (
+              <HStack gap={1}>
+                <LuClock size={12} />
+                <Text>
+                  {t("common.updated")}:{" "}
+                  {formatRelativeTime(workflow.updatedAt, t, currentLanguage)}
+                </Text>
+              </HStack>
+            )}
+            {hasResult && (
+              <Badge
+                colorPalette={isSuccess ? "green" : "red"}
+                size="sm"
+                fontSize="xs"
+              >
+                {isSuccess ? t("common.success") : t("common.failure")}
+              </Badge>
+            )}
+            {!hasResult && latestCode && (
+              <Badge colorPalette="gray" size="sm" fontSize="xs">
+                {t("common.neverRun")}
+              </Badge>
+            )}
+          </HStack>
         </VStack>
       </Card.Body>
     </Card.Root>
@@ -95,13 +181,28 @@ function WorkflowCard({ workflow }: { workflow: Workflow }) {
 }
 
 export function HomePage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [prompt, setPrompt] = React.useState("");
+  const [searchQuery, setSearchQuery] = React.useState("");
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   // ワークフロー一覧を取得
-  const { workflows, loading } = useWorkflowsList();
+  const { workflows, loading, error, refetch } = useWorkflowsList();
+
+  // 検索フィルタリング
+  const filteredWorkflows = React.useMemo(() => {
+    if (!searchQuery.trim()) return workflows;
+    const query = searchQuery.toLowerCase();
+    return workflows.filter((w) => {
+      const name = (w.displayName || "").toLowerCase();
+      const desc = (w.description || "").toLowerCase();
+      return name.includes(query) || desc.includes(query);
+    });
+  }, [workflows, searchQuery]);
+
   const hasWorkflows = workflows.length > 0;
+  const hasFilteredWorkflows = filteredWorkflows.length > 0;
 
   const handleSubmit = React.useCallback(() => {
     if (prompt.trim()) {
@@ -161,19 +262,25 @@ export function HomePage() {
                 my="auto"
                 pt={{ base: 4, md: 8 }}
               >
+                <Box
+                  fontSize={{ base: "4xl", sm: "5xl", md: "6xl" }}
+                  mb={2}
+                  color="fg.muted"
+                >
+                  <LuSparkles />
+                </Box>
                 <Heading
                   size={{ base: "xl", sm: "2xl", md: "3xl" }}
                   lineHeight="1.2"
                 >
-                  あなたが今やりたいことを代わりに実行する統合プラットフォーム
+                  {t("home.title")}
                 </Heading>
                 <Text
                   color="fg.muted"
                   fontSize={{ base: "sm", sm: "md", md: "lg" }}
                   px={{ base: 2, md: 0 }}
                 >
-                  Floorp OS
-                  が、命令をあなたのように安全に実行し、結果を報告します。
+                  {t("home.subtitle")}
                 </Text>
               </VStack>
 
@@ -199,7 +306,9 @@ export function HomePage() {
                   disabled={!prompt.trim()}
                 >
                   <LuPlay />
-                  <Text fontSize={{ base: "sm", md: "md" }}>実行</Text>
+                  <Text fontSize={{ base: "sm", md: "md" }}>
+                    {t("common.execute")}
+                  </Text>
                 </Button>
                 <Button
                   onClick={() => navigate("/generate")}
@@ -207,7 +316,9 @@ export function HomePage() {
                   size={{ base: "sm", md: "md" }}
                 >
                   <LuSparkles />
-                  <Text fontSize={{ base: "sm", md: "md" }}>Generate</Text>
+                  <Text fontSize={{ base: "sm", md: "md" }}>
+                    {t("common.generate")}
+                  </Text>
                 </Button>
                 <Button
                   onClick={() => navigate("/workflows")}
@@ -215,7 +326,9 @@ export function HomePage() {
                   size={{ base: "sm", md: "md" }}
                 >
                   <LuWrench />
-                  <Text fontSize={{ base: "sm", md: "md" }}>Workflows</Text>
+                  <Text fontSize={{ base: "sm", md: "md" }}>
+                    {t("common.workflows")}
+                  </Text>
                 </Button>
                 <Button
                   onClick={() => navigate("/plugins")}
@@ -223,7 +336,9 @@ export function HomePage() {
                   size={{ base: "sm", md: "md" }}
                 >
                   <LuPackage />
-                  <Text fontSize={{ base: "sm", md: "md" }}>Plugins</Text>
+                  <Text fontSize={{ base: "sm", md: "md" }}>
+                    {t("common.plugins")}
+                  </Text>
                 </Button>
               </HStack>
             </VStack>
@@ -236,12 +351,12 @@ export function HomePage() {
             display="flex"
             flexDirection="column"
             overflow="hidden"
-            px={{ base: 3, sm: 4, md: 6 }}
-            py={{ base: 3, sm: 4, md: 6 }}
+            px={{ base: 3, sm: 4, md: 6, lg: 8, xl: 12 }}
+            py={{ base: 3, sm: 4, md: 6, lg: 8 }}
           >
             <Box
               w="full"
-              maxW="3xl"
+              maxW={{ base: "full", lg: "full" }}
               mx="auto"
               h="full"
               minH={0}
@@ -249,15 +364,67 @@ export function HomePage() {
               flexDirection="column"
               overflow="hidden"
             >
-              <Heading
-                size="md"
-                textAlign="left"
-                w="full"
+              <HStack
+                justify="space-between"
+                align="center"
                 mb={4}
                 flexShrink={0}
+                flexWrap="wrap"
+                gap={4}
               >
-                Recent Workflows
-              </Heading>
+                <Heading size={{ base: "md", lg: "lg" }} textAlign="left">
+                  {t("common.recentWorkflows")}
+                </Heading>
+                {workflows.length > 0 && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => navigate("/workflows")}
+                  >
+                    {t("common.viewAll")}
+                  </Button>
+                )}
+              </HStack>
+
+              {/* Search bar */}
+              {hasWorkflows && (
+                <Box
+                  mb={4}
+                  flexShrink={0}
+                  maxW={{ base: "full", lg: "md", xl: "lg" }}
+                >
+                  <HStack
+                    gap={2}
+                    borderWidth="1px"
+                    rounded="md"
+                    px={3}
+                    py={2}
+                    bg="bg"
+                    _focusWithin={{ borderColor: "border.emphasized" }}
+                  >
+                    <LuSearch size={18} color="var(--chakra-colors-fg-muted)" />
+                    <Input
+                      placeholder={t("home.searchPlaceholder")}
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      borderWidth="0"
+                      px={0}
+                      flex="1"
+                    />
+                    {searchQuery && (
+                      <IconButton
+                        size="xs"
+                        variant="ghost"
+                        onClick={() => setSearchQuery("")}
+                        aria-label={t("common.clearSearch")}
+                      >
+                        <LuX />
+                      </IconButton>
+                    )}
+                  </HStack>
+                </Box>
+              )}
+
               <Box
                 flex="1"
                 minH={0}
@@ -268,22 +435,74 @@ export function HomePage() {
                 {loading
                   ? (
                     <SimpleGrid
-                      columns={{ base: 1, sm: 2, md: 3 }}
+                      columns={{
+                        base: 1,
+                        sm: 2,
+                        md: 3,
+                        lg: 4,
+                        xl: 5,
+                        "2xl": 6,
+                      }}
                       gap={4}
                       w="full"
                       pb={4}
                     >
-                      {[...Array(6)].map((_, i) => <CardSkeleton key={i} />)}
+                      {[...Array(12)].map((_, i) => <CardSkeleton key={i} />)}
                     </SimpleGrid>
+                  )
+                  : error
+                  ? (
+                    <VStack
+                      align="center"
+                      justify="center"
+                      gap={4}
+                      py={12}
+                      color="fg.muted"
+                    >
+                      <Text fontSize="lg" fontWeight="medium">
+                        {t("home.errorLoading")}
+                      </Text>
+                      <Button
+                        colorPalette="floorp"
+                        onClick={() => refetch()}
+                      >
+                        {t("home.retry")}
+                      </Button>
+                    </VStack>
+                  )
+                  : !hasFilteredWorkflows && searchQuery
+                  ? (
+                    <VStack
+                      align="center"
+                      justify="center"
+                      gap={2}
+                      py={12}
+                      color="fg.muted"
+                    >
+                      <LuSearch size={48} />
+                      <Text fontSize="lg" fontWeight="medium">
+                        {t("common.noResults")}
+                      </Text>
+                      <Text fontSize="sm">
+                        {t("home.searchNoResults", { query: searchQuery })}
+                      </Text>
+                    </VStack>
                   )
                   : (
                     <SimpleGrid
-                      columns={{ base: 1, sm: 2, md: 3 }}
+                      columns={{
+                        base: 1,
+                        sm: 2,
+                        md: 3,
+                        lg: 4,
+                        xl: 5,
+                        "2xl": 6,
+                      }}
                       gap={4}
                       w="full"
                       pb={4}
                     >
-                      {workflows.map((workflow) => (
+                      {filteredWorkflows.map((workflow) => (
                         <WorkflowCard key={workflow.id} workflow={workflow} />
                       ))}
                     </SimpleGrid>
@@ -300,8 +519,8 @@ export function HomePage() {
         borderTopWidth="1px"
         borderTopColor="border"
         bg="bg.panel"
-        px={{ base: 3, sm: 4, md: 6 }}
-        py={{ base: 3, md: 4 }}
+        px={{ base: 3, sm: 4, md: 6, lg: 8, xl: 12 }}
+        py={{ base: 3, md: 4, lg: 6 }}
         css={{
           "@media (max-height: 600px) and (orientation: landscape)": {
             paddingTop: "0.5rem",
@@ -310,18 +529,18 @@ export function HomePage() {
         }}
       >
         <Box
-          maxW="3xl"
+          maxW={{ base: "full", lg: "full", xl: "7xl", "2xl": "8xl" }}
           mx="auto"
           borderWidth="1px"
           rounded="xl"
-          p={{ base: 2, md: 3 }}
+          p={{ base: 2, md: 3, lg: 4 }}
           bg="bg"
           shadow="sm"
         >
           <HStack gap={2} align="flex-end">
             <Textarea
               ref={textareaRef}
-              placeholder="例: 最新のレポートをダウンロードして、チームにメールで送信する"
+              placeholder={t("home.placeholder")}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={(e) => {
@@ -355,7 +574,7 @@ export function HomePage() {
               flex="1"
             />
             <IconButton
-              aria-label="Send"
+              aria-label={t("common.send")}
               onClick={handleSubmit}
               disabled={!prompt.trim()}
               colorPalette="floorp"
@@ -374,8 +593,7 @@ export function HomePage() {
             display={{ base: "none", sm: "flex" }}
           >
             <Text fontSize={{ base: "xs", md: "sm" }}>
-              <Kbd fontSize={{ base: "xs", md: "sm" }}>⌘</Kbd> +{" "}
-              <Kbd fontSize={{ base: "xs", md: "sm" }}>Enter</Kbd> で送信
+              {t("home.sendHint")}
             </Text>
           </HStack>
         </Box>

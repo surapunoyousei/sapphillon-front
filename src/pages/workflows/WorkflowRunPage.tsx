@@ -12,7 +12,7 @@ import {
     Text,
     VStack,
 } from "@chakra-ui/react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { LuArrowLeft, LuHistory, LuPlay } from "react-icons/lu";
 import { WorkflowCanvas } from "@/components/workflow/WorkflowCanvas";
 import { WorkflowExecutionTimeline } from "@/components/workflow/WorkflowExecutionTimeline";
@@ -96,9 +96,19 @@ function RunPanel({
 export function WorkflowRunPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
     const { workflow, loading, error } = useWorkflow(id || "");
     const { running, events, runRes, runByDefinition, clearEvents } = useWorkflowRun();
     const [activeTab, setActiveTab] = React.useState<"workflow" | "run" | "history">("run");
+
+    // 戻る先を決定（Home から来た場合は Home に戻る）
+    const backPath = React.useMemo(() => {
+        const state = location.state as { from?: string } | null;
+        if (state?.from === "/home") {
+            return "/home";
+        }
+        return `/workflows/${id}`;
+    }, [location.state, id]);
 
     const latestCode = React.useMemo(() => {
         if (!workflow?.workflowCode || workflow.workflowCode.length === 0) {
@@ -164,7 +174,7 @@ export function WorkflowRunPage() {
                         <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => navigate(`/workflows/${id}`)}
+                            onClick={() => navigate(backPath)}
                         >
                             <LuArrowLeft />
                         </Button>

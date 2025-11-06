@@ -59,10 +59,14 @@ export const StreamConsole: React.FC<StreamConsoleProps> = ({
       >
         {visible.length === 0
           ? (
-            <Text color="fg.muted" px={{ base: 1, md: 2 }} fontSize={{ base: "xs", md: "sm" }}>
+            <Text
+              color="fg.muted"
+              px={{ base: 1, md: 2 }}
+              fontSize={{ base: "xs", md: "sm" }}
+            >
               {events.length === 0
-                ? (streaming ? "Streaming…" : "Waiting for run…")
-                : "No matches"}
+                ? (streaming ? "実行中…" : "実行待ち")
+                : "表示するログがありません"}
             </Text>
           )
           : (
@@ -76,4 +80,3 @@ export const StreamConsole: React.FC<StreamConsoleProps> = ({
     </VStack>
   );
 };
-

@@ -818,7 +818,7 @@ const AstNode: React.FC<
                     color="amber.700"
                     _dark={{ color: "amber.300" }}
                   >
-                    {elseContent || "（処理なし）"}
+                    {elseContent || "（処理　なし）"}
                   </Text>
                 </Box>
                 <BodyRenderer

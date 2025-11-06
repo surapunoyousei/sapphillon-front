@@ -85,7 +85,30 @@ export const GRPC_ERROR_CODES = {
 } as const;
 
 /**
- * エラーコードに対応する日本語メッセージ
+ * エラーコードに対応するi18nキー
+ */
+export const GRPC_ERROR_MESSAGE_KEYS: Record<Code, string> = {
+  [Code.Canceled]: "errors.grpc.canceled",
+  [Code.Unknown]: "errors.grpc.unknown",
+  [Code.InvalidArgument]: "errors.grpc.invalidArgument",
+  [Code.DeadlineExceeded]: "errors.grpc.deadlineExceeded",
+  [Code.NotFound]: "errors.grpc.notFound",
+  [Code.AlreadyExists]: "errors.grpc.alreadyExists",
+  [Code.PermissionDenied]: "errors.grpc.permissionDenied",
+  [Code.ResourceExhausted]: "errors.grpc.resourceExhausted",
+  [Code.FailedPrecondition]: "errors.grpc.failedPrecondition",
+  [Code.Aborted]: "errors.grpc.aborted",
+  [Code.OutOfRange]: "errors.grpc.outOfRange",
+  [Code.Unimplemented]: "errors.grpc.unimplemented",
+  [Code.Internal]: "errors.grpc.internal",
+  [Code.Unavailable]: "errors.grpc.unavailable",
+  [Code.DataLoss]: "errors.grpc.dataLoss",
+  [Code.Unauthenticated]: "errors.grpc.unauthenticated",
+};
+
+/**
+ * 後方互換性のためのエラーメッセージ（非推奨）
+ * @deprecated 代わりに getErrorMessage を使用してください
  */
 export const GRPC_ERROR_MESSAGES: Record<Code, string> = {
   [Code.Canceled]: "リクエストがキャンセルされました",
@@ -108,16 +131,52 @@ export const GRPC_ERROR_MESSAGES: Record<Code, string> = {
 
 /**
  * ConnectErrorから人間が読めるメッセージを取得
- *
+ * 
+ * 注意: この関数はi18nキーを返します。Reactコンポーネント内で使用する場合は、
+ * useTranslation の t 関数を使用してください。
+ * 
  * @example
  * ```typescript
+ * // Reactコンポーネント内
+ * const { t } = useTranslation();
  * try {
  *   await clients.version.getVersion({});
  * } catch (e) {
  *   if (e instanceof ConnectError) {
- *     console.error(getErrorMessage(e)); // "サービスが利用できません"
+ *     const messageKey = getErrorMessageKey(e);
+ *     console.error(t(messageKey)); // "サービスが利用できません"
  *   }
  * }
+ * ```
+ * 
+ * @example
+ * ```typescript
+ * // Reactコンポーネント外（i18nextを直接使用）
+ * import i18n from "@/i18n";
+ * try {
+ *   await clients.version.getVersion({});
+ * } catch (e) {
+ *   if (e instanceof ConnectError) {
+ *     const messageKey = getErrorMessageKey(e);
+ *     console.error(i18n.t(messageKey)); // "サービスが利用できません"
+ *   }
+ * }
+ * ```
+ */
+export function getErrorMessageKey(error: ConnectError): string {
+  return GRPC_ERROR_MESSAGE_KEYS[error.code] || "errors.genericError";
+}
+
+/**
+ * ConnectErrorから人間が読めるメッセージを取得（後方互換性のため）
+ * 
+ * @deprecated 代わりに getErrorMessageKey を使用し、useTranslation の t 関数で翻訳してください
+ * 
+ * @example
+ * ```typescript
+ * const { t } = useTranslation();
+ * const messageKey = getErrorMessageKey(error);
+ * const message = t(messageKey);
  * ```
  */
 export function getErrorMessage(error: ConnectError): string {

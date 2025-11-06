@@ -1,0 +1,77 @@
+{
+    "common": {
+        "copy": "コピー",
+        "copied": "コピーしました",
+        "error": "エラー",
+        "done": "完了",
+        "info": "情報",
+        "execute": "実行",
+        "generate": "生成",
+        "workflows": "ワークフロー",
+        "plugins": "プラグイン",
+        "recentWorkflows": "最近のワークフロー",
+        "untitledWorkflow": "無題のワークフロー",
+        "send": "送信",
+        "search": "検索",
+        "noResults": "結果が見つかりません",
+        "updated": "更新",
+        "created": "作成",
+        "lastRun": "最終実行",
+        "neverRun": "未実行",
+        "success": "成功",
+        "failure": "失敗",
+        "viewAll": "すべて表示",
+        "clearSearch": "検索をクリア",
+        "time": {
+            "justNow": "たった今",
+            "minutesAgo": "{{count}}分前",
+            "hoursAgo": "{{count}}時間前",
+            "daysAgo": "{{count}}日前"
+        }
+    },
+    "home": {
+        "title": "あなたが今やりたいことを代わりに実行する統合プラットフォーム",
+        "subtitle": "Floorp OSが、命令をあなたのように安全に実行し、結果を報告します。",
+        "placeholder": "例: 最新のレポートをダウンロードして、チームにメールで送信する",
+        "sendHint": "⌘ + Enter で送信",
+        "searchPlaceholder": "ワークフローを検索...",
+        "emptyStateTitle": "ワークフローがありません",
+        "emptyStateDescription": "新しいワークフローを作成して、自動化を始めましょう",
+        "errorLoading": "ワークフローの読み込みに失敗しました",
+        "retry": "再試行",
+        "searchNoResults": "「{{query}}」に一致するワークフローが見つかりませんでした"
+    },
+    "errors": {
+        "networkError": "ネットワーク接続に失敗しました。インターネット接続を確認してください。",
+        "apiError": "APIリクエストに失敗しました。しばらくしてから再試行してください。",
+        "validationError": "入力内容を確認して、再度お試しください。",
+        "unauthorized": "この操作を実行する権限がありません。",
+        "notFound": "リクエストされたリソースが見つかりません。",
+        "genericError": "予期しないエラーが発生しました。再度お試しください。",
+        "grpc": {
+            "canceled": "リクエストがキャンセルされました",
+            "unknown": "不明なエラーが発生しました",
+            "invalidArgument": "無効な引数が指定されました",
+            "deadlineExceeded": "タイムアウトしました",
+            "notFound": "リソースが見つかりません",
+            "alreadyExists": "リソースが既に存在します",
+            "permissionDenied": "権限がありません",
+            "resourceExhausted": "リソースが不足しています",
+            "failedPrecondition": "前提条件を満たしていません",
+            "aborted": "操作が中止されました",
+            "outOfRange": "範囲外の値が指定されました",
+            "unimplemented": "この機能は実装されていません",
+            "internal": "サーバー内部エラーが発生しました",
+            "unavailable": "サービスが利用できません",
+            "dataLoss": "データが失われました",
+            "unauthenticated": "認証が必要です"
+        }
+    },
+    "success": {
+        "workflowCreated": "ワークフローが正常に作成されました！",
+        "workflowUpdated": "ワークフローが正常に更新されました！",
+        "workflowDeleted": "ワークフローが正常に削除されました！",
+        "settingsSaved": "設定が正常に保存されました！",
+        "pluginInstalled": "プラグインが正常にインストールされました！"
+    }
+}

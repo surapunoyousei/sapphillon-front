@@ -71,22 +71,25 @@ export const STORAGE_KEYS = {
   RECENT_SEARCHES: "sapphillon-recent-searches",
 } as const;
 
-// Error Messages
+// Error Messages (i18n keys)
+// 使用する際は useTranslation の t 関数を使用してください
+// 例: const { t } = useTranslation(); t(ERROR_MESSAGES.NETWORK_ERROR)
 export const ERROR_MESSAGES = {
-  NETWORK_ERROR:
-    "Network connection failed. Please check your internet connection.",
-  API_ERROR: "API request failed. Please try again later.",
-  VALIDATION_ERROR: "Please check your input and try again.",
-  UNAUTHORIZED: "You are not authorized to perform this action.",
-  NOT_FOUND: "The requested resource was not found.",
-  GENERIC_ERROR: "An unexpected error occurred. Please try again.",
+  NETWORK_ERROR: "errors.networkError",
+  API_ERROR: "errors.apiError",
+  VALIDATION_ERROR: "errors.validationError",
+  UNAUTHORIZED: "errors.unauthorized",
+  NOT_FOUND: "errors.notFound",
+  GENERIC_ERROR: "errors.genericError",
 } as const;
 
-// Success Messages
+// Success Messages (i18n keys)
+// 使用する際は useTranslation の t 関数を使用してください
+// 例: const { t } = useTranslation(); t(SUCCESS_MESSAGES.WORKFLOW_CREATED)
 export const SUCCESS_MESSAGES = {
-  WORKFLOW_CREATED: "Workflow created successfully!",
-  WORKFLOW_UPDATED: "Workflow updated successfully!",
-  WORKFLOW_DELETED: "Workflow deleted successfully!",
-  SETTINGS_SAVED: "Settings saved successfully!",
-  PLUGIN_INSTALLED: "Plugin installed successfully!",
+  WORKFLOW_CREATED: "success.workflowCreated",
+  WORKFLOW_UPDATED: "success.workflowUpdated",
+  WORKFLOW_DELETED: "success.workflowDeleted",
+  SETTINGS_SAVED: "success.settingsSaved",
+  PLUGIN_INSTALLED: "success.pluginInstalled",
 } as const;

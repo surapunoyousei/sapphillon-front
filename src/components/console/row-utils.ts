@@ -18,13 +18,14 @@ export function toRows(events: GenerationEvent[]): Row[] {
         "status" in p &&
         (p as { status?: unknown }).status === "start"
       ) {
-        rows.push({ type: "sep", label: "Run started" });
+        rows.push({ type: "sep", label: "実行開始" });
       }
 
       if (p && typeof p === "object" && "workflowResult" in p) {
         const wr = (p as Record<string, unknown>).workflowResult as unknown;
         if (
-          wr && typeof wr === "object" &&
+          wr &&
+          typeof wr === "object" &&
           "result" in (wr as Record<string, unknown>)
         ) {
           const resultVal = (wr as Record<string, unknown>).result as unknown;
@@ -63,12 +64,13 @@ export function toRows(events: GenerationEvent[]): Row[] {
     }
     if (e.kind === "done") {
       const payload = e.payload as unknown;
-      const stage = payload && typeof payload === "object" && "stage" in payload
-        ? (payload as { stage?: unknown }).stage
-        : undefined;
-      if (stage === "run") rows.push({ type: "sep", label: "Run completed" });
+      const stage =
+        payload && typeof payload === "object" && "stage" in payload
+          ? (payload as { stage?: unknown }).stage
+          : undefined;
+      if (stage === "run") rows.push({ type: "sep", label: "実行完了" });
       if (stage === "generate") {
-        rows.push({ type: "sep", label: "Generation completed" });
+        rows.push({ type: "sep", label: "生成完了" });
       }
     }
     rows.push({ type: "log", event: e });
@@ -79,51 +81,62 @@ export function toRows(events: GenerationEvent[]): Row[] {
 export function summarize(e: GenerationEvent): string {
   if (e.kind === "error") {
     const err = e.payload as unknown;
-    const msg = typeof err === "object" && err && "message" in err
-      ? String((err as { message?: unknown }).message ?? "")
-      : String(err);
-    return msg || "Error";
+    const msg =
+      typeof err === "object" && err && "message" in err
+        ? String((err as { message?: unknown }).message ?? "")
+        : String(err);
+    return msg || "エラーが発生しました";
   }
   if (e.kind === "done") {
     const p = e.payload as unknown;
-    const stage = p && typeof p === "object" && "stage" in p
-      ? (p as { stage?: unknown }).stage
-      : undefined;
-    if (stage === "run") return "Run completed";
-    if (stage === "generate") return "Generation completed";
-    return "Done";
+    const stage =
+      p && typeof p === "object" && "stage" in p
+        ? (p as { stage?: unknown }).stage
+        : undefined;
+    if (stage === "run") return "実行完了";
+    if (stage === "generate") return "生成完了";
+    return "完了";
   }
   // message
   const p = e.payload as unknown;
   if (p && typeof p === "object") {
     if (
-      "stage" in p && (p as { stage?: unknown }).stage === "run" &&
-      "status" in p && (p as { status?: unknown }).status === "start"
-    ) return "Run started";
+      "stage" in p &&
+      (p as { stage?: unknown }).stage === "run" &&
+      "status" in p &&
+      (p as { status?: unknown }).status === "start"
+    )
+      return "実行開始";
     if (
       "workflowResult" in p &&
       (p as { workflowResult?: unknown }).workflowResult
     ) {
       const r = (p as { workflowResult?: unknown }).workflowResult;
-      const displayName = r && typeof r === "object" && "displayName" in r
-        ? (r as Record<string, unknown>).displayName
-        : undefined;
-      const id = r && typeof r === "object" && "id" in r
-        ? (r as Record<string, unknown>).id
-        : undefined;
-      const resultType = r && typeof r === "object" && "resultType" in r
-        ? (r as Record<string, unknown>).resultType
-        : undefined;
-      const exitCode = r && typeof r === "object" && "exitCode" in r
-        ? (r as Record<string, unknown>).exitCode
-        : undefined;
-      const name = (displayName || id || "Run") as string;
-      const type = resultType === 1 ? "FAILURE" : "SUCCESS";
-      const exit = typeof exitCode === "number" ? `, exit ${exitCode}` : "";
+      const displayName =
+        r && typeof r === "object" && "displayName" in r
+          ? (r as Record<string, unknown>).displayName
+          : undefined;
+      const id =
+        r && typeof r === "object" && "id" in r
+          ? (r as Record<string, unknown>).id
+          : undefined;
+      const resultType =
+        r && typeof r === "object" && "resultType" in r
+          ? (r as Record<string, unknown>).resultType
+          : undefined;
+      const exitCode =
+        r && typeof r === "object" && "exitCode" in r
+          ? (r as Record<string, unknown>).exitCode
+          : undefined;
+      const name = (displayName || id || "実行") as string;
+      const type = resultType === 1 ? "失敗" : "成功";
+      const exit =
+        typeof exitCode === "number" ? ` (終了コード: ${exitCode})` : "";
       // Prefer textual result if present
-      const resultStr = r && typeof r === "object" && "result" in r
-        ? (r as Record<string, unknown>).result
-        : undefined;
+      const resultStr =
+        r && typeof r === "object" && "result" in r
+          ? (r as Record<string, unknown>).result
+          : undefined;
       if (typeof resultStr === "string" && resultStr.trim()) {
         const txt = resultStr.trim();
         return txt.length > 160 ? txt.slice(0, 160) + "…" : txt;
@@ -133,13 +146,13 @@ export function summarize(e: GenerationEvent): string {
     if (
       "workflowDefinition" in p &&
       (p as { workflowDefinition?: unknown }).workflowDefinition
-    ) return "Updated workflow definition";
+    )
+      return "ワークフロー定義を更新しました";
   }
   try {
     const s = stringifyPayload(p);
     return s.length > 120 ? s.slice(0, 120) + "…" : s;
   } catch {
-    return "message";
+    return "メッセージ";
   }
 }
-

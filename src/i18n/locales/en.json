@@ -1,0 +1,81 @@
+{
+  "common": {
+    "copy": "Copy",
+    "copied": "Copied",
+    "error": "Error",
+    "done": "Done",
+    "info": "Info",
+    "execute": "Execute",
+    "generate": "Generate",
+    "workflows": "Workflows",
+    "plugins": "Plugins",
+    "recentWorkflows": "Recent Workflows",
+    "untitledWorkflow": "Untitled Workflow",
+    "send": "Send",
+    "search": "Search",
+    "noResults": "No results found",
+    "updated": "Updated",
+    "created": "Created",
+    "lastRun": "Last run",
+    "neverRun": "Never run",
+    "success": "Success",
+    "failure": "Failure",
+    "viewAll": "View all",
+    "clearSearch": "Clear search",
+    "time": {
+      "justNow": "just now",
+      "minutesAgo_one": "{{count}} minute ago",
+      "minutesAgo_other": "{{count}} minutes ago",
+      "hoursAgo_one": "{{count}} hour ago",
+      "hoursAgo_other": "{{count}} hours ago",
+      "daysAgo_one": "{{count}} day ago",
+      "daysAgo_other": "{{count}} days ago"
+    }
+  },
+  "home": {
+    "title": "Integrated platform that executes what you want to do",
+    "subtitle": "Floorp OS safely executes commands like you would and reports the results.",
+    "placeholder": "Example: Download the latest report and email it to the team",
+    "sendHint": "Press ⌘ + Enter to send",
+    "searchPlaceholder": "Search workflows...",
+    "emptyStateTitle": "No workflows yet",
+    "emptyStateDescription": "Create a new workflow to get started with automation",
+    "errorLoading": "Failed to load workflows",
+    "retry": "Retry",
+    "searchNoResults": "No workflows found matching \"{{query}}\""
+  },
+  "errors": {
+    "networkError": "Network connection failed. Please check your internet connection.",
+    "apiError": "API request failed. Please try again later.",
+    "validationError": "Please check your input and try again.",
+    "unauthorized": "You are not authorized to perform this action.",
+    "notFound": "The requested resource was not found.",
+    "genericError": "An unexpected error occurred. Please try again.",
+    "grpc": {
+      "canceled": "Request was canceled",
+      "unknown": "An unknown error occurred",
+      "invalidArgument": "Invalid argument specified",
+      "deadlineExceeded": "Timeout occurred",
+      "notFound": "Resource not found",
+      "alreadyExists": "Resource already exists",
+      "permissionDenied": "Permission denied",
+      "resourceExhausted": "Resource exhausted",
+      "failedPrecondition": "Precondition not met",
+      "aborted": "Operation was aborted",
+      "outOfRange": "Value out of range",
+      "unimplemented": "This feature is not implemented",
+      "internal": "Internal server error occurred",
+      "unavailable": "Service unavailable",
+      "dataLoss": "Data loss occurred",
+      "unauthenticated": "Authentication required"
+    }
+  },
+  "success": {
+    "workflowCreated": "Workflow created successfully!",
+    "workflowUpdated": "Workflow updated successfully!",
+    "workflowDeleted": "Workflow deleted successfully!",
+    "settingsSaved": "Settings saved successfully!",
+    "pluginInstalled": "Plugin installed successfully!"
+  }
+}
+
