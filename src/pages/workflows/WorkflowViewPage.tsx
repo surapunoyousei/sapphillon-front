@@ -35,23 +35,24 @@ import {
     PermissionLevel,
     PermissionType,
 } from "@/gen/sapphillon/v1/permission_pb";
+import { useI18n } from "@/hooks/useI18n";
 
-function getPermissionTypeLabel(type: PermissionType): string {
+function getPermissionTypeLabel(type: PermissionType, t: (key: string) => string): string {
     switch (type) {
         case PermissionType.EXECUTE:
-            return "Execute";
+            return t("workflowView.execute");
         case PermissionType.FILESYSTEM_READ:
-            return "Read Files";
+            return t("workflowView.readFiles");
         case PermissionType.FILESYSTEM_WRITE:
-            return "Write Files";
+            return t("workflowView.writeFiles");
         case PermissionType.NET_ACCESS:
-            return "Network Access";
+            return t("workflowView.networkAccess");
         case PermissionType.ALLOW_MCP:
-            return "MCP Access";
+            return t("workflowView.mcpAccess");
         case PermissionType.ALLOW_ALL:
-            return "All Permissions";
+            return t("workflowView.allPermissions");
         default:
-            return "Unknown";
+            return t("workflowView.unknown");
     }
 }
 
@@ -69,6 +70,7 @@ function getPermissionLevelColor(level: PermissionLevel): string {
 }
 
 function PermissionItem({ permission }: { permission: Permission }) {
+    const { t } = useI18n();
     return (
         <Box
             px={2}
@@ -82,7 +84,7 @@ function PermissionItem({ permission }: { permission: Permission }) {
         >
             <HStack justify="space-between" gap={1}>
                 <Text fontSize="xs" fontWeight="medium" flex="1">
-                    {getPermissionTypeLabel(permission.permissionType)}
+                    {getPermissionTypeLabel(permission.permissionType, t)}
                 </Text>
                 <Badge
                     size="xs"
@@ -91,14 +93,14 @@ function PermissionItem({ permission }: { permission: Permission }) {
                     )}
                 >
                     {permission.permissionLevel === PermissionLevel.MEDIUM
-                        ? "Medium"
+                        ? t("workflowView.medium")
                         : permission.permissionLevel ===
                                 PermissionLevel.HIGH
-                        ? "High"
+                        ? t("workflowView.high")
                         : permission.permissionLevel ===
                                 PermissionLevel.CRITICAL
-                        ? "Critical"
-                        : "Low"}
+                        ? t("workflowView.critical")
+                        : t("workflowView.low")}
                 </Badge>
             </HStack>
             {permission.resource && permission.resource.length > 0 && (
@@ -226,6 +228,7 @@ function PluginInfo({ plugin }: { plugin: PluginPackage }) {
 }
 
 export function WorkflowViewPage() {
+    const { t } = useI18n();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { workflow, loading, error } = useWorkflow(id || "");
@@ -261,7 +264,7 @@ export function WorkflowViewPage() {
             <Flex h="full" align="center" justify="center">
                 <VStack gap={4}>
                     <Spinner size="lg" />
-                    <Text color="fg.muted">Loading workflow...</Text>
+                    <Text color="fg.muted">{t("workflowView.loading")}</Text>
                 </VStack>
             </Flex>
         );
@@ -274,7 +277,7 @@ export function WorkflowViewPage() {
                     <Card.Body>
                         <VStack gap={4}>
                             <Text color="red.500" fontWeight="medium">
-                                Error loading workflow
+                                {t("workflowView.errorLoading")}
                             </Text>
                             <Text fontSize="sm" color="fg.muted">
                                 {error instanceof Error
@@ -282,7 +285,7 @@ export function WorkflowViewPage() {
                                     : String(error)}
                             </Text>
                             <Button onClick={() => navigate("/workflows")}>
-                                Back to Workflows
+                                {t("workflowView.backToWorkflows")}
                             </Button>
                         </VStack>
                     </Card.Body>
@@ -313,7 +316,7 @@ export function WorkflowViewPage() {
                         </Button>
                         <VStack align="start" gap={0}>
                             <Heading size="md">
-                                {workflow.displayName || "Untitled Workflow"}
+                                {workflow.displayName || t("common.untitledWorkflow")}
                             </Heading>
                             {workflow.description && (
                                 <Text fontSize="sm" color="fg.muted">
@@ -327,7 +330,7 @@ export function WorkflowViewPage() {
                             size="sm"
                             variant="ghost"
                             onClick={() => setIsPanelOpen(!isPanelOpen)}
-                            aria-label="Toggle sidebar"
+                            aria-label={t("workflowView.toggleSidebar")}
                             display={{ base: "none", lg: "flex" }}
                         >
                             <LuInfo />
@@ -343,12 +346,12 @@ export function WorkflowViewPage() {
                     <Tabs.Root defaultValue="canvas" h="full" display="flex" flexDirection="column">
                         <Tabs.List borderBottomWidth="1px" flexShrink={0}>
                             <Tabs.Trigger value="canvas" px={4} py={2}>
-                                <Text fontSize="sm">ワークフロー</Text>
+                                <Text fontSize="sm">{t("workflowView.workflow")}</Text>
                             </Tabs.Trigger>
                             <Tabs.Trigger value="history" px={4} py={2}>
                                 <HStack gap={1}>
                                     <LuHistory size={14} />
-                                    <Text fontSize="sm">実行履歴</Text>
+                                    <Text fontSize="sm">{t("workflowView.executionHistory")}</Text>
                                     {workflow.workflowResults && workflow.workflowResults.length > 0 && (
                                         <Badge size="xs" colorPalette="blue">
                                             {workflow.workflowResults.length}
@@ -388,7 +391,7 @@ export function WorkflowViewPage() {
                             borderBottomWidth="1px"
                             borderBottomColor="border"
                         >
-                            <Heading size="sm">ワークフロー情報</Heading>
+                            <Heading size="sm">{t("workflowView.workflowInfo")}</Heading>
                         </Box>
 
                         <Tabs.Root
@@ -411,7 +414,7 @@ export function WorkflowViewPage() {
                                     px={2}
                                     py={1}
                                 >
-                                    Overview
+                                    {t("workflowView.overview")}
                                 </Tabs.Trigger>
                                 {plugins.length > 0 && (
                                     <Tabs.Trigger
@@ -421,7 +424,7 @@ export function WorkflowViewPage() {
                                         py={1}
                                     >
                                         <HStack gap={1}>
-                                            <Text>Plugins</Text>
+                                            <Text>{t("workflowView.plugins")}</Text>
                                             <Badge
                                                 size="xs"
                                                 fontSize="2xs"
@@ -440,7 +443,7 @@ export function WorkflowViewPage() {
                                         py={1}
                                     >
                                         <HStack gap={1}>
-                                            <Text>Perms</Text>
+                                            <Text>{t("workflowView.permissions")}</Text>
                                             <Badge
                                                 size="xs"
                                                 fontSize="2xs"
@@ -464,7 +467,7 @@ export function WorkflowViewPage() {
                                                         fontSize="xs"
                                                         fontWeight="medium"
                                                     >
-                                                        Plugins
+                                                        {t("workflowView.plugins")}
                                                     </Text>
                                                     <Badge
                                                         size="xs"
@@ -501,7 +504,7 @@ export function WorkflowViewPage() {
                                                         fontSize="xs"
                                                         fontWeight="medium"
                                                     >
-                                                        Functions
+                                                        {t("workflowView.functions")}
                                                     </Text>
                                                     <Badge
                                                         size="xs"
@@ -540,7 +543,7 @@ export function WorkflowViewPage() {
                                                         fontSize="xs"
                                                         fontWeight="medium"
                                                     >
-                                                        Permissions
+                                                        {t("workflowView.permissions")}
                                                     </Text>
                                                     <Badge
                                                         size="xs"
@@ -553,7 +556,7 @@ export function WorkflowViewPage() {
                                                     fontSize="2xs"
                                                     color="fg.muted"
                                                 >
-                                                    See Perms tab for details
+                                                    {t("workflowView.seePermsTab")}
                                                 </Text>
                                             </Box>
                                         )}

@@ -1,5 +1,6 @@
 import type { GenerationEvent } from "./utils";
 import { stringifyPayload } from "./utils";
+import i18n from "@/i18n/config";
 
 export type Row =
   | { type: "sep"; label: string }
@@ -18,7 +19,7 @@ export function toRows(events: GenerationEvent[]): Row[] {
         "status" in p &&
         (p as { status?: unknown }).status === "start"
       ) {
-        rows.push({ type: "sep", label: "実行開始" });
+        rows.push({ type: "sep", label: i18n.t("console.executionStart") });
       }
 
       if (p && typeof p === "object" && "workflowResult" in p) {
@@ -68,9 +69,9 @@ export function toRows(events: GenerationEvent[]): Row[] {
         payload && typeof payload === "object" && "stage" in payload
           ? (payload as { stage?: unknown }).stage
           : undefined;
-      if (stage === "run") rows.push({ type: "sep", label: "実行完了" });
+      if (stage === "run") rows.push({ type: "sep", label: i18n.t("console.executionComplete") });
       if (stage === "generate") {
-        rows.push({ type: "sep", label: "生成完了" });
+        rows.push({ type: "sep", label: i18n.t("console.generationComplete") });
       }
     }
     rows.push({ type: "log", event: e });
@@ -85,7 +86,7 @@ export function summarize(e: GenerationEvent): string {
       typeof err === "object" && err && "message" in err
         ? String((err as { message?: unknown }).message ?? "")
         : String(err);
-    return msg || "エラーが発生しました";
+    return msg || i18n.t("console.errorOccurred");
   }
   if (e.kind === "done") {
     const p = e.payload as unknown;
@@ -93,9 +94,9 @@ export function summarize(e: GenerationEvent): string {
       p && typeof p === "object" && "stage" in p
         ? (p as { stage?: unknown }).stage
         : undefined;
-    if (stage === "run") return "実行完了";
-    if (stage === "generate") return "生成完了";
-    return "完了";
+    if (stage === "run") return i18n.t("console.executionComplete");
+    if (stage === "generate") return i18n.t("console.generationComplete");
+    return i18n.t("console.complete");
   }
   // message
   const p = e.payload as unknown;
@@ -106,7 +107,7 @@ export function summarize(e: GenerationEvent): string {
       "status" in p &&
       (p as { status?: unknown }).status === "start"
     )
-      return "実行開始";
+      return i18n.t("console.executionStart");
     if (
       "workflowResult" in p &&
       (p as { workflowResult?: unknown }).workflowResult
@@ -128,10 +129,10 @@ export function summarize(e: GenerationEvent): string {
         r && typeof r === "object" && "exitCode" in r
           ? (r as Record<string, unknown>).exitCode
           : undefined;
-      const name = (displayName || id || "実行") as string;
-      const type = resultType === 1 ? "失敗" : "成功";
+      const name = (displayName || id || i18n.t("console.execution")) as string;
+      const type = resultType === 1 ? i18n.t("console.failed") : i18n.t("console.success");
       const exit =
-        typeof exitCode === "number" ? ` (終了コード: ${exitCode})` : "";
+        typeof exitCode === "number" ? i18n.t("console.exitCode", { code: exitCode }) : "";
       // Prefer textual result if present
       const resultStr =
         r && typeof r === "object" && "result" in r
@@ -147,12 +148,12 @@ export function summarize(e: GenerationEvent): string {
       "workflowDefinition" in p &&
       (p as { workflowDefinition?: unknown }).workflowDefinition
     )
-      return "ワークフロー定義を更新しました";
+      return i18n.t("console.workflowDefinitionUpdated");
   }
   try {
     const s = stringifyPayload(p);
     return s.length > 120 ? s.slice(0, 120) + "…" : s;
   } catch {
-    return "メッセージ";
+    return i18n.t("console.message");
   }
 }

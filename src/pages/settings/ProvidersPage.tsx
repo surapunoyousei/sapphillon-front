@@ -38,21 +38,27 @@ import { Field } from "@/components/ui/field";
 import { toaster } from "@/components/ui/toaster-instance";
 import { EmptyState } from "@/components/ui/empty-state";
 import { TableSkeleton } from "@/components/ui/skeleton";
+import { useI18n } from "@/hooks/useI18n";
 
-// バリデーションスキーマ
-const providerFormSchema = z.object({
-    displayName: z.string().min(1, "表示名は必須です"),
-    apiKey: z.string().min(1, "APIキーは必須です"),
-    apiEndpoint: z.string().url("有効なURLを入力してください"),
-});
-
-type ProviderFormData = z.infer<typeof providerFormSchema>;
+type ProviderFormData = {
+    displayName: string;
+    apiKey: string;
+    apiEndpoint: string;
+};
 
 export function ProvidersPage() {
+    const { t } = useI18n();
     const [providers, setProviders] = React.useState<Provider[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [editingId, setEditingId] = React.useState<string | null>(null);
     const [isCreating, setIsCreating] = React.useState(false);
+
+    // バリデーションスキーマ
+    const providerFormSchema = React.useMemo(() => z.object({
+        displayName: z.string().min(1, t("providers.displayNameRequired")),
+        apiKey: z.string().min(1, t("providers.apiKeyRequired")),
+        apiEndpoint: z.string().url(t("providers.apiEndpointInvalid")),
+    }), [t]);
 
     const {
         register,
@@ -85,7 +91,7 @@ export function ProvidersPage() {
         } catch (error) {
             console.error("Failed to fetch providers:", error);
             toaster.create({
-                title: "プロバイダの取得に失敗しました",
+                title: t("providers.fetchError"),
                 type: "error",
             });
         } finally {
@@ -112,7 +118,7 @@ export function ProvidersPage() {
 
             await clients.provider.createProvider(request);
             toaster.create({
-                title: "プロバイダを作成しました",
+                title: t("providers.createSuccess"),
                 type: "success",
             });
             reset();
@@ -121,7 +127,7 @@ export function ProvidersPage() {
         } catch (error) {
             console.error("Failed to create provider:", error);
             toaster.create({
-                title: "プロバイダの作成に失敗しました",
+                title: t("providers.createError"),
                 type: "error",
             });
         }
@@ -146,7 +152,7 @@ export function ProvidersPage() {
 
             await clients.provider.updateProvider(request);
             toaster.create({
-                title: "プロバイダを更新しました",
+                title: t("providers.updateSuccess"),
                 type: "success",
             });
             reset();
@@ -155,7 +161,7 @@ export function ProvidersPage() {
         } catch (error) {
             console.error("Failed to update provider:", error);
             toaster.create({
-                title: "プロバイダの更新に失敗しました",
+                title: t("providers.updateError"),
                 type: "error",
             });
         }
@@ -163,7 +169,7 @@ export function ProvidersPage() {
 
     // プロバイダの削除
     const onDeleteProvider = async (providerId: string) => {
-        if (!confirm("このプロバイダを削除してもよろしいですか？")) {
+        if (!confirm(t("providers.deleteConfirm"))) {
             return;
         }
 
@@ -174,14 +180,14 @@ export function ProvidersPage() {
 
             await clients.provider.deleteProvider(request);
             toaster.create({
-                title: "プロバイダを削除しました",
+                title: t("providers.deleteSuccess"),
                 type: "success",
             });
             fetchProviders();
         } catch (error) {
             console.error("Failed to delete provider:", error);
             toaster.create({
-                title: "プロバイダの削除に失敗しました",
+                title: t("providers.deleteError"),
                 type: "error",
             });
         }
@@ -212,14 +218,14 @@ export function ProvidersPage() {
         <Box p={6}>
             <VStack align="stretch" gap={6}>
                 <Flex justify="space-between" align="center">
-                    <Heading size="xl">LLMプロバイダ管理</Heading>
+                    <Heading size="xl">{t("providers.title")}</Heading>
                     {!isCreating && !loading && (
                         <Button
                             colorPalette="floorp"
                             onClick={startCreate}
                         >
                             <LuPlus />
-                            新規作成
+                            {t("providers.new")}
                         </Button>
                     )}
                 </Flex>
@@ -230,10 +236,10 @@ export function ProvidersPage() {
                         <Card.Header>
                             <Flex justify="space-between" align="center">
                                 <Heading size="md">
-                                    新しいプロバイダを作成
+                                    {t("providers.createNew")}
                                 </Heading>
                                 <IconButton
-                                    aria-label="キャンセル"
+                                    aria-label={t("providers.cancel")}
                                     size="sm"
                                     variant="ghost"
                                     onClick={() => {
@@ -249,7 +255,7 @@ export function ProvidersPage() {
                             <form onSubmit={handleSubmit(onCreateProvider)}>
                                 <Stack gap={4}>
                                     <Field
-                                        label="表示名"
+                                        label={t("providers.displayName")}
                                         invalid={!!errors.displayName}
                                         errorText={errors.displayName?.message}
                                     >
@@ -257,7 +263,7 @@ export function ProvidersPage() {
                                     </Field>
 
                                     <Field
-                                        label="APIキー"
+                                        label={t("providers.apiKey")}
                                         invalid={!!errors.apiKey}
                                         errorText={errors.apiKey?.message}
                                     >
@@ -268,7 +274,7 @@ export function ProvidersPage() {
                                     </Field>
 
                                     <Field
-                                        label="APIエンドポイント"
+                                        label={t("providers.apiEndpoint")}
                                         invalid={!!errors.apiEndpoint}
                                         errorText={errors.apiEndpoint?.message}
                                     >
@@ -283,14 +289,14 @@ export function ProvidersPage() {
                                                 reset();
                                             }}
                                         >
-                                            キャンセル
+                                            {t("providers.cancel")}
                                         </Button>
                                         <Button
                                             type="submit"
                                             colorPalette="floorp"
                                             loading={isSubmitting}
                                         >
-                                            作成
+                                            {t("providers.create")}
                                         </Button>
                                     </HStack>
                                 </Stack>
@@ -302,7 +308,7 @@ export function ProvidersPage() {
                 {/* プロバイダ一覧 */}
                 <Card.Root>
                     <Card.Header>
-                        <Heading size="md">プロバイダ一覧</Heading>
+                        <Heading size="md">{t("providers.list")}</Heading>
                     </Card.Header>
                     <Card.Body p={0}>
                         {loading
@@ -311,10 +317,10 @@ export function ProvidersPage() {
                             ? (
                                 <EmptyState
                                     icon={<LuServer />}
-                                    title="プロバイダが登録されていません"
-                                    description="LLMプロバイダを追加して、モデルを使い始めましょう。プロバイダは、APIキーとエンドポイントを使ってLLMサービスに接続します。"
+                                    title={t("providers.emptyTitle")}
+                                    description={t("providers.emptyDescription")}
                                     action={{
-                                        label: "プロバイダを追加",
+                                        label: t("providers.emptyAction"),
                                         onClick: startCreate,
                                         icon: <LuPlus />,
                                     }}
@@ -325,16 +331,16 @@ export function ProvidersPage() {
                                     <Table.Header>
                                         <Table.Row>
                                             <Table.ColumnHeader>
-                                                表示名
+                                                {t("providers.displayName")}
                                             </Table.ColumnHeader>
                                             <Table.ColumnHeader>
-                                                APIエンドポイント
+                                                {t("providers.apiEndpoint")}
                                             </Table.ColumnHeader>
                                             <Table.ColumnHeader>
-                                                リソース名
+                                                {t("providers.resourceName")}
                                             </Table.ColumnHeader>
                                             <Table.ColumnHeader textAlign="right">
-                                                操作
+                                                {t("providers.operations")}
                                             </Table.ColumnHeader>
                                         </Table.Row>
                                     </Table.Header>
@@ -393,7 +399,7 @@ export function ProvidersPage() {
                                                             ? (
                                                                 <>
                                                                     <IconButton
-                                                                        aria-label="保存"
+                                                                        aria-label={t("providers.save")}
                                                                         size="sm"
                                                                         colorPalette="green"
                                                                         onClick={handleSubmitEdit(
@@ -410,7 +416,7 @@ export function ProvidersPage() {
                                                                         <LuCheck />
                                                                     </IconButton>
                                                                     <IconButton
-                                                                        aria-label="キャンセル"
+                                                                        aria-label={t("providers.cancel")}
                                                                         size="sm"
                                                                         variant="ghost"
                                                                         onClick={() => {
@@ -427,7 +433,7 @@ export function ProvidersPage() {
                                                             : (
                                                                 <>
                                                                     <IconButton
-                                                                        aria-label="編集"
+                                                                        aria-label={t("providers.edit")}
                                                                         size="sm"
                                                                         variant="ghost"
                                                                         onClick={() =>
@@ -438,7 +444,7 @@ export function ProvidersPage() {
                                                                         <LuPencil />
                                                                     </IconButton>
                                                                     <IconButton
-                                                                        aria-label="削除"
+                                                                        aria-label={t("providers.delete")}
                                                                         size="sm"
                                                                         variant="ghost"
                                                                         colorPalette="red"

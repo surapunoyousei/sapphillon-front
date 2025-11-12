@@ -9,6 +9,7 @@ import type {
   TryStatement,
 } from "@babel/types";
 import generate from "@babel/generator";
+import i18n from "@/i18n/config";
 
 export interface WorkflowAction {
   type:
@@ -405,9 +406,9 @@ export function groupStatementsIntoActions(
       ]);
       actions.push({
         type: "return",
-        title: "実行結果を返す",
-        description: "ワークフローが完了し、結果を返します",
-        humanReadable: readable || "実行結果を返却します",
+        title: i18n.t("workflowActions.return"),
+        description: i18n.t("workflowActions.returnDescription"),
+        humanReadable: readable || i18n.t("workflowActions.returnReadable"),
         statements: [statement],
         importance: "high",
         icon: "return",
@@ -425,42 +426,42 @@ export function groupStatementsIntoActions(
       ]);
 
       // タイトルと説明を動的に生成
-      let title = "条件分岐・ループ処理";
-      let description = "条件に応じて異なる処理を実行";
+      let title = i18n.t("workflowActions.controlFlow");
+      let description = i18n.t("workflowActions.controlFlowDescription");
 
       if (statement.type === "IfStatement") {
         const ifStmt = statement as IfStatement;
         const condition = ifStmt.test ? generateCode(ifStmt.test) : "";
         const conditionDesc = describeCondition(condition);
-        title = "条件分岐";
-        description = `もし${conditionDesc}の場合`;
+        title = i18n.t("workflowActions.ifStatement");
+        description = i18n.t("workflowActions.ifDescription", { condition: conditionDesc });
       } else if (statement.type === "ForStatement") {
-        title = "繰り返し処理（for）";
-        description = "指定回数繰り返します";
+        title = i18n.t("workflowActions.forLoop");
+        description = i18n.t("workflowActions.forDescription");
       } else if (statement.type === "WhileStatement") {
         const whileStmt = statement as WhileStatement;
         const condition = whileStmt.test ? generateCode(whileStmt.test) : "";
         const conditionDesc = describeCondition(condition);
-        title = "繰り返し処理（while）";
-        description = `${conditionDesc}の間、繰り返します`;
+        title = i18n.t("workflowActions.whileLoop");
+        description = i18n.t("workflowActions.whileDescription", { condition: conditionDesc });
       } else if (
         statement.type === "ForOfStatement" ||
         statement.type === "ForInStatement"
       ) {
-        title = "繰り返し処理（for...of/in）";
-        description = "各要素に対して繰り返します";
+        title = i18n.t("workflowActions.forOfLoop");
+        description = i18n.t("workflowActions.forOfDescription");
       }
 
       actions.push({
         type: "control-flow",
         title,
         description,
-        humanReadable: readable || "条件を判定して、該当する処理を実行します",
+        humanReadable: readable || i18n.t("workflowActions.controlFlowReadable"),
         statements: [statement],
         importance: "high",
         icon: "branch",
         details:
-          details.length > 0 ? details : ["条件を確認", "該当する処理を実行"],
+          details.length > 0 ? details : [i18n.t("workflowActions.checkCondition"), i18n.t("workflowActions.executeAction")],
       });
       i++;
       continue;
@@ -496,12 +497,12 @@ export function groupStatementsIntoActions(
         const url = extractStringValue(combinedCode);
         actions.push({
           type: "navigation",
-          title: "ページを開く",
+          title: i18n.t("workflowActions.navigation"),
           description: url
-            ? `「${url}」にアクセスします`
-            : "指定されたページにアクセスします",
+            ? i18n.t("workflowActions.navigationWithUrl", { url })
+            : i18n.t("workflowActions.navigationDescription"),
           humanReadable:
-            readable || `ブラウザで${varName}を使ってページを操作します`,
+            readable || i18n.t("workflowActions.navigationReadable"),
           statements: relatedStatements,
           importance: "high",
           variables: [varName],
@@ -515,9 +516,9 @@ export function groupStatementsIntoActions(
       if (isInteractionAction(combinedCode)) {
         actions.push({
           type: "interaction",
-          title: "ページ要素を操作",
-          description: "ボタンのクリックやテキスト入力などを行います",
-          humanReadable: readable || `${varName}を使って要素と対話します`,
+          title: i18n.t("workflowActions.interaction"),
+          description: i18n.t("workflowActions.interactionDescription"),
+          humanReadable: readable || i18n.t("workflowActions.interactionReadable"),
           statements: relatedStatements,
           importance: "high",
           variables: [varName],
@@ -531,9 +532,9 @@ export function groupStatementsIntoActions(
       if (isDataExtractionAction(combinedCode)) {
         actions.push({
           type: "data-extraction",
-          title: "データを取得",
-          description: "ページからテキストや属性などのデータを取得します",
-          humanReadable: readable || `${varName}からデータを抽出します`,
+          title: i18n.t("workflowActions.dataExtraction"),
+          description: i18n.t("workflowActions.dataExtractionDescription"),
+          humanReadable: readable || i18n.t("workflowActions.dataExtractionReadable"),
           statements: relatedStatements,
           importance: "high",
           variables: [varName],
@@ -554,9 +555,9 @@ export function groupStatementsIntoActions(
       ]);
       actions.push({
         type: "navigation",
-        title: "ページを開く",
-        description: url ? `「${url}」にアクセスします` : "ページに移動します",
-        humanReadable: readable || "指定されたページに移動します",
+        title: i18n.t("workflowActions.navigation"),
+        description: url ? i18n.t("workflowActions.navigationWithUrl", { url }) : i18n.t("workflowActions.navigationReadable"),
+        humanReadable: readable || i18n.t("workflowActions.navigationReadable"),
         statements: [statement],
         importance: "high",
         icon: "navigation",
@@ -573,9 +574,9 @@ export function groupStatementsIntoActions(
       ]);
       actions.push({
         type: "interaction",
-        title: "ページ要素を操作",
-        description: "ボタンのクリックやテキスト入力などを行います",
-        humanReadable: readable || "要素と対話します",
+        title: i18n.t("workflowActions.interaction"),
+        description: i18n.t("workflowActions.interactionDescription"),
+        humanReadable: readable || i18n.t("workflowActions.interactionReadable"),
         statements: [statement],
         importance: "high",
         icon: "interaction",
@@ -592,9 +593,9 @@ export function groupStatementsIntoActions(
       ]);
       actions.push({
         type: "data-extraction",
-        title: "データを取得",
-        description: "ページからデータを取得します",
-        humanReadable: readable || "データを取得します",
+        title: i18n.t("workflowActions.dataExtraction"),
+        description: i18n.t("workflowActions.dataExtractionDescription"),
+        humanReadable: readable || i18n.t("workflowActions.dataExtractionReadable"),
         statements: [statement],
         importance: "medium",
         icon: "extraction",
@@ -608,11 +609,11 @@ export function groupStatementsIntoActions(
     const { readable, details } = generateHumanReadableDescription([statement]);
     actions.push({
       type: "computation",
-      title: varName ? `変数を準備` : "計算処理",
+      title: varName ? i18n.t("workflowActions.prepareVariable") : i18n.t("workflowActions.computation"),
       description: varName
-        ? `「${varName}」を準備します`
-        : "データの準備や計算を行います",
-      humanReadable: readable || "データを準備します",
+        ? i18n.t("workflowActions.prepareDescription", { name: varName })
+        : i18n.t("workflowActions.computationDescription"),
+      humanReadable: readable || i18n.t("workflowActions.computationReadable"),
       statements: [statement],
       importance: "low",
       variables: varName ? [varName] : undefined,

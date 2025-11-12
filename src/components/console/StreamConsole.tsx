@@ -4,6 +4,7 @@ import type { GenerationEvent } from "./utils";
 import { toRows } from "./row-utils";
 import { LogRow } from "./LogRow";
 import { SeparatorRow } from "./SeparatorRow";
+import { useI18n } from "@/hooks/useI18n";
 
 export interface StreamConsoleProps {
   events: GenerationEvent[];
@@ -14,6 +15,7 @@ export const StreamConsole: React.FC<StreamConsoleProps> = ({
   events,
   streaming,
 }) => {
+  const { t } = useI18n();
   // 初期表示は上端に固定（ターミナルと同様）。ユーザーが最下部に到達したら追従を再開
   const [autoScroll, setAutoScroll] = React.useState(false);
   const viewportRef = React.useRef<HTMLDivElement | null>(null);
@@ -65,8 +67,8 @@ export const StreamConsole: React.FC<StreamConsoleProps> = ({
               fontSize={{ base: "xs", md: "sm" }}
             >
               {events.length === 0
-                ? (streaming ? "実行中…" : "実行待ち")
-                : "表示するログがありません"}
+                ? (streaming ? t("console.running") : t("console.waiting"))
+                : t("console.noLogs")}
             </Text>
           )
           : (

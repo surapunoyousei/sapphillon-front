@@ -28,6 +28,7 @@ import { parseWorkflowCode, stripTypeScriptSyntax } from "./ast-utils";
 import { CodeHighlighter } from "./CodeHighlighter";
 import { groupStatementsIntoActions } from "./action-grouper";
 import { ActionNode } from "./ActionNode";
+import { useI18n } from "@/hooks/useI18n";
 import {
   LuChevronDown,
   LuChevronRight,
@@ -82,7 +83,7 @@ const oneLine = (code: string | null | undefined, max = 80, mobileMax = 40) => {
 };
 
 // ステートメントの簡潔な説明を生成
-const describeStatementSimple = (stmt: Statement): string => {
+const describeStatementSimple = (stmt: Statement, t: (key: string) => string): string => {
   const code = generateCode(stmt);
   if (
     stmt.type === "ExpressionStatement" &&
@@ -91,13 +92,13 @@ const describeStatementSimple = (stmt: Statement): string => {
     const callExpr = stmt.expression;
     const callee = generateCode(callExpr.callee);
     if (callee.includes("goto") || callee.includes("navigate")) {
-      return "ページに移動";
+      return t("workflowActions.pageNavigation");
     } else if (callee.includes("click")) {
-      return "要素をクリック";
+      return t("workflowActions.clickElement");
     } else if (callee.includes("type") || callee.includes("fill")) {
-      return "テキストを入力";
+      return t("workflowActions.inputText");
     } else if (callee.includes("textContent") || callee.includes("innerHTML")) {
-      return "テキストを取得";
+      return t("workflowActions.getText");
     }
     return oneLine(callee, 40);
   } else if (stmt.type === "VariableDeclaration") {
@@ -107,18 +108,18 @@ const describeStatementSimple = (stmt: Statement): string => {
         ? varDecl.declarations[0].id.name
         : null;
       if (varName) {
-        return `変数 ${varName} を準備`;
+        return t("workflowActions.prepareDescription", { name: varName });
       }
     }
-    return "変数を準備";
+    return t("workflowActions.prepareVar");
   } else if (stmt.type === "ReturnStatement") {
-    return "結果を返す";
+    return t("workflowActions.returnResult");
   }
   return oneLine(code, 40);
 };
 
 // ブロック内のステートメントを簡潔に説明
-const describeBlockContent = (body: Statement | Statement[]): string => {
+const describeBlockContent = (body: Statement | Statement[], t: (key: string) => string): string => {
   const statements = Array.isArray(body)
     ? body
     : body.type === "BlockStatement"
@@ -126,12 +127,12 @@ const describeBlockContent = (body: Statement | Statement[]): string => {
     : [body];
 
   if (statements.length === 0) {
-    return "（処理なし）";
+    return t("workflowActions.noAction");
   }
 
   const descriptions = statements
     .slice(0, 3) // 最初の3つだけ表示
-    .map((stmt) => describeStatementSimple(stmt));
+    .map((stmt) => describeStatementSimple(stmt, t));
 
   if (statements.length > 3) {
     descriptions.push(`他 ${statements.length - 3} 件`);
@@ -296,6 +297,7 @@ const AstNode: React.FC<
 > = (
   { node, depth = 0, importantOnly = false, workflow },
 ) => {
+  const { t } = useI18n();
   // Early return for invalid nodes
   if (!node || !node.type) {
     return (
@@ -623,7 +625,7 @@ const AstNode: React.FC<
       }
       return (
         <NodeContainer
-          title="変数を準備"
+          title={t("workflowActions.prepareVar")}
           icon={<LuVariable size={16} />}
           type="action"
           // show full declaration in header (tokenized there)
@@ -639,7 +641,7 @@ const AstNode: React.FC<
       const summary = oneLine(`return ${generateCode(returnStmt.argument)}`);
       return (
         <NodeContainer
-          title="結果を返す"
+          title={t("workflowActions.returnResult")}
           icon={<LuCornerDownLeft size={16} />}
           type="action"
           summary={summary}
@@ -682,7 +684,7 @@ const AstNode: React.FC<
           <NodeContainer
             title={funcDef
               ? funcDef.name
-              : (isImportant ? "重要処理" : "ツールを実行")}
+              : (isImportant ? t("workflowActions.importantAction") : t("workflowActions.executeTool"))}
             icon={isImportant
               ? <LuTriangleAlert size={16} />
               : <LuSettings size={16} />}
@@ -720,7 +722,7 @@ const AstNode: React.FC<
       const summary = oneLine(generateCode(expr.expression));
       return (
         <NodeContainer
-          title="処理を実行"
+          title={t("workflowActions.executeProcess")}
           icon={<LuZap size={16} />}
           type="action"
           summary={summary}
@@ -745,16 +747,16 @@ const AstNode: React.FC<
         );
       }
       const conditionCode = oneLine(`if (${generateCode(ifStmt.test)})`);
-      const thenContent = describeBlockContent(ifStmt.consequent);
+      const thenContent = describeBlockContent(ifStmt.consequent, t);
       const elseContent = ifStmt.alternate
-        ? describeBlockContent(ifStmt.alternate)
+        ? describeBlockContent(ifStmt.alternate, t)
         : null;
       const summary = elseContent
         ? `${conditionCode} → 合致時: ${thenContent} | 非合致時: ${elseContent}`
         : `${conditionCode} → ${thenContent}`;
       return (
         <NodeContainer
-          title="条件分岐"
+          title={t("workflowActions.conditionBranch")}
           icon={<LuGitBranch size={16} />}
           type="condition"
           summary={summary}
@@ -839,11 +841,11 @@ const AstNode: React.FC<
       const loopCode = oneLine(
         `${generateCode(loopStmt.left)} in/of ${generateCode(loopStmt.right)}`,
       );
-      const bodyContent = describeBlockContent(loopStmt.body);
+      const bodyContent = describeBlockContent(loopStmt.body, t);
       const summary = `${loopCode} → ${bodyContent}`;
       return (
         <NodeContainer
-          title="繰り返し"
+          title={t("workflowActions.loop")}
           icon={<LuRepeat size={16} />}
           type="loop"
           summary={summary}
@@ -885,11 +887,11 @@ const AstNode: React.FC<
     case "WhileStatement": {
       const whileStmt = node as WhileStatement;
       const conditionCode = oneLine(`while (${generateCode(whileStmt.test)})`);
-      const bodyContent = describeBlockContent(whileStmt.body);
+      const bodyContent = describeBlockContent(whileStmt.body, t);
       const summary = `${conditionCode} → ${bodyContent}`;
       return (
         <NodeContainer
-          title="繰り返し"
+          title={t("workflowActions.loop")}
           icon={<LuRepeat size={16} />}
           type="loop"
           summary={summary}
@@ -935,11 +937,11 @@ const AstNode: React.FC<
           generateCode(forStmt.update)
         })`,
       );
-      const bodyContent = describeBlockContent(forStmt.body);
+      const bodyContent = describeBlockContent(forStmt.body, t);
       const summary = `${forCode} → ${bodyContent}`;
       return (
         <NodeContainer
-          title="繰り返し"
+          title={t("workflowActions.loop")}
           icon={<LuRepeat size={16} />}
           type="loop"
           summary={summary}
@@ -1007,7 +1009,7 @@ const AstNode: React.FC<
               body={tryStmt.block.body}
               depth={depth + 1}
               importantOnly={importantOnly}
-              label="通常実行"
+              label={t("workflowActions.normalExecution")}
             />
             {tryStmt.handler && tryStmt.handler.body && (
               <BodyRenderer

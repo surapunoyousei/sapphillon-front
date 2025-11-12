@@ -49,17 +49,16 @@ import { Field } from "@/components/ui/field";
 import { toaster } from "@/components/ui/toaster-instance";
 import { EmptyState } from "@/components/ui/empty-state";
 import { TableSkeleton } from "@/components/ui/skeleton";
+import { useI18n } from "@/hooks/useI18n";
 
-// バリデーションスキーマ
-const modelFormSchema = z.object({
-  displayName: z.string().min(1, "表示名は必須です"),
-  description: z.string().optional(),
-  providerName: z.string().min(1, "プロバイダは必須です"), // provider.nameを保存
-});
-
-type ModelFormData = z.infer<typeof modelFormSchema>;
+type ModelFormData = {
+  displayName: string;
+  description?: string;
+  providerName: string;
+};
 
 export function ModelsPage() {
+  const { t } = useI18n();
   const [models, setModels] = React.useState<Models[]>([]);
   const [providers, setProviders] = React.useState<Provider[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -67,6 +66,13 @@ export function ModelsPage() {
   const [isCreating, setIsCreating] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [providerFilter, setProviderFilter] = React.useState<string>("");
+
+  // バリデーションスキーマ
+  const modelFormSchema = React.useMemo(() => z.object({
+    displayName: z.string().min(1, t("models.displayNameRequired")),
+    description: z.string().optional(),
+    providerName: z.string().min(1, t("models.providerRequired")),
+  }), [t]);
 
   const {
     register,
@@ -100,11 +106,11 @@ export function ModelsPage() {
     } catch (error) {
       console.error("Failed to fetch providers:", error);
       toaster.create({
-        title: "プロバイダの取得に失敗しました",
+        title: t("models.fetchError"),
         type: "error",
       });
     }
-  }, []);
+  }, [t]);
 
   // モデル一覧の取得
   const fetchModels = React.useCallback(async () => {
@@ -132,13 +138,13 @@ export function ModelsPage() {
     } catch (error) {
       console.error("Failed to fetch models:", error);
       toaster.create({
-        title: "モデルの取得に失敗しました",
+        title: t("models.fetchModelError"),
         type: "error",
       });
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, providerFilter]);
+  }, [searchQuery, providerFilter, t]);
 
   React.useEffect(() => {
     fetchProviders();
@@ -175,7 +181,7 @@ export function ModelsPage() {
 
       await clients.model.createModel(request);
       toaster.create({
-        title: "モデルを作成しました",
+        title: t("models.createSuccess"),
         type: "success",
       });
       reset();
@@ -184,7 +190,7 @@ export function ModelsPage() {
     } catch (error) {
       console.error("Failed to create model:", error);
       toaster.create({
-        title: "モデルの作成に失敗しました",
+        title: t("models.createError"),
         type: "error",
       });
     }
@@ -199,7 +205,7 @@ export function ModelsPage() {
       );
       if (!selectedProvider) {
         toaster.create({
-          title: "プロバイダが見つかりません",
+          title: t("models.providerNotFound"),
           type: "error",
         });
         return;
@@ -218,7 +224,7 @@ export function ModelsPage() {
 
       await clients.model.updateModel(request);
       toaster.create({
-        title: "モデルを更新しました",
+        title: t("models.updateSuccess"),
         type: "success",
       });
       reset();
@@ -227,7 +233,7 @@ export function ModelsPage() {
     } catch (error) {
       console.error("Failed to update model:", error);
       toaster.create({
-        title: "モデルの更新に失敗しました",
+        title: t("models.updateError"),
         type: "error",
       });
     }
@@ -235,7 +241,7 @@ export function ModelsPage() {
 
   // モデルの削除
   const onDeleteModel = async (modelId: string) => {
-    if (!confirm("このモデルを削除してもよろしいですか？")) {
+    if (!confirm(t("models.deleteConfirm"))) {
       return;
     }
 
@@ -246,14 +252,14 @@ export function ModelsPage() {
 
       await clients.model.deleteModel(request);
       toaster.create({
-        title: "モデルを削除しました",
+        title: t("models.deleteSuccess"),
         type: "success",
       });
       fetchModels();
     } catch (error) {
       console.error("Failed to delete model:", error);
       toaster.create({
-        title: "モデルの削除に失敗しました",
+        title: t("models.deleteError"),
         type: "error",
       });
     }
@@ -291,14 +297,14 @@ export function ModelsPage() {
     <Box p={6}>
       <VStack align="stretch" gap={6}>
         <Flex justify="space-between" align="center">
-          <Heading size="xl">LLMモデル管理</Heading>
+          <Heading size="xl">{t("models.title")}</Heading>
           {!isCreating && (
             <Button
               colorPalette="floorp"
               onClick={startCreate}
             >
               <LuPlus />
-              新規作成
+              {t("models.new")}
             </Button>
           )}
         </Flex>
@@ -309,16 +315,16 @@ export function ModelsPage() {
             <Card.Body>
               <HStack gap={4} wrap="wrap">
                 <Box flex="1" minW="200px">
-                  <Field label="モデル名で検索">
+                  <Field label={t("models.searchByName")}>
                     <Input
-                      placeholder="モデル名を入力..."
+                      placeholder={t("models.searchPlaceholder")}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                   </Field>
                 </Box>
                 <Box flex="1" minW="200px">
-                  <Field label="プロバイダでフィルター">
+                  <Field label={t("models.filterByProvider")}>
                     <SelectRoot
                       collection={providerCollection}
                       value={providerFilter ? [providerFilter] : []}
@@ -327,11 +333,11 @@ export function ModelsPage() {
                       }}
                     >
                       <SelectTrigger>
-                        <SelectValueText placeholder="すべてのプロバイダ" />
+                        <SelectValueText placeholder={t("models.allProviders")} />
                       </SelectTrigger>
                       <SelectPositioner>
                         <SelectContent>
-                          <SelectItem item="">すべてのプロバイダ</SelectItem>
+                          <SelectItem item="">{t("models.allProviders")}</SelectItem>
                           {providers.map((provider) => (
                             <SelectItem
                               key={provider.name}
@@ -353,7 +359,7 @@ export function ModelsPage() {
                       setProviderFilter("");
                     }}
                   >
-                    クリア
+                    {t("models.clear")}
                   </Button>
                 </Box>
               </HStack>
@@ -366,9 +372,9 @@ export function ModelsPage() {
           <Card.Root>
             <Card.Header>
               <Flex justify="space-between" align="center">
-                <Heading size="md">新しいモデルを作成</Heading>
+                <Heading size="md">{t("models.createNew")}</Heading>
                 <IconButton
-                  aria-label="キャンセル"
+                  aria-label={t("models.cancel")}
                   size="sm"
                   variant="ghost"
                   onClick={() => {
@@ -384,7 +390,7 @@ export function ModelsPage() {
               <form onSubmit={handleSubmit(onCreateModel)}>
                 <Stack gap={4}>
                   <Field
-                    label="表示名"
+                    label={t("models.displayName")}
                     invalid={!!errors.displayName}
                     errorText={errors.displayName?.message}
                   >
@@ -392,7 +398,7 @@ export function ModelsPage() {
                   </Field>
 
                   <Field
-                    label="説明"
+                    label={t("models.description")}
                     invalid={!!errors.description}
                     errorText={errors.description?.message}
                   >
@@ -400,7 +406,7 @@ export function ModelsPage() {
                   </Field>
 
                   <Field
-                    label="プロバイダ"
+                    label={t("models.provider")}
                     invalid={!!errors.providerName}
                     errorText={errors.providerName?.message}
                   >
@@ -416,7 +422,7 @@ export function ModelsPage() {
                           }}
                         >
                           <SelectTrigger>
-                            <SelectValueText placeholder="プロバイダを選択" />
+                            <SelectValueText placeholder={t("models.providerSelect")} />
                           </SelectTrigger>
                           <SelectPositioner>
                             <SelectContent>
@@ -443,14 +449,14 @@ export function ModelsPage() {
                         reset();
                       }}
                     >
-                      キャンセル
+                      {t("models.cancel")}
                     </Button>
                     <Button
                       type="submit"
                       colorPalette="floorp"
                       loading={isSubmitting}
                     >
-                      作成
+                      {t("models.create")}
                     </Button>
                   </HStack>
                 </Stack>
@@ -462,7 +468,7 @@ export function ModelsPage() {
         {/* モデル一覧 */}
         <Card.Root>
           <Card.Header>
-            <Heading size="md">モデル一覧</Heading>
+            <Heading size="md">{t("models.list")}</Heading>
           </Card.Header>
           <Card.Body p={0}>
             {loading
@@ -471,10 +477,10 @@ export function ModelsPage() {
               ? (
                 <EmptyState
                   icon={<LuDatabase />}
-                  title="モデルが登録されていません"
-                  description="LLMモデルを追加して、ワークフローで使用できるようにしましょう。モデルはプロバイダに関連付けられます。"
+                  title={t("models.emptyTitle")}
+                  description={t("models.emptyDescription")}
                   action={{
-                    label: "モデルを追加",
+                    label: t("models.emptyAction"),
                     onClick: startCreate,
                     icon: <LuPlus />,
                   }}
@@ -484,12 +490,12 @@ export function ModelsPage() {
                 <Table.Root>
                   <Table.Header>
                     <Table.Row>
-                      <Table.ColumnHeader>表示名</Table.ColumnHeader>
-                      <Table.ColumnHeader>説明</Table.ColumnHeader>
-                      <Table.ColumnHeader>プロバイダ</Table.ColumnHeader>
-                      <Table.ColumnHeader>リソース名</Table.ColumnHeader>
+                      <Table.ColumnHeader>{t("models.displayName")}</Table.ColumnHeader>
+                      <Table.ColumnHeader>{t("models.description")}</Table.ColumnHeader>
+                      <Table.ColumnHeader>{t("models.provider")}</Table.ColumnHeader>
+                      <Table.ColumnHeader>{t("models.resourceName")}</Table.ColumnHeader>
                       <Table.ColumnHeader textAlign="right">
-                        操作
+                        {t("models.operations")}
                       </Table.ColumnHeader>
                     </Table.Row>
                   </Table.Header>
@@ -539,7 +545,7 @@ export function ModelsPage() {
                                     size="sm"
                                   >
                                     <SelectTrigger>
-                                      <SelectValueText placeholder="プロバイダを選択" />
+                                      <SelectValueText placeholder={t("models.providerSelect")} />
                                     </SelectTrigger>
                                     <SelectPositioner>
                                       <SelectContent>
@@ -575,7 +581,7 @@ export function ModelsPage() {
                               ? (
                                 <>
                                   <IconButton
-                                    aria-label="保存"
+                                    aria-label={t("models.save")}
                                     size="sm"
                                     colorPalette="green"
                                     onClick={handleSubmitEdit((data) =>
@@ -586,7 +592,7 @@ export function ModelsPage() {
                                     <LuCheck />
                                   </IconButton>
                                   <IconButton
-                                    aria-label="キャンセル"
+                                    aria-label={t("models.cancel")}
                                     size="sm"
                                     variant="ghost"
                                     onClick={() => {
@@ -601,7 +607,7 @@ export function ModelsPage() {
                               : (
                                 <>
                                   <IconButton
-                                    aria-label="編集"
+                                    aria-label={t("models.edit")}
                                     size="sm"
                                     variant="ghost"
                                     onClick={() => startEdit(model)}
@@ -609,7 +615,7 @@ export function ModelsPage() {
                                     <LuPencil />
                                   </IconButton>
                                   <IconButton
-                                    aria-label="削除"
+                                    aria-label={t("models.delete")}
                                     size="sm"
                                     variant="ghost"
                                     colorPalette="red"
