@@ -4,8 +4,10 @@ import {
   HStack,
   MenuContent,
   MenuItem,
+  MenuPositioner,
   MenuRoot,
   MenuTrigger,
+  Portal,
   Separator,
   Spacer,
   Spinner,
@@ -139,40 +141,44 @@ export function PromptPanel({
                   )}
                 </Button>
               </MenuTrigger>
-              <MenuContent>
-                {recentHistory.length > 0
-                  ? (
-                    <>
-                      {recentHistory.map((item) => (
-                        <MenuItem
-                          key={item.id}
-                          value={item.id}
-                          onClick={() => handleSelectHistoryPrompt(item.prompt)}
-                          fontSize="xs"
-                          css={{
-                            maxWidth: "300px",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                        >
-                          {item.prompt}
-                        </MenuItem>
-                      ))}
-                      <Separator />
-                    </>
-                  )
-                  : null}
-                <MenuItem
-                  value="view-all"
-                  onClick={() => setHistoryDialogOpen(true)}
-                  fontWeight="medium"
-                  fontSize="xs"
-                >
-                  <LuClock size={14} />
-                  {t("generate.viewAllHistory")}
-                </MenuItem>
-              </MenuContent>
+              <Portal>
+                <MenuPositioner>
+                  <MenuContent zIndex={1500}>
+                    {recentHistory.length > 0
+                      ? (
+                        <>
+                          {recentHistory.map((item) => (
+                            <MenuItem
+                              key={item.id}
+                              value={item.id}
+                              onClick={() => handleSelectHistoryPrompt(item.prompt)}
+                              fontSize="xs"
+                              css={{
+                                maxWidth: "300px",
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              }}
+                            >
+                              {item.prompt}
+                            </MenuItem>
+                          ))}
+                          <Separator />
+                        </>
+                      )
+                      : null}
+                    <MenuItem
+                      value="view-all"
+                      onClick={() => setHistoryDialogOpen(true)}
+                      fontWeight="medium"
+                      fontSize="xs"
+                    >
+                      <LuClock size={14} />
+                      {t("generate.viewAllHistory")}
+                    </MenuItem>
+                  </MenuContent>
+                </MenuPositioner>
+              </Portal>
             </MenuRoot>
 
             {/* クリアボタン */}

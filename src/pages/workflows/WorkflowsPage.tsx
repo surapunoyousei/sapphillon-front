@@ -11,8 +11,10 @@ import {
     Input,
     MenuContent,
     MenuItem,
+    MenuPositioner,
     MenuRoot,
     MenuTrigger,
+    Portal,
     Spinner,
     Table,
     Text,
@@ -205,31 +207,35 @@ function WorkflowRow({
                                 <LuEllipsisVertical />
                             </IconButton>
                         </MenuTrigger>
-                        <MenuContent>
-                            <MenuItem
-                                value="clone"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onClone(workflow);
-                                }}
-                            >
-                                <LuCopy />
-                                {t("workflows.clone")}
-                            </MenuItem>
-                            {onDelete && (
-                                <MenuItem
-                                    value="delete"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onDelete(workflow.id);
-                                    }}
-                                    color="red.500"
-                                >
-                                    <LuTrash2 />
-                                    {t("workflows.delete")}
-                                </MenuItem>
-                            )}
-                        </MenuContent>
+                        <Portal>
+                            <MenuPositioner>
+                                <MenuContent>
+                                    <MenuItem
+                                        value="clone"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onClone(workflow);
+                                        }}
+                                    >
+                                        <LuCopy />
+                                        {t("workflows.clone")}
+                                    </MenuItem>
+                                    {onDelete && (
+                                        <MenuItem
+                                            value="delete"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onDelete(workflow.id);
+                                            }}
+                                            color="red.500"
+                                        >
+                                            <LuTrash2 />
+                                            {t("workflows.delete")}
+                                        </MenuItem>
+                                    )}
+                                </MenuContent>
+                            </MenuPositioner>
+                        </Portal>
                     </MenuRoot>
                 </HStack>
             </Table.Cell>

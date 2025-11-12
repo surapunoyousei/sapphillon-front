@@ -162,12 +162,14 @@ export function PromptHistoryDialog({
       open={open}
       onOpenChange={(e) => !e.open && onClose()}
       size={{ base: "full", md: "lg" }}
+      modal={true}
     >
       <Dialog.Backdrop />
-      <Dialog.Positioner>
+      <Dialog.Positioner zIndex={1400} portal>
         <Dialog.Content
           maxW={{ base: "100vw", md: "600px" }}
           maxH={{ base: "100vh", md: "80vh" }}
+          zIndex={1401}
         >
           <Dialog.Header>
             <HStack justify="space-between" w="full">

@@ -9,6 +9,7 @@ import {
   HStack,
   IconButton,
   Input,
+  Portal,
   SelectContent,
   SelectItem,
   SelectPositioner,
@@ -335,19 +336,21 @@ export function ModelsPage() {
                       <SelectTrigger>
                         <SelectValueText placeholder={t("models.allProviders")} />
                       </SelectTrigger>
-                      <SelectPositioner>
-                        <SelectContent>
-                          <SelectItem item="">{t("models.allProviders")}</SelectItem>
-                          {providers.map((provider) => (
-                            <SelectItem
-                              key={provider.name}
-                              item={provider.name}
-                            >
-                              {provider.displayName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </SelectPositioner>
+                      <Portal>
+                        <SelectPositioner>
+                          <SelectContent>
+                            <SelectItem item="">{t("models.allProviders")}</SelectItem>
+                            {providers.map((provider) => (
+                              <SelectItem
+                                key={provider.name}
+                                item={provider.name}
+                              >
+                                {provider.displayName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </SelectPositioner>
+                      </Portal>
                     </SelectRoot>
                   </Field>
                 </Box>
@@ -424,18 +427,20 @@ export function ModelsPage() {
                           <SelectTrigger>
                             <SelectValueText placeholder={t("models.providerSelect")} />
                           </SelectTrigger>
-                          <SelectPositioner>
-                            <SelectContent>
-                              {providers.map((provider) => (
-                                <SelectItem
-                                  key={provider.name}
-                                  item={provider.name}
-                                >
-                                  {provider.displayName}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </SelectPositioner>
+                          <Portal>
+                            <SelectPositioner>
+                              <SelectContent>
+                                {providers.map((provider) => (
+                                  <SelectItem
+                                    key={provider.name}
+                                    item={provider.name}
+                                  >
+                                    {provider.displayName}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </SelectPositioner>
+                          </Portal>
                         </SelectRoot>
                       )}
                     />
