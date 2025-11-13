@@ -14,6 +14,7 @@ import {
   LuCornerDownLeft,
   LuCornerDownRight,
   LuDatabase,
+  LuFileText,
   LuGitBranch,
   LuMousePointer,
   LuRepeat,
@@ -75,14 +76,15 @@ export const ActionNode: React.FC<ActionNodeProps> = ({ action }) => {
       cursor="pointer"
       onClick={() => setIsExpanded(!isExpanded)}
       borderLeft="4px solid"
-      borderColor={`${colorScheme}.500`}
+      borderColor={`${colorScheme}.300`}
       _hover={{
         shadow: "md",
-        borderColor: `${colorScheme}.600`,
+        borderColor: `${colorScheme}.400`,
       }}
       _dark={{
+        borderColor: `${colorScheme}.700`,
         _hover: {
-          borderColor: `${colorScheme}.400`,
+          borderColor: `${colorScheme}.600`,
         },
       }}
       transition="all 0.2s"
@@ -93,7 +95,10 @@ export const ActionNode: React.FC<ActionNodeProps> = ({ action }) => {
           {/* Header */}
           <HStack justify="space-between">
             <HStack gap={2}>
-              <Box color={`${colorScheme}.500`}>
+              <Box
+                color={`${colorScheme}.300`}
+                _dark={{ color: `${colorScheme}.400` }}
+              >
                 {getActionIcon(action.type, 20)}
               </Box>
               <VStack align="start" gap={0}>
@@ -147,8 +152,8 @@ export const ActionNode: React.FC<ActionNodeProps> = ({ action }) => {
               rounded="md"
               borderLeft="3px solid"
               borderColor={{
-                base: `${colorScheme}.400`,
-                _dark: `${colorScheme}.600`,
+                base: `${colorScheme}.200`,
+                _dark: `${colorScheme}.800`,
               }}
             >
               <Text fontSize="sm" color="fg" lineHeight="1.6">
@@ -180,7 +185,11 @@ export const ActionNode: React.FC<ActionNodeProps> = ({ action }) => {
             <VStack align="stretch" gap={2} mt={2} pl={4}>
               {action.details.map((detail: string, idx: number) => (
                 <HStack key={idx} gap={2} align="start">
-                  <Box color={`${colorScheme}.500`} mt={0.5}>
+                  <Box
+                    color={`${colorScheme}.300`}
+                    _dark={{ color: `${colorScheme}.400` }}
+                    mt={0.5}
+                  >
                     <LuCornerDownRight size={14} />
                   </Box>
                   <Text fontSize="xs" color="fg.muted" flex={1}>
@@ -194,7 +203,7 @@ export const ActionNode: React.FC<ActionNodeProps> = ({ action }) => {
           {/* Code (only shown when expanded and user clicks "Show code" button) */}
           {isExpanded && (
             <Box mt={2}>
-              <Text
+              <HStack
                 fontSize="xs"
                 color="fg.muted"
                 mb={1}
@@ -212,16 +221,18 @@ export const ActionNode: React.FC<ActionNodeProps> = ({ action }) => {
                   }
                 }}
                 _hover={{ color: "fg" }}
+                gap={1}
               >
-                📝 技術者向けコードを表示
-              </Text>
+                <LuFileText size={14} />
+                <Text>技術者向けコードを表示</Text>
+              </HStack>
               <VStack align="stretch" gap={1} display="none">
                 {action.statements.map((statement, idx) => (
                   <Box
                     key={idx}
                     bg={{
                       base: "gray.50",
-                      _dark: "gray.800",
+                      _dark: "gray.900",
                     }}
                     p={2}
                     rounded="md"
@@ -229,8 +240,8 @@ export const ActionNode: React.FC<ActionNodeProps> = ({ action }) => {
                     fontFamily="monospace"
                     borderLeft="2px solid"
                     borderColor={{
-                      base: `${colorScheme}.300`,
-                      _dark: `${colorScheme}.600`,
+                      base: `${colorScheme}.200`,
+                      _dark: `${colorScheme}.800`,
                     }}
                   >
                     <Text
@@ -322,7 +333,10 @@ const NestedControlFlowCard: React.FC<{
         variant="outline"
         size="sm"
         borderLeft={`${4 + depth * 2}px solid`}
-        borderColor={`${colorScheme}.${400 + depth * 50}`}
+        borderColor={{
+          base: `${colorScheme}.${200 + depth * 50}`,
+          _dark: `${colorScheme}.${700 + depth * 50}`,
+        }}
         bg={depth > 0 ? "bg.muted" : "bg"}
         ml={depth * 4}
       >
@@ -330,7 +344,10 @@ const NestedControlFlowCard: React.FC<{
           <VStack align="stretch" gap={2}>
             <HStack justify="space-between">
               <HStack gap={2}>
-                <Box color={`${colorScheme}.500`}>
+                <Box
+                  color={`${colorScheme}.300`}
+                  _dark={{ color: `${colorScheme}.400` }}
+                >
                   <LuGitBranch size={16} />
                 </Box>
                 <VStack align="start" gap={0}>
@@ -362,18 +379,20 @@ const NestedControlFlowCard: React.FC<{
                   bg={`${colorScheme}.50`}
                   _dark={{
                     bg: `${colorScheme}.950`,
-                    borderColor: `${colorScheme}.700`,
                   }}
                   p={2}
                   rounded="md"
                   borderLeft="2px solid"
-                  borderColor={`${colorScheme}.300`}
+                  borderColor={{
+                    base: `${colorScheme}.300`,
+                    _dark: `${colorScheme}.700`,
+                  }}
                 >
                   <Text
                     fontSize="xs"
                     fontWeight="medium"
-                    color={`${colorScheme}.900`}
-                    _dark={{ color: `${colorScheme}.200` }}
+                    color={`${colorScheme}.800`}
+                    _dark={{ color: `${colorScheme}.300` }}
                     mb={1}
                   >
                     もし合致した場合:
@@ -396,18 +415,20 @@ const NestedControlFlowCard: React.FC<{
                     bg={`${colorScheme}.50`}
                     _dark={{
                       bg: `${colorScheme}.950`,
-                      borderColor: `${colorScheme}.700`,
                     }}
                     p={2}
                     rounded="md"
                     borderLeft="2px solid"
-                    borderColor={`${colorScheme}.300`}
+                    borderColor={{
+                      base: `${colorScheme}.200`,
+                      _dark: `${colorScheme}.800`,
+                    }}
                   >
                     <Text
                       fontSize="xs"
                       fontWeight="medium"
-                      color={`${colorScheme}.900`}
-                      _dark={{ color: `${colorScheme}.200` }}
+                      color={`${colorScheme}.800`}
+                      _dark={{ color: `${colorScheme}.300` }}
                       mb={1}
                     >
                       合致しなかった場合:
@@ -487,7 +508,10 @@ const NestedControlFlowCard: React.FC<{
         variant="outline"
         size="sm"
         borderLeft={`${4 + depth * 2}px solid`}
-        borderColor={`${colorScheme}.${400 + depth * 50}`}
+        borderColor={{
+          base: `${colorScheme}.${200 + depth * 50}`,
+          _dark: `${colorScheme}.${700 + depth * 50}`,
+        }}
         bg={depth > 0 ? "bg.muted" : "bg"}
         ml={depth * 4}
       >
@@ -495,7 +519,10 @@ const NestedControlFlowCard: React.FC<{
           <VStack align="stretch" gap={2}>
             <HStack justify="space-between">
               <HStack gap={2}>
-                <Box color={`${colorScheme}.500`}>
+                <Box
+                  color={`${colorScheme}.300`}
+                  _dark={{ color: `${colorScheme}.400` }}
+                >
                   <LuRepeat size={16} />
                 </Box>
                 <VStack align="start" gap={0}>
@@ -527,19 +554,21 @@ const NestedControlFlowCard: React.FC<{
                 bg={`${colorScheme}.50`}
                 _dark={{
                   bg: `${colorScheme}.950`,
-                  borderColor: `${colorScheme}.700`,
                 }}
                 p={2}
                 rounded="md"
                 borderLeft="2px solid"
-                borderColor={`${colorScheme}.300`}
+                borderColor={{
+                  base: `${colorScheme}.300`,
+                  _dark: `${colorScheme}.700`,
+                }}
                 mt={2}
               >
                 <Text
                   fontSize="xs"
                   fontWeight="medium"
-                  color={`${colorScheme}.900`}
-                  _dark={{ color: `${colorScheme}.200` }}
+                  color={`${colorScheme}.800`}
+                  _dark={{ color: `${colorScheme}.300` }}
                   mb={2}
                 >
                   繰り返し処理:
@@ -571,7 +600,10 @@ const NestedControlFlowCard: React.FC<{
         variant="outline"
         size="sm"
         borderLeft={`${4 + depth * 2}px solid`}
-        borderColor={`red.${400 + depth * 50}`}
+        borderColor={{
+          base: `red.${200 + depth * 50}`,
+          _dark: `red.${700 + depth * 50}`,
+        }}
         bg={depth > 0 ? "bg.muted" : "bg"}
         ml={depth * 4}
       >
@@ -579,7 +611,7 @@ const NestedControlFlowCard: React.FC<{
           <VStack align="stretch" gap={2}>
             <HStack justify="space-between">
               <HStack gap={2}>
-                <Box color="red.500">
+                <Box color="red.300" _dark={{ color: "red.400" }}>
                   <LuShield size={16} />
                 </Box>
                 <VStack align="start" gap={0}>
@@ -609,17 +641,20 @@ const NestedControlFlowCard: React.FC<{
                 {/* Try block */}
                 <Box
                   bg="red.50"
-                  _dark={{ bg: "red.950", borderColor: "red.700" }}
+                  _dark={{ bg: "red.950" }}
                   p={2}
                   rounded="md"
                   borderLeft="2px solid"
-                  borderColor="red.300"
+                  borderColor={{
+                    base: "red.200",
+                    _dark: "red.800",
+                  }}
                 >
                   <Text
                     fontSize="xs"
                     fontWeight="medium"
-                    color="red.900"
-                    _dark={{ color: "red.200" }}
+                    color="red.800"
+                    _dark={{ color: "red.300" }}
                     mb={1}
                   >
                     通常実行:
@@ -640,17 +675,20 @@ const NestedControlFlowCard: React.FC<{
                 {tryStmt.handler && (
                   <Box
                     bg="red.50"
-                    _dark={{ bg: "red.950", borderColor: "red.700" }}
+                    _dark={{ bg: "red.950" }}
                     p={2}
                     rounded="md"
                     borderLeft="2px solid"
-                    borderColor="red.300"
+                    borderColor={{
+                      base: "red.300",
+                      _dark: "red.700",
+                    }}
                   >
                     <Text
                       fontSize="xs"
                       fontWeight="medium"
-                      color="red.900"
-                      _dark={{ color: "red.200" }}
+                      color="red.800"
+                      _dark={{ color: "red.300" }}
                       mb={1}
                     >
                       エラーが発生した場合:
@@ -710,13 +748,16 @@ const NestedControlFlowCard: React.FC<{
           variant="outline"
           size="sm"
           borderLeft={`${3 + depth * 2}px solid`}
-          borderColor="purple.400"
+          borderColor={{
+            base: "purple.200",
+            _dark: "purple.700",
+          }}
           bg={depth > 0 ? "bg.muted" : "bg"}
           ml={depth * 4}
         >
           <Card.Body p={2}>
             <HStack gap={2}>
-              <Box color="purple.500">
+              <Box color="purple.300" _dark={{ color: "purple.400" }}>
                 <LuVariable size={14} />
               </Box>
               <VStack align="start" gap={0} flex={1}>
@@ -790,13 +831,21 @@ const NestedControlFlowCard: React.FC<{
           variant="outline"
           size="sm"
           borderLeft={`${3 + depth * 2}px solid`}
-          borderColor={`${cardColor}.400`}
+          borderColor={{
+            base: `${cardColor}.200`,
+            _dark: `${cardColor}.700`,
+          }}
           bg={depth > 0 ? "bg.muted" : "bg"}
           ml={depth * 4}
         >
           <Card.Body p={2}>
             <HStack gap={2}>
-              <Box color={`${cardColor}.500`}>{icon}</Box>
+              <Box
+                color={`${cardColor}.300`}
+                _dark={{ color: `${cardColor}.400` }}
+              >
+                {icon}
+              </Box>
               <VStack align="start" gap={0} flex={1}>
                 <Text fontWeight="medium" fontSize="xs" color="fg">
                   {title}
@@ -837,13 +886,16 @@ const NestedControlFlowCard: React.FC<{
         variant="outline"
         size="sm"
         borderLeft={`${3 + depth * 2}px solid`}
-        borderColor="green.400"
+        borderColor={{
+          base: "green.200",
+          _dark: "green.700",
+        }}
         bg={depth > 0 ? "bg.muted" : "bg"}
         ml={depth * 4}
       >
         <Card.Body p={2}>
           <HStack gap={2}>
-            <Box color="green.500">
+            <Box color="green.300" _dark={{ color: "green.400" }}>
               <LuCornerDownLeft size={14} />
             </Box>
             <VStack align="start" gap={0} flex={1}>
@@ -868,7 +920,10 @@ const NestedControlFlowCard: React.FC<{
       variant="outline"
       size="sm"
       borderLeft={`${2 + depth * 2}px solid`}
-      borderColor={`${colorScheme}.${300 + depth * 50}`}
+      borderColor={{
+        base: `${colorScheme}.${100 + depth * 50}`,
+        _dark: `${colorScheme}.${700 + depth * 50}`,
+      }}
       bg={depth > 0 ? "bg.muted" : "bg.subtle"}
       ml={depth * 4}
     >

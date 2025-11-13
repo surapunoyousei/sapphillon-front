@@ -311,8 +311,8 @@ export function metadataInterceptor(
  * @example
  * 出力例:
  * ```
- * [gRPC] ✅ sapphillon.v1.VersionService.GetVersion (23.4 ms)
- * [gRPC] ❌ sapphillon.v1.WorkflowService.GenerateWorkflow (156.2 ms) Error: ...
+ * [gRPC] [OK] sapphillon.v1.VersionService.GetVersion (23.4 ms)
+ * [gRPC] [ERROR] sapphillon.v1.WorkflowService.GenerateWorkflow (156.2 ms) Error: ...
  * ```
  */
 export function loggingInterceptor(): Interceptor {
@@ -322,11 +322,11 @@ export function loggingInterceptor(): Interceptor {
     try {
       const res = await next(req);
       const ms = (performance.now() - start).toFixed(1);
-      console.debug(`[gRPC] ✅ ${fullName} (${ms} ms)`);
+      console.debug(`[gRPC] [OK] ${fullName} (${ms} ms)`);
       return res;
     } catch (e) {
       const ms = (performance.now() - start).toFixed(1);
-      console.error(`[gRPC] ❌ ${fullName} (${ms} ms)`, e);
+      console.error(`[gRPC] [ERROR] ${fullName} (${ms} ms)`, e);
       throw e;
     }
   };

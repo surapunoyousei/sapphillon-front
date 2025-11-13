@@ -83,7 +83,10 @@ const oneLine = (code: string | null | undefined, max = 80, mobileMax = 40) => {
 };
 
 // ステートメントの簡潔な説明を生成
-const describeStatementSimple = (stmt: Statement, t: (key: string) => string): string => {
+const describeStatementSimple = (
+  stmt: Statement,
+  t: (key: string) => string,
+): string => {
   const code = generateCode(stmt);
   if (
     stmt.type === "ExpressionStatement" &&
@@ -108,7 +111,10 @@ const describeStatementSimple = (stmt: Statement, t: (key: string) => string): s
         ? varDecl.declarations[0].id.name
         : null;
       if (varName) {
-        return t("workflowActions.prepareDescription", { name: varName });
+        return (t as (key: string, options?: { name: string }) => string)(
+          "workflowActions.prepareDescription",
+          { name: varName },
+        );
       }
     }
     return t("workflowActions.prepareVar");
@@ -119,7 +125,10 @@ const describeStatementSimple = (stmt: Statement, t: (key: string) => string): s
 };
 
 // ブロック内のステートメントを簡潔に説明
-const describeBlockContent = (body: Statement | Statement[], t: (key: string) => string): string => {
+const describeBlockContent = (
+  body: Statement | Statement[],
+  t: (key: string) => string,
+): string => {
   const statements = Array.isArray(body)
     ? body
     : body.type === "BlockStatement"
@@ -157,8 +166,8 @@ const TokenizedInlineCode: React.FC<{ code?: string }> = ({ code }) => {
       py={{ base: 0.5, md: 0.5 }}
       borderRadius="sm"
       bg="gray.50"
-      color="gray.800"
-      _dark={{ bg: "gray.800", color: "gray.100" }}
+      color="gray.700"
+      _dark={{ bg: "gray.900", color: "gray.300" }}
       whiteSpace="pre-wrap"
       wordBreak="break-all"
       fontFamily="monospace"
@@ -178,8 +187,8 @@ const TokenizedInlineCode: React.FC<{ code?: string }> = ({ code }) => {
             <Box
               as="span"
               key={i}
-              color="purple.600"
-              _dark={{ color: "purple.300" }}
+              color="purple.500"
+              _dark={{ color: "purple.400" }}
             >
               {ident}
             </Box>
@@ -190,8 +199,8 @@ const TokenizedInlineCode: React.FC<{ code?: string }> = ({ code }) => {
             <Box
               as="span"
               key={i}
-              color="teal.600"
-              _dark={{ color: "teal.300" }}
+              color="teal.500"
+              _dark={{ color: "teal.400" }}
             >
               {num}
             </Box>
@@ -202,8 +211,8 @@ const TokenizedInlineCode: React.FC<{ code?: string }> = ({ code }) => {
             <Box
               as="span"
               key={i}
-              color="orange.600"
-              _dark={{ color: "orange.300" }}
+              color="orange.500"
+              _dark={{ color: "orange.400" }}
             >
               {str}
             </Box>
@@ -213,7 +222,7 @@ const TokenizedInlineCode: React.FC<{ code?: string }> = ({ code }) => {
           return <span key={i}>{ws}</span>;
         }
         return (
-          <Box as="span" key={i} color="gray.600" _dark={{ color: "gray.400" }}>
+          <Box as="span" key={i} color="gray.500" _dark={{ color: "gray.500" }}>
             {other}
           </Box>
         );
@@ -308,15 +317,15 @@ const AstNode: React.FC<
         minWidth={{ base: "150px", md: "200px" }}
         flexShrink={0}
         bg="red.50"
-        borderColor="red.200"
+        borderColor="red.100"
         _dark={{
-          bg: "red.900",
+          bg: "red.950",
           borderColor: "red.700",
         }}
       >
         <Text
-          color="red.700"
-          _dark={{ color: "red.500" }}
+          color="red.600"
+          _dark={{ color: "red.300" }}
           fontSize={{ base: "xs", md: "sm" }}
         >
           Invalid node
@@ -359,13 +368,13 @@ const AstNode: React.FC<
       if (palette) {
         return {
           bg: `${palette}.50`,
-          borderColor: `${palette}.200`,
+          borderColor: `${palette}.50`,
           iconBg: `${palette}.50`,
-          iconColor: `${palette}.700`,
+          iconColor: `${palette}.500`,
           _dark: {
-            bg: "black",
+            bg: "gray.950",
             borderColor: `${palette}.800`,
-            iconBg: "black",
+            iconBg: "gray.950",
             iconColor: `${palette}.400`,
           },
         } as const;
@@ -374,53 +383,53 @@ const AstNode: React.FC<
         case "condition":
           return {
             bg: "amber.50",
-            borderColor: "amber.200",
+            borderColor: "amber.50",
             iconBg: "amber.50",
-            iconColor: "amber.700",
+            iconColor: "amber.500",
             _dark: {
-              bg: "black",
+              bg: "gray.950",
               borderColor: "amber.800",
-              iconBg: "black",
+              iconBg: "gray.950",
               iconColor: "amber.400",
             },
           };
         case "loop":
           return {
             bg: "blue.50",
-            borderColor: "blue.200",
+            borderColor: "blue.50",
             iconBg: "blue.50",
-            iconColor: "blue.700",
+            iconColor: "blue.500",
             _dark: {
-              bg: "black",
+              bg: "gray.950",
               borderColor: "blue.800",
-              iconBg: "black",
+              iconBg: "gray.950",
               iconColor: "blue.400",
             },
           };
         case "error":
           return {
             bg: "red.50",
-            borderColor: "red.200",
+            borderColor: "red.50",
             iconBg: "red.50",
-            iconColor: "red.700",
+            iconColor: "red.500",
             _dark: {
-              bg: "black",
+              bg: "gray.950",
               borderColor: "red.800",
-              iconBg: "black",
+              iconBg: "gray.950",
               iconColor: "red.400",
             },
           };
         default:
           return {
             bg: "white",
-            borderColor: "gray.200",
+            borderColor: "gray.100",
             iconBg: "gray.50",
-            iconColor: "gray.700",
+            iconColor: "gray.500",
             _dark: {
-              bg: "black",
-              borderColor: "gray.700",
-              iconBg: "black",
-              iconColor: "gray.300",
+              bg: "gray.950",
+              borderColor: "gray.800",
+              iconBg: "gray.950",
+              iconColor: "gray.400",
             },
           };
       }
@@ -440,7 +449,7 @@ const AstNode: React.FC<
         bg={colors.bg}
         _dark={{ bg: colors._dark.bg, borderColor: colors._dark.borderColor }}
         borderColor={colors.borderColor}
-        _hover={{ borderColor: "gray.300", _dark: { borderColor: "gray.600" } }}
+        _hover={{ borderColor: "gray.200", _dark: { borderColor: "gray.700" } }}
         position="relative"
       >
         {/* Left type bar */}
@@ -474,8 +483,8 @@ const AstNode: React.FC<
                     setCollapsed((c) => !c);
                   }}
                   aria-label={collapsed ? "Expand" : "Collapse"}
-                  color="gray.600"
-                  _dark={{ color: "gray.300" }}
+                  color="gray.500"
+                  _dark={{ color: "gray.500" }}
                   display="flex"
                   alignItems="center"
                   justifyContent="center"
@@ -534,8 +543,8 @@ const AstNode: React.FC<
               <Text
                 fontWeight="medium"
                 fontSize={{ base: "xs", md: "sm" }}
-                color="gray.900"
-                _dark={{ color: "gray.200" }}
+                color="gray.800"
+                _dark={{ color: "gray.300" }}
                 truncate
               >
                 {title}
@@ -569,8 +578,8 @@ const AstNode: React.FC<
         {label && (
           <Text
             fontSize={{ base: "xs", md: "sm" }}
-            color="gray.600"
-            _dark={{ color: "gray.400" }}
+            color="gray.500"
+            _dark={{ color: "gray.500" }}
             mb={1}
             ml={{
               base: `${depth * INDENT_PX_MOBILE + 4}px`,
@@ -684,7 +693,9 @@ const AstNode: React.FC<
           <NodeContainer
             title={funcDef
               ? funcDef.name
-              : (isImportant ? t("workflowActions.importantAction") : t("workflowActions.executeTool"))}
+              : (isImportant
+                ? t("workflowActions.importantAction")
+                : t("workflowActions.executeTool"))}
             icon={isImportant
               ? <LuTriangleAlert size={16} />
               : <LuSettings size={16} />}
@@ -701,7 +712,7 @@ const AstNode: React.FC<
                 fontSize={{ base: "2xs", md: "xs" }}
               >
                 {funcDef.description && (
-                  <Text color="gray.600" _dark={{ color: "gray.400" }}>
+                  <Text color="gray.600" _dark={{ color: "gray.500" }}>
                     {funcDef.description}
                   </Text>
                 )}
@@ -770,22 +781,22 @@ const AstNode: React.FC<
               p={2}
               rounded="md"
               borderLeft="3px solid"
-              borderColor="amber.400"
-              _dark={{ bg: "amber.950", borderColor: "amber.600" }}
+              borderColor="amber.300"
+              _dark={{ bg: "amber.950", borderColor: "amber.800" }}
             >
               <Text
                 fontSize="xs"
                 fontWeight="medium"
-                color="amber.900"
-                _dark={{ color: "amber.200" }}
+                color="amber.800"
+                _dark={{ color: "amber.300" }}
                 mb={1}
               >
                 もし合致した場合:
               </Text>
               <Text
                 fontSize="xs"
-                color="amber.700"
-                _dark={{ color: "amber.300" }}
+                color="amber.600"
+                _dark={{ color: "amber.400" }}
               >
                 {thenContent}
               </Text>
@@ -803,22 +814,22 @@ const AstNode: React.FC<
                   p={2}
                   rounded="md"
                   borderLeft="3px solid"
-                  borderColor="amber.400"
-                  _dark={{ bg: "amber.950", borderColor: "amber.600" }}
+                  borderColor="amber.300"
+                  _dark={{ bg: "amber.950", borderColor: "amber.800" }}
                 >
                   <Text
                     fontSize="xs"
                     fontWeight="medium"
-                    color="amber.900"
-                    _dark={{ color: "amber.200" }}
+                    color="amber.800"
+                    _dark={{ color: "amber.300" }}
                     mb={1}
                   >
                     合致しなかった場合:
                   </Text>
                   <Text
                     fontSize="xs"
-                    color="amber.700"
-                    _dark={{ color: "amber.300" }}
+                    color="amber.600"
+                    _dark={{ color: "amber.400" }}
                   >
                     {elseContent || "（処理　なし）"}
                   </Text>
@@ -858,20 +869,20 @@ const AstNode: React.FC<
             p={2}
             rounded="md"
             borderLeft="3px solid"
-            borderColor="blue.400"
+            borderColor="blue.300"
             mb={2}
-            _dark={{ bg: "blue.950", borderColor: "blue.600" }}
+            _dark={{ bg: "blue.950", borderColor: "blue.800" }}
           >
             <Text
               fontSize="xs"
               fontWeight="medium"
-              color="blue.900"
-              _dark={{ color: "blue.200" }}
+              color="blue.800"
+              _dark={{ color: "blue.300" }}
               mb={1}
             >
               繰り返し処理:
             </Text>
-            <Text fontSize="xs" color="blue.700" _dark={{ color: "blue.300" }}>
+            <Text fontSize="xs" color="blue.600" _dark={{ color: "blue.400" }}>
               {bodyContent}
             </Text>
           </Box>
@@ -904,20 +915,20 @@ const AstNode: React.FC<
             p={2}
             rounded="md"
             borderLeft="3px solid"
-            borderColor="blue.400"
+            borderColor="blue.300"
             mb={2}
-            _dark={{ bg: "blue.950", borderColor: "blue.600" }}
+            _dark={{ bg: "blue.950", borderColor: "blue.800" }}
           >
             <Text
               fontSize="xs"
               fontWeight="medium"
-              color="blue.900"
-              _dark={{ color: "blue.200" }}
+              color="blue.800"
+              _dark={{ color: "blue.300" }}
               mb={1}
             >
               繰り返し処理:
             </Text>
-            <Text fontSize="xs" color="blue.700" _dark={{ color: "blue.300" }}>
+            <Text fontSize="xs" color="blue.600" _dark={{ color: "blue.400" }}>
               {bodyContent}
             </Text>
           </Box>
@@ -954,20 +965,20 @@ const AstNode: React.FC<
             p={2}
             rounded="md"
             borderLeft="3px solid"
-            borderColor="blue.400"
+            borderColor="blue.300"
             mb={2}
-            _dark={{ bg: "blue.950", borderColor: "blue.600" }}
+            _dark={{ bg: "blue.950", borderColor: "blue.800" }}
           >
             <Text
               fontSize="xs"
               fontWeight="medium"
-              color="blue.900"
-              _dark={{ color: "blue.200" }}
+              color="blue.800"
+              _dark={{ color: "blue.300" }}
               mb={1}
             >
               繰り返し処理:
             </Text>
-            <Text fontSize="xs" color="blue.700" _dark={{ color: "blue.300" }}>
+            <Text fontSize="xs" color="blue.600" _dark={{ color: "blue.400" }}>
               {bodyContent}
             </Text>
           </Box>
@@ -1110,8 +1121,8 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
             bottom={0}
             style={{
               backgroundImage: `
-            radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px),
-            radial-gradient(circle, rgba(0,0,0,0.015) 1px, transparent 1px)
+            radial-gradient(circle, rgba(0,0,0,0.025) 1px, transparent 1px),
+            radial-gradient(circle, rgba(0,0,0,0.01) 1px, transparent 1px)
           `,
               backgroundSize: "14px 14px, 64px 64px",
               backgroundPosition: "0 0, 32px 32px",
@@ -1130,8 +1141,8 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
             _dark={{ display: "block" }}
             style={{
               backgroundImage: `
-            radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px),
-            radial-gradient(circle, rgba(255,255,255,0.015) 1px, transparent 1px)
+            radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px),
+            radial-gradient(circle, rgba(255,255,255,0.01) 1px, transparent 1px)
           `,
               backgroundSize: "16px 16px, 80px 80px",
               backgroundPosition: "0 0, 40px 40px",
@@ -1154,7 +1165,7 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
               ? (
                 <Box
                   p={{ base: 2, md: 4 }}
-                  color="red.500"
+                  color="red.600"
                   whiteSpace="pre-wrap"
                 >
                   <Text fontWeight="bold" fontSize={{ base: "sm", md: "md" }}>
@@ -1199,7 +1210,7 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
               ? (
                 <Box
                   p={{ base: 2, md: 4 }}
-                  color="red.500"
+                  color="red.600"
                   whiteSpace="pre-wrap"
                 >
                   <Text fontWeight="bold" fontSize={{ base: "sm", md: "md" }}>
@@ -1241,7 +1252,7 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
           <Box
             p={{ base: 2, md: 3 }}
             bg="gray.50"
-            _dark={{ bg: "gray.900" }}
+            _dark={{ bg: "gray.950" }}
             minH="100%"
           >
             <CodeHighlighter code={rawJsCode} language="javascript" />
@@ -1260,7 +1271,7 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
           <Button
             onClick={() => setViewMode("actions")}
             colorScheme={viewMode === "actions" ? "blue" : "gray"}
-            variant={viewMode === "actions" ? "solid" : "outline"}
+            variant={viewMode === "actions" ? "solid" : "ghost"}
             fontSize={{ base: "xs", md: "sm" }}
             px={{ base: 2, md: 3 }}
             minH={{ base: "32px", md: "auto" }}
@@ -1270,7 +1281,7 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
           <Button
             onClick={() => setViewMode("steps")}
             colorScheme={viewMode === "steps" ? "blue" : "gray"}
-            variant={viewMode === "steps" ? "solid" : "outline"}
+            variant={viewMode === "steps" ? "solid" : "ghost"}
             fontSize={{ base: "xs", md: "sm" }}
             px={{ base: 2, md: 3 }}
             minH={{ base: "32px", md: "auto" }}
@@ -1280,7 +1291,7 @@ export const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
           <Button
             onClick={() => setViewMode("code")}
             colorScheme={viewMode === "code" ? "blue" : "gray"}
-            variant={viewMode === "code" ? "solid" : "outline"}
+            variant={viewMode === "code" ? "solid" : "ghost"}
             fontSize={{ base: "xs", md: "sm" }}
             px={{ base: 2, md: 3 }}
             minH={{ base: "32px", md: "auto" }}

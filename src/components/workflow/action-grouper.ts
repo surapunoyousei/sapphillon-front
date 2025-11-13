@@ -270,7 +270,7 @@ const generateHumanReadableDescription = (
           ifStmt.consequent.type === "BlockStatement"
             ? ifStmt.consequent.body
             : [ifStmt.consequent];
-        const thenDescs = describeBlock(consequentStatements, "  ✓ ");
+        const thenDescs = describeBlock(consequentStatements, "  [実行] ");
         details.push(...thenDescs);
       }
 
@@ -288,7 +288,7 @@ const generateHumanReadableDescription = (
             ifStmt.alternate.type === "BlockStatement"
               ? ifStmt.alternate.body
               : [ifStmt.alternate];
-          const elseDescs = describeBlock(alternateStatements, "  ✓ ");
+          const elseDescs = describeBlock(alternateStatements, "  [実行] ");
           details.push(...elseDescs);
         }
       }
@@ -332,7 +332,7 @@ const generateHumanReadableDescription = (
           loopStmt.body.type === "BlockStatement"
             ? loopStmt.body.body
             : [loopStmt.body];
-        const bodyDescs = describeBlock(bodyStatements, "  ↻ ");
+        const bodyDescs = describeBlock(bodyStatements, "  [繰り返し] ");
         details.push(...bodyDescs);
       }
     } else if (statement.type === "TryStatement") {
@@ -342,7 +342,7 @@ const generateHumanReadableDescription = (
 
       // try ブロック
       if (tryStmt.block) {
-        const tryDescs = describeBlock(tryStmt.block.body, "  ▸ ");
+        const tryDescs = describeBlock(tryStmt.block.body, "  [処理] ");
         details.push(...tryDescs);
       }
 
@@ -353,14 +353,14 @@ const generateHumanReadableDescription = (
             ? tryStmt.handler.param.name
             : "エラー";
         details.push(`もしエラーが発生したら（${errorVar}）：`);
-        const catchDescs = describeBlock(tryStmt.handler.body.body, "  ⚠ ");
+        const catchDescs = describeBlock(tryStmt.handler.body.body, "  [警告] ");
         details.push(...catchDescs);
       }
 
       // finally ブロック
       if (tryStmt.finalizer) {
         details.push(`最後に必ず実行：`);
-        const finallyDescs = describeBlock(tryStmt.finalizer.body, "  ✓ ");
+        const finallyDescs = describeBlock(tryStmt.finalizer.body, "  [実行] ");
         details.push(...finallyDescs);
       }
     } else if (statement.type === "ReturnStatement") {
