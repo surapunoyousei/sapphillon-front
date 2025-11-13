@@ -13,7 +13,7 @@ const simpleWorkflowCode =
     `function workflow() {\n  const x = 1;\n  if (x > 0) {\n    console.log("positive");\n  } else {\n    console.log("non-positive");\n  }\n  return x;\n}\n`;
 
 describe("WorkflowCanvas", () => {
-    it("renders steps view for a simple workflow", () => {
+    it("renders actions view for a simple workflow", () => {
         const wf = makeMockWorkflow(simpleWorkflowCode);
         render(
             <AppProvider>
@@ -21,13 +21,15 @@ describe("WorkflowCanvas", () => {
             </AppProvider>,
         );
 
-        // Steps view should show the top-level node titles
+        // Actions view should show the grouped action titles
         expect(screen.getByText("変数を準備")).toBeTruthy();
         expect(screen.getByText("条件分岐")).toBeTruthy();
-        expect(screen.getByText("結果を返す")).toBeTruthy();
+        expect(screen.getByText("実行結果を返す")).toBeTruthy();
 
         // The toggle 'Code' button should be present
         expect(screen.getByRole("button", { name: /Code/ })).toBeTruthy();
+        // The removed Steps toggle should no longer exist
+        expect(screen.queryByRole("button", { name: /Steps/ })).toBeNull();
     });
 
     it("renders code view", async () => {

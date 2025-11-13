@@ -80,39 +80,46 @@ export const ActionNode: React.FC<ActionNodeProps> = ({ action }) => {
       _hover={{
         shadow: "md",
         borderColor: `${colorScheme}.400`,
+        transform: "translateY(-1px)",
       }}
       _dark={{
-        borderColor: `${colorScheme}.700`,
+        borderColor: `${colorScheme}.800`,
         _hover: {
-          borderColor: `${colorScheme}.600`,
+          borderColor: `${colorScheme}.700`,
         },
       }}
       transition="all 0.2s"
       bg={action.importance === "high" ? "bg" : "bg.muted"}
     >
-      <Card.Body>
-        <VStack align="stretch" gap={2}>
+      <Card.Body p={{ base: 3, md: 4 }}>
+        <VStack align="stretch" gap={2.5}>
           {/* Header */}
-          <HStack justify="space-between">
-            <HStack gap={2}>
+          <HStack justify="space-between" align="start">
+            <HStack gap={3} align="start" flex={1}>
               <Box
-                color={`${colorScheme}.300`}
-                _dark={{ color: `${colorScheme}.400` }}
+                color={`${colorScheme}.400`}
+                _dark={{ color: `${colorScheme}.500` }}
+                flexShrink={0}
+                mt={0.5}
               >
-                {getActionIcon(action.type, 20)}
+                {getActionIcon(action.type, 22)}
               </Box>
-              <VStack align="start" gap={0}>
-                <HStack gap={2}>
-                  <Text fontWeight="semibold" fontSize="sm">
+              <VStack align="start" gap={0.5} flex={1} minW={0}>
+                <HStack gap={2} flexWrap="wrap">
+                  <Text fontWeight="semibold" fontSize="sm" lineHeight="1.4">
                     {action.title}
                   </Text>
                   {action.importance === "high" && (
-                    <Badge colorPalette={colorScheme} size="xs">
+                    <Badge
+                      colorPalette={colorScheme}
+                      size="xs"
+                      fontWeight="medium"
+                    >
                       重要
                     </Badge>
                   )}
                 </HStack>
-                <Text fontSize="xs" color="fg.muted">
+                <Text fontSize="xs" color="fg.muted" lineHeight="1.4">
                   {action.description}
                 </Text>
               </VStack>
@@ -120,20 +127,27 @@ export const ActionNode: React.FC<ActionNodeProps> = ({ action }) => {
             <Box
               transform={isExpanded ? "rotate(90deg)" : "rotate(0deg)"}
               transition="transform 0.2s"
+              color="fg.muted"
+              _hover={{ color: "fg" }}
+              flexShrink={0}
+              mt={0.5}
             >
-              <LuChevronRight size={12} />
+              <LuChevronRight size={14} />
             </Box>
           </HStack>
 
           {/* Variables */}
           {action.variables && action.variables.length > 0 && (
-            <HStack gap={1} flexWrap="wrap">
+            <HStack gap={1.5} flexWrap="wrap" mt={0.5}>
               {action.variables.map((varName: string) => (
                 <Badge
                   key={varName}
                   colorPalette="purple"
                   size="xs"
                   variant="subtle"
+                  fontWeight="medium"
+                  px={2}
+                  py={0.5}
                 >
                   {varName}
                 </Badge>
@@ -146,15 +160,16 @@ export const ActionNode: React.FC<ActionNodeProps> = ({ action }) => {
             <Box
               bg={{
                 base: `${colorScheme}.50`,
-                _dark: `${colorScheme}.950`,
+                _dark: `${colorScheme}.900`,
               }}
-              p={3}
+              p={{ base: 3, md: 3.5 }}
               rounded="md"
               borderLeft="3px solid"
               borderColor={{
                 base: `${colorScheme}.200`,
-                _dark: `${colorScheme}.800`,
+                _dark: `${colorScheme}.900`,
               }}
+              mt={1}
             >
               <Text fontSize="sm" color="fg" lineHeight="1.6">
                 {action.humanReadable}
@@ -187,7 +202,7 @@ export const ActionNode: React.FC<ActionNodeProps> = ({ action }) => {
                 <HStack key={idx} gap={2} align="start">
                   <Box
                     color={`${colorScheme}.300`}
-                    _dark={{ color: `${colorScheme}.400` }}
+                    _dark={{ color: `${colorScheme}.500` }}
                     mt={0.5}
                   >
                     <LuCornerDownRight size={14} />
@@ -241,7 +256,7 @@ export const ActionNode: React.FC<ActionNodeProps> = ({ action }) => {
                     borderLeft="2px solid"
                     borderColor={{
                       base: `${colorScheme}.200`,
-                      _dark: `${colorScheme}.800`,
+                      _dark: `${colorScheme}.900`,
                     }}
                   >
                     <Text
@@ -335,7 +350,7 @@ const NestedControlFlowCard: React.FC<{
         borderLeft={`${4 + depth * 2}px solid`}
         borderColor={{
           base: `${colorScheme}.${200 + depth * 50}`,
-          _dark: `${colorScheme}.${700 + depth * 50}`,
+          _dark: `${colorScheme}.${800 + depth * 30}`,
         }}
         bg={depth > 0 ? "bg.muted" : "bg"}
         ml={depth * 4}
@@ -346,7 +361,7 @@ const NestedControlFlowCard: React.FC<{
               <HStack gap={2}>
                 <Box
                   color={`${colorScheme}.300`}
-                  _dark={{ color: `${colorScheme}.400` }}
+                  _dark={{ color: `${colorScheme}.500` }}
                 >
                   <LuGitBranch size={16} />
                 </Box>
@@ -385,14 +400,14 @@ const NestedControlFlowCard: React.FC<{
                   borderLeft="2px solid"
                   borderColor={{
                     base: `${colorScheme}.300`,
-                    _dark: `${colorScheme}.700`,
+                    _dark: `${colorScheme}.800`,
                   }}
                 >
                   <Text
                     fontSize="xs"
                     fontWeight="medium"
                     color={`${colorScheme}.800`}
-                    _dark={{ color: `${colorScheme}.300` }}
+                    _dark={{ color: `${colorScheme}.400` }}
                     mb={1}
                   >
                     もし合致した場合:
@@ -421,14 +436,14 @@ const NestedControlFlowCard: React.FC<{
                     borderLeft="2px solid"
                     borderColor={{
                       base: `${colorScheme}.200`,
-                      _dark: `${colorScheme}.800`,
+                      _dark: `${colorScheme}.900`,
                     }}
                   >
                     <Text
                       fontSize="xs"
                       fontWeight="medium"
                       color={`${colorScheme}.800`}
-                      _dark={{ color: `${colorScheme}.300` }}
+                      _dark={{ color: `${colorScheme}.400` }}
                       mb={1}
                     >
                       合致しなかった場合:
@@ -510,7 +525,7 @@ const NestedControlFlowCard: React.FC<{
         borderLeft={`${4 + depth * 2}px solid`}
         borderColor={{
           base: `${colorScheme}.${200 + depth * 50}`,
-          _dark: `${colorScheme}.${700 + depth * 50}`,
+          _dark: `${colorScheme}.${800 + depth * 30}`,
         }}
         bg={depth > 0 ? "bg.muted" : "bg"}
         ml={depth * 4}
@@ -521,7 +536,7 @@ const NestedControlFlowCard: React.FC<{
               <HStack gap={2}>
                 <Box
                   color={`${colorScheme}.300`}
-                  _dark={{ color: `${colorScheme}.400` }}
+                  _dark={{ color: `${colorScheme}.500` }}
                 >
                   <LuRepeat size={16} />
                 </Box>
@@ -560,7 +575,7 @@ const NestedControlFlowCard: React.FC<{
                 borderLeft="2px solid"
                 borderColor={{
                   base: `${colorScheme}.300`,
-                  _dark: `${colorScheme}.700`,
+                  _dark: `${colorScheme}.800`,
                 }}
                 mt={2}
               >
@@ -568,7 +583,7 @@ const NestedControlFlowCard: React.FC<{
                   fontSize="xs"
                   fontWeight="medium"
                   color={`${colorScheme}.800`}
-                  _dark={{ color: `${colorScheme}.300` }}
+                  _dark={{ color: `${colorScheme}.400` }}
                   mb={2}
                 >
                   繰り返し処理:
@@ -922,7 +937,7 @@ const NestedControlFlowCard: React.FC<{
       borderLeft={`${2 + depth * 2}px solid`}
       borderColor={{
         base: `${colorScheme}.${100 + depth * 50}`,
-        _dark: `${colorScheme}.${700 + depth * 50}`,
+        _dark: `${colorScheme}.${800 + depth * 30}`,
       }}
       bg={depth > 0 ? "bg.muted" : "bg.subtle"}
       ml={depth * 4}
