@@ -443,7 +443,7 @@ export function HomePage() {
                         xl: 5,
                         "2xl": 6,
                       }}
-                      gap={4}
+                      gap={{ base: 3, md: 4 }}
                       w="full"
                       pb={4}
                     >
@@ -498,7 +498,7 @@ export function HomePage() {
                         xl: 5,
                         "2xl": 6,
                       }}
-                      gap={4}
+                      gap={{ base: 3, md: 4 }}
                       w="full"
                       pb={4}
                     >

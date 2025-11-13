@@ -110,7 +110,7 @@ export function PromptPanel({
           <Spacer minW={2} />
 
           {/* アクションボタン群 */}
-          <HStack gap={2} flexWrap="wrap" alignItems="center">
+          <HStack gap={1.5} flexWrap="wrap" alignItems="center">
             {/* テンプレートボタン */}
             <Button
               size="sm"

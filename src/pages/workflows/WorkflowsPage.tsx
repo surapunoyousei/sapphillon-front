@@ -78,9 +78,10 @@ function WorkflowRow({
         <Table.Row
             css={{
                 cursor: "pointer",
-                transition: "background-color 0.2s",
+                transition: "all 0.2s",
                 "&:hover": {
                     backgroundColor: "var(--chakra-colors-bg-subtle)",
+                    transform: "translateX(2px)",
                 },
             }}
             onClick={() => onView(workflow.id)}
@@ -175,7 +176,7 @@ function WorkflowRow({
                     )}
             </Table.Cell>
             <Table.Cell onClick={(e) => e.stopPropagation()}>
-                <HStack gap={2}>
+                <HStack gap={1.5}>
                     <Button
                         size="sm"
                         variant="outline"
@@ -183,15 +184,28 @@ function WorkflowRow({
                             e.stopPropagation();
                             onView(workflow.id);
                         }}
+                        _hover={{
+                            bg: "bg.subtle",
+                            borderColor: "border.emphasized",
+                        }}
                     >
                         {t("workflows.view")}
                     </Button>
                     <Button
                         size="sm"
                         variant="outline"
+                        colorPalette="floorp"
                         onClick={(e) => {
                             e.stopPropagation();
                             onRun(workflow.id);
+                        }}
+                        _hover={{
+                            bg: "floorp.50",
+                            borderColor: "floorp.300",
+                            _dark: {
+                                bg: "floorp.950",
+                                borderColor: "floorp.700",
+                            },
                         }}
                     >
                         {t("workflows.run")}
