@@ -7,7 +7,7 @@ export const MIN_RIGHT = 240; // モバイル・タブレット対応で最小�
 export const MIN_BOTTOM = 140;
 export const GUTTER = 6;
 const DEFAULT_RIGHT = 320;
-const DEFAULT_BOTTOM = 320; // make run console larger by default
+const DEFAULT_BOTTOM = 200;
 const KEY_STEP = 16;
 const KEY_FINE_STEP = 4;
 
@@ -29,7 +29,7 @@ export function usePaneLayout() {
       const v = JSON.parse(raw) as { right?: number; bottom?: number };
       if (typeof v.right === "number") setRight(Math.max(MIN_RIGHT, v.right));
       if (typeof v.bottom === "number")
-        setBottom(Math.max(MIN_BOTTOM, v.bottom, DEFAULT_BOTTOM));
+        setBottom(Math.max(MIN_BOTTOM, v.bottom));
     } catch {
       console.error("failed to load pane layout from localStorage");
     }
