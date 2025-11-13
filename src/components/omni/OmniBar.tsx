@@ -7,20 +7,17 @@ import {
   HStack,
   Input,
   Kbd,
-  Separator,
   Text,
   VStack,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/hooks/useI18n";
-import { useWorkflowsList } from "@/pages/workflows/useWorkflowsList";
-import { LuPlay } from "react-icons/lu";
 
 interface OmniBarItem {
   label: string;
   hint?: string;
   to?: string;
-  kind: "navigate" | "action" | "workflow";
+  kind: "navigate" | "action";
   icon?: React.ReactNode;
 }
 
@@ -30,12 +27,6 @@ export interface OmniBarProps {
 }
 
 const getDefaultItems = (t: (key: string) => string): OmniBarItem[] => [
-  {
-    label: t("omniBar.goToGenerate"),
-    hint: "/generate",
-    to: "/generate",
-    kind: "navigate",
-  },
   { label: t("omniBar.goToFix"), hint: "/fix", to: "/fix", kind: "navigate" },
   { label: t("omniBar.runWorkflow"), hint: "/run", to: "/run", kind: "navigate" },
   { label: t("omniBar.openPlugins"), hint: "/plugins", to: "/plugins", kind: "navigate" },
@@ -46,7 +37,6 @@ export function OmniBar({ isOpen, onClose }: OmniBarProps) {
   const [query, setQuery] = React.useState("");
   const [active, setActive] = React.useState(0);
   const navigate = useNavigate();
-  const { workflows, loading: workflowsLoading } = useWorkflowsList();
 
   const items = React.useMemo(() => {
     const defaultItems = getDefaultItems(t);
@@ -60,36 +50,8 @@ export function OmniBar({ isOpen, onClose }: OmniBarProps) {
       i.label.toLowerCase().includes(q) || i.hint?.toLowerCase().includes(q)
     );
     
-    // ワークフローの検索
-    const workflowItems: OmniBarItem[] = workflows
-      .filter((w) => {
-        const name = (w.displayName || "").toLowerCase();
-        const desc = (w.description || "").toLowerCase();
-        return name.includes(q) || desc.includes(q);
-      })
-      .slice(0, 5) // 最大5件まで表示
-      .map((w) => ({
-        label: w.displayName || t("common.untitledWorkflow"),
-        hint: w.description ? (w.description.length > 50 ? `${w.description.substring(0, 47)}...` : w.description) : undefined,
-        to: `/workflows/${w.id}/run`,
-        kind: "workflow" as const,
-        icon: <LuPlay size={14} />,
-      }));
-    
-    // デフォルト項目とワークフロー項目を結合
-    const allItems = [...filteredDefaults, ...workflowItems];
-    
-    // ワークフローがある場合はセパレーターを追加
-    if (filteredDefaults.length > 0 && workflowItems.length > 0) {
-      return [
-        ...filteredDefaults,
-        { label: "", hint: "", kind: "navigate" as const, to: undefined }, // セパレーター用のダミー項目
-        ...workflowItems,
-      ];
-    }
-    
-    return allItems;
-  }, [query, t, workflows]);
+    return filteredDefaults;
+  }, [query, t]);
 
   React.useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -97,36 +59,15 @@ export function OmniBar({ isOpen, onClose }: OmniBarProps) {
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        setActive((a) => {
-          let next = a + 1;
-          const maxAttempts = items.length;
-          let attempts = 0;
-          // セパレーターをスキップ
-          while (next < items.length && !items[next]?.to && attempts < maxAttempts) {
-            next++;
-            attempts++;
-          }
-          return Math.min(next, Math.max(0, items.length - 1));
-        });
+        setActive((a) => Math.min(a + 1, Math.max(0, items.length - 1)));
       }
       if (e.key === "ArrowUp") {
         e.preventDefault();
-        setActive((a) => {
-          let prev = a - 1;
-          const maxAttempts = items.length;
-          let attempts = 0;
-          // セパレーターをスキップ
-          while (prev >= 0 && !items[prev]?.to && attempts < maxAttempts) {
-            prev--;
-            attempts++;
-          }
-          return Math.max(prev, 0);
-        });
+        setActive((a) => Math.max(a - 1, 0));
       }
       if (e.key === "Enter") {
         e.preventDefault();
         const it = items[active];
-        // セパレーターや無効な項目はスキップ
         if (it?.to) {
           navigate(it.to);
           onClose();
@@ -172,28 +113,22 @@ export function OmniBar({ isOpen, onClose }: OmniBarProps) {
               }}
             />
             <VStack align="stretch" gap={1} mt={3} maxH={{ base: "50vh", md: "60vh" }} overflowY="auto">
-              {items.length === 0 && !workflowsLoading
+              {items.length === 0
                 ? <Box px={2} py={3} color="fg.muted" fontSize={{ base: "xs", md: "sm" }}>{t("omniBar.noResults")}</Box>
                 : (
-                  items.map((it, idx) => {
-                    // セパレーター用のダミー項目
-                    if (!it.label && !it.to) {
-                      return <Separator key={`separator-${idx}`} my={1} />;
-                    }
-                    return (
-                      <Suggestion
-                        key={it.label + idx + (it.to || "")}
-                        text={it.label}
-                        hint={it.hint}
-                        active={idx === active}
-                        icon={it.icon}
-                        onClick={() => {
-                          if (it.to) navigate(it.to);
-                          onClose();
-                        }}
-                      />
-                    );
-                  })
+                  items.map((it, idx) => (
+                    <Suggestion
+                      key={it.label + idx + (it.to || "")}
+                      text={it.label}
+                      hint={it.hint}
+                      active={idx === active}
+                      icon={it.icon}
+                      onClick={() => {
+                        if (it.to) navigate(it.to);
+                        onClose();
+                      }}
+                    />
+                  ))
                 )}
             </VStack>
             <HStack

@@ -12,6 +12,8 @@
     "recentWorkflows": "Recent Workflows",
     "untitledWorkflow": "Untitled Workflow",
     "send": "Send",
+    "stop": "Stop",
+    "cancel": "Cancel",
     "search": "Search",
     "noResults": "No results found",
     "updated": "Updated",
@@ -394,5 +396,22 @@
   "layout": {
     "resizeRightPane": "Resize right pane",
     "resizeRunPanel": "Resize run panel"
+  },
+  "permissions": {
+    "reviewRequired": "Permission Review Required",
+    "reviewDescription": "Please review the permissions required to execute this workflow.",
+    "confirmAndRun": "Confirm and Run",
+    "execute": "Execute",
+    "filesystemRead": "Filesystem Read",
+    "filesystemWrite": "Filesystem Write",
+    "netAccess": "Network Access",
+    "allowMcp": "MCP Access",
+    "allowAll": "All Permissions",
+    "unknown": "Unknown",
+    "medium": "Medium",
+    "high": "High",
+    "critical": "Critical",
+    "low": "Low",
+    "resources": "Resources"
   }
 }

@@ -1,6 +1,7 @@
 import { Box, Tabs } from "@chakra-ui/react";
 import { ProvidersPage } from "./ProvidersPage";
 import { ModelsPage } from "./ModelsPage";
+import { PluginsPage } from "./PluginsPage";
 import { useI18n } from "@/hooks/useI18n";
 
 export function SettingsPage() {
@@ -11,6 +12,7 @@ export function SettingsPage() {
                 <Tabs.List>
                     <Tabs.Trigger value="providers">{t("settings.providers")}</Tabs.Trigger>
                     <Tabs.Trigger value="models">{t("settings.models")}</Tabs.Trigger>
+                    <Tabs.Trigger value="plugins">{t("common.plugins")}</Tabs.Trigger>
                 </Tabs.List>
 
                 <Tabs.Content value="providers">
@@ -19,6 +21,10 @@ export function SettingsPage() {
 
                 <Tabs.Content value="models">
                     <ModelsPage />
+                </Tabs.Content>
+
+                <Tabs.Content value="plugins">
+                    <PluginsPage />
                 </Tabs.Content>
             </Tabs.Root>
         </Box>

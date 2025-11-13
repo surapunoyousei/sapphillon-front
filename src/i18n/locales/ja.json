@@ -12,6 +12,8 @@
         "recentWorkflows": "最近のワークフロー",
         "untitledWorkflow": "無題のワークフロー",
         "send": "送信",
+        "stop": "停止",
+        "cancel": "キャンセル",
         "search": "検索",
         "noResults": "結果が見つかりません",
         "updated": "更新",
@@ -391,5 +393,22 @@
     "layout": {
         "resizeRightPane": "右パネルのサイズを変更",
         "resizeRunPanel": "実行パネルのサイズを変更"
+    },
+    "permissions": {
+        "reviewRequired": "権限の確認が必要です",
+        "reviewDescription": "このワークフローを実行するために必要な権限を確認してください。",
+        "confirmAndRun": "確認して実行",
+        "execute": "実行",
+        "filesystemRead": "ファイルシステム読み取り",
+        "filesystemWrite": "ファイルシステム書き込み",
+        "netAccess": "ネットワークアクセス",
+        "allowMcp": "MCPアクセス",
+        "allowAll": "すべての権限",
+        "unknown": "不明",
+        "medium": "中",
+        "high": "高",
+        "critical": "重要",
+        "low": "低",
+        "resources": "リソース"
     }
 }

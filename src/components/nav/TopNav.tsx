@@ -7,21 +7,19 @@
   Spacer,
   Text,
 } from "@chakra-ui/react";
+import { useNavigate } from "react-router-dom";
 import { ColorModeButton } from "@/components/ui/color-mode";
 import { useColorMode } from "@/components/ui/use-color-mode";
-import { LuMenu } from "react-icons/lu";
+import { LuSettings } from "react-icons/lu";
 import { useI18n } from "@/hooks/useI18n";
 
 export interface TopNavProps {
   onOpenOmni?: () => void;
-  onOpenMenu?: () => void;
-  showMenuButton?: boolean;
 }
 
-export function TopNav(
-  { onOpenOmni, onOpenMenu, showMenuButton = false }: TopNavProps,
-) {
+export function TopNav({ onOpenOmni }: TopNavProps) {
   const { t } = useI18n();
+  const navigate = useNavigate();
   const lightLogoUrl = new URL(
     "../../assets/Floorp_Logo_OS_C_Light.png",
     import.meta.url,
@@ -54,17 +52,6 @@ export function TopNav(
       }}
     >
       <HStack gap={{ base: 1, md: 1.5 }} flexShrink={0}>
-        {showMenuButton && (
-          <IconButton
-            aria-label={t("nav.openMenu")}
-            size="sm"
-            variant="ghost"
-            onClick={onOpenMenu}
-            display={{ base: "flex", lg: "none" }}
-          >
-            <LuMenu />
-          </IconButton>
-        )}
         <Image
           src={logoUrl}
           alt="Floorp OS"
@@ -129,7 +116,15 @@ export function TopNav(
         </Box>
       </Box>
       <Spacer />
-      <HStack gap={0.5} flexShrink={0} display={{ base: "none", sm: "flex" }}>
+      <HStack gap={0.5} flexShrink={0} display={{ base: "flex", sm: "flex" }}>
+        <IconButton
+          aria-label={t("nav.settings")}
+          size="sm"
+          variant="ghost"
+          onClick={() => navigate("/settings")}
+        >
+          <LuSettings />
+        </IconButton>
         <ColorModeButton />
       </HStack>
     </HStack>

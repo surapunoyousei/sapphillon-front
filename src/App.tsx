@@ -1,13 +1,7 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { HomePage } from "@/pages/home/Home";
-import { GeneratePage } from "@/pages/generate/GeneratePage";
-import {
-  WorkflowParserTest,
-  WorkflowRunPage,
-  WorkflowsPage,
-  WorkflowViewPage,
-} from "@/pages/workflows";
+import { WorkflowParserTest } from "@/pages/workflows";
 import { SettingsPage } from "@/pages/settings";
 
 function App() {
@@ -16,10 +10,6 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<HomePage />} />
-        <Route path="/generate" element={<GeneratePage />} />
-        <Route path="/workflows" element={<WorkflowsPage />} />
-        <Route path="/workflows/:id" element={<WorkflowViewPage />} />
-        <Route path="/workflows/:id/run" element={<WorkflowRunPage />} />
         <Route path="/workflows-parser-test" element={<WorkflowParserTest />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/fix" element={<PageBox title="Fix" />} />

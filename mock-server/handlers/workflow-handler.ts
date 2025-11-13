@@ -42,7 +42,14 @@ import {
   getWorkflowById,
   updateWorkflow,
   deleteWorkflow,
+  getPlugins,
 } from "../data/mock-data";
+import {
+  PermissionSchema,
+  AllowedPermissionSchema,
+  PermissionType,
+  PermissionLevel,
+} from "@/gen/sapphillon/v1/permission_pb";
 
 /**
  * WorkflowServiceのモックハンドラー実装
@@ -69,6 +76,61 @@ export const workflowHandler: ServiceImpl<typeof WorkflowService> = {
       }),
     });
 
+    // プロンプトに基づいて権限を決定
+    const plugins = getPlugins();
+    const allowedPermissions: any[] = [];
+    
+    // プロンプトに特定のキーワードが含まれている場合、対応する権限を追加
+    const promptLower = request.prompt.toLowerCase();
+    if (promptLower.includes("メール") || promptLower.includes("email") || promptLower.includes("送信")) {
+      allowedPermissions.push(
+        create(AllowedPermissionSchema, {
+          pluginFunctionId: "send_email",
+          permissions: [
+            create(PermissionSchema, {
+              displayName: "メール送信",
+              description: "メールを送信する権限",
+              permissionType: PermissionType.EXECUTE,
+              resource: ["notifications/email"],
+              permissionLevel: PermissionLevel.MEDIUM,
+            }),
+          ],
+        })
+      );
+    }
+    if (promptLower.includes("ファイル") || promptLower.includes("file") || promptLower.includes("ダウンロード")) {
+      allowedPermissions.push(
+        create(AllowedPermissionSchema, {
+          pluginFunctionId: "read_file",
+          permissions: [
+            create(PermissionSchema, {
+              displayName: "ファイル読み込み",
+              description: "ファイルを読み込む権限",
+              permissionType: PermissionType.FILESYSTEM_READ,
+              resource: [],
+              permissionLevel: PermissionLevel.MEDIUM,
+            }),
+          ],
+        })
+      );
+    }
+    if (promptLower.includes("ネットワーク") || promptLower.includes("network") || promptLower.includes("http") || promptLower.includes("api")) {
+      allowedPermissions.push(
+        create(AllowedPermissionSchema, {
+          pluginFunctionId: "fetch",
+          permissions: [
+            create(PermissionSchema, {
+              displayName: "ネットワークアクセス",
+              description: "ネットワークリクエストを送信する権限",
+              permissionType: PermissionType.NET_ACCESS,
+              resource: [],
+              permissionLevel: PermissionLevel.MEDIUM,
+            }),
+          ],
+        })
+      );
+    }
+
     // 最終的なワークフローを返す
     yield create(GenerateWorkflowResponseSchema, {
       workflowDefinition: create(WorkflowSchema, {
@@ -94,7 +156,7 @@ workflow();`,
             result: [],
             pluginPackages: [],
             pluginFunctionIds: [],
-            allowedPermissions: [],
+            allowedPermissions,
           },
         ],
         createdAt: { seconds: BigInt(Math.floor(Date.now() / 1000)), nanos: 0 },
