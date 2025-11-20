@@ -54,18 +54,27 @@ function NavItem({ to, label, Icon, onClick }: NavItemProps) {
     <NavLink to={to} style={{ textDecoration: "none" }} onClick={onClick}>
       {({ isActive }) => (
         <HStack
+          position="relative"
           px={3}
           py={2}
           rounded="md"
           gap={3}
           bg={isActive ? "bg.subtle" : undefined}
           color={isActive ? "fg" : "fg.muted"}
-          borderInlineStartWidth="2px"
-          borderInlineStartColor={isActive ? "accent.focusRing" : "transparent"}
           transitionProperty="colors, shadow"
           transitionDuration="normal"
           _hover={{ bg: isActive ? "bg.subtle" : "bg.subtle" }}
         >
+          {isActive && (
+            <Box
+              position="absolute"
+              left={0}
+              width="4px"
+              height="60%"
+              bg="accent.focusRing"
+              borderRightRadius="full"
+            />
+          )}
           <Box as={Icon} css={{ width: 18, height: 18 }} />
           <Text fontSize={{ base: "sm", md: "md" }}>{label}</Text>
         </HStack>
