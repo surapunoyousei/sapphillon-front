@@ -353,7 +353,10 @@ const generateHumanReadableDescription = (
             ? tryStmt.handler.param.name
             : "エラー";
         details.push(`もしエラーが発生したら（${errorVar}）：`);
-        const catchDescs = describeBlock(tryStmt.handler.body.body, "  [警告] ");
+        const catchDescs = describeBlock(
+          tryStmt.handler.body.body,
+          "  [警告] "
+        );
         details.push(...catchDescs);
       }
 
@@ -434,7 +437,9 @@ export function groupStatementsIntoActions(
         const condition = ifStmt.test ? generateCode(ifStmt.test) : "";
         const conditionDesc = describeCondition(condition);
         title = i18n.t("workflowActions.ifStatement");
-        description = i18n.t("workflowActions.ifDescription", { condition: conditionDesc });
+        description = i18n.t("workflowActions.ifDescription", {
+          condition: conditionDesc,
+        });
       } else if (statement.type === "ForStatement") {
         title = i18n.t("workflowActions.forLoop");
         description = i18n.t("workflowActions.forDescription");
@@ -443,7 +448,9 @@ export function groupStatementsIntoActions(
         const condition = whileStmt.test ? generateCode(whileStmt.test) : "";
         const conditionDesc = describeCondition(condition);
         title = i18n.t("workflowActions.whileLoop");
-        description = i18n.t("workflowActions.whileDescription", { condition: conditionDesc });
+        description = i18n.t("workflowActions.whileDescription", {
+          condition: conditionDesc,
+        });
       } else if (
         statement.type === "ForOfStatement" ||
         statement.type === "ForInStatement"
@@ -456,12 +463,18 @@ export function groupStatementsIntoActions(
         type: "control-flow",
         title,
         description,
-        humanReadable: readable || i18n.t("workflowActions.controlFlowReadable"),
+        humanReadable:
+          readable || i18n.t("workflowActions.controlFlowReadable"),
         statements: [statement],
         importance: "high",
         icon: "branch",
         details:
-          details.length > 0 ? details : [i18n.t("workflowActions.checkCondition"), i18n.t("workflowActions.executeAction")],
+          details.length > 0
+            ? details
+            : [
+                i18n.t("workflowActions.checkCondition"),
+                i18n.t("workflowActions.executeAction"),
+              ],
       });
       i++;
       continue;
@@ -518,7 +531,8 @@ export function groupStatementsIntoActions(
           type: "interaction",
           title: i18n.t("workflowActions.interaction"),
           description: i18n.t("workflowActions.interactionDescription"),
-          humanReadable: readable || i18n.t("workflowActions.interactionReadable"),
+          humanReadable:
+            readable || i18n.t("workflowActions.interactionReadable"),
           statements: relatedStatements,
           importance: "high",
           variables: [varName],
@@ -534,7 +548,8 @@ export function groupStatementsIntoActions(
           type: "data-extraction",
           title: i18n.t("workflowActions.dataExtraction"),
           description: i18n.t("workflowActions.dataExtractionDescription"),
-          humanReadable: readable || i18n.t("workflowActions.dataExtractionReadable"),
+          humanReadable:
+            readable || i18n.t("workflowActions.dataExtractionReadable"),
           statements: relatedStatements,
           importance: "high",
           variables: [varName],
@@ -556,7 +571,9 @@ export function groupStatementsIntoActions(
       actions.push({
         type: "navigation",
         title: i18n.t("workflowActions.navigation"),
-        description: url ? i18n.t("workflowActions.navigationWithUrl", { url }) : i18n.t("workflowActions.navigationReadable"),
+        description: url
+          ? i18n.t("workflowActions.navigationWithUrl", { url })
+          : i18n.t("workflowActions.navigationReadable"),
         humanReadable: readable || i18n.t("workflowActions.navigationReadable"),
         statements: [statement],
         importance: "high",
@@ -576,7 +593,8 @@ export function groupStatementsIntoActions(
         type: "interaction",
         title: i18n.t("workflowActions.interaction"),
         description: i18n.t("workflowActions.interactionDescription"),
-        humanReadable: readable || i18n.t("workflowActions.interactionReadable"),
+        humanReadable:
+          readable || i18n.t("workflowActions.interactionReadable"),
         statements: [statement],
         importance: "high",
         icon: "interaction",
@@ -595,7 +613,8 @@ export function groupStatementsIntoActions(
         type: "data-extraction",
         title: i18n.t("workflowActions.dataExtraction"),
         description: i18n.t("workflowActions.dataExtractionDescription"),
-        humanReadable: readable || i18n.t("workflowActions.dataExtractionReadable"),
+        humanReadable:
+          readable || i18n.t("workflowActions.dataExtractionReadable"),
         statements: [statement],
         importance: "medium",
         icon: "extraction",
@@ -609,7 +628,9 @@ export function groupStatementsIntoActions(
     const { readable, details } = generateHumanReadableDescription([statement]);
     actions.push({
       type: "computation",
-      title: varName ? i18n.t("workflowActions.prepareVariable") : i18n.t("workflowActions.computation"),
+      title: varName
+        ? i18n.t("workflowActions.prepareVariable")
+        : i18n.t("workflowActions.computation"),
       description: varName
         ? i18n.t("workflowActions.prepareDescription", { name: varName })
         : i18n.t("workflowActions.computationDescription"),

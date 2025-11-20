@@ -4,15 +4,13 @@
 
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
-import type { Provider } from "./provider_pb";
-import { file_sapphillon_ai_v1_provider } from "./provider_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file sapphillon/ai/v1/model.proto.
  */
 export const file_sapphillon_ai_v1_model: GenFile = /*@__PURE__*/
-  fileDesc("ChxzYXBwaGlsbG9uL2FpL3YxL21vZGVsLnByb3RvEhBzYXBwaGlsbG9uLmFpLnYxIoQBCgZNb2RlbHMSDAoEbmFtZRgBIAEoCRIUCgxkaXNwbGF5X25hbWUYAiABKAkSGAoLZGVzY3JpcHRpb24YAyABKAlIAIgBARIsCghwcm92aWRlchgEIAEoCzIaLnNhcHBoaWxsb24uYWkudjEuUHJvdmlkZXJCDgoMX2Rlc2NyaXB0aW9uYgZwcm90bzM", [file_sapphillon_ai_v1_provider]);
+  fileDesc("ChxzYXBwaGlsbG9uL2FpL3YxL21vZGVsLnByb3RvEhBzYXBwaGlsbG9uLmFpLnYxIn0KBk1vZGVscxIMCgRuYW1lGAEgASgJEhQKDGRpc3BsYXlfbmFtZRgCIAEoCRIYCgtkZXNjcmlwdGlvbhgDIAEoCUgAiAEBEhUKDXByb3ZpZGVyX25hbWUYBSABKAlCDgoMX2Rlc2NyaXB0aW9uSgQIBBAFUghwcm92aWRlcmIGcHJvdG8z");
 
 /**
  * Models represents a configured Large Language Model.
@@ -46,11 +44,11 @@ export type Models = Message<"sapphillon.ai.v1.Models"> & {
   description?: string;
 
   /**
-   * The provider associated with this model.
+   * The name of the provider associated with this model.
    *
-   * @generated from field: sapphillon.ai.v1.Provider provider = 4;
+   * @generated from field: string provider_name = 5;
    */
-  provider?: Provider;
+  providerName: string;
 };
 
 /**
