@@ -108,7 +108,6 @@ export function TopNav(
           _focusVisible={{
             outline: "2px solid",
             outlineColor: "accent.focusRing",
-            outlineOffset: "2px",
           }}
         >
           <HStack

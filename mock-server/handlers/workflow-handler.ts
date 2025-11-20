@@ -212,6 +212,7 @@ workflow();`,
   async listWorkflows(
     request: ListWorkflowsRequest
   ): Promise<ListWorkflowsResponse> {
+    console.log("[WorkflowService] listWorkflows called", request);
     let workflows = getWorkflows();
 
     // フィルタリング

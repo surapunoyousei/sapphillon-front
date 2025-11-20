@@ -3,7 +3,6 @@
 /* より視認性の高いフォーカスリング */
 *:focus-visible {
   outline: 2px solid var(--chakra-colors-accent-focusRing, #3182ce);
-  outline-offset: 2px;
   border-radius: 4px;
 }
 
@@ -54,10 +53,6 @@
   border: 2px solid var(--chakra-colors-accent-focusRing, #3182ce);
 }
 
-.skip-link:focus {
-  top: 0;
-}
-
 /* より大きなタップターゲット（モバイル） */
 @media (max-width: 768px) {
   button,
@@ -73,7 +68,6 @@
 @media (prefers-contrast: high) {
   *:focus-visible {
     outline-width: 3px;
-    outline-offset: 3px;
   }
 
   button,
@@ -128,17 +122,11 @@
   white-space: normal;
 }
 
-/* タッチデバイスでのホバー効果を無効化 */
-@media (hover: none) {
-  *:hover {
-    /* タッチデバイスでは意図しないホバー効果が残らないようにする */
-  }
-}
-
 /* カスタムフォーカスインジケーター（ボタンなど） */
 button:focus-visible,
 [role="button"]:focus-visible {
-  box-shadow: 0 0 0 3px var(--chakra-colors-accent-focusRing, rgba(49, 130, 206, 0.6));
+  box-shadow: 0 0 0 3px
+    var(--chakra-colors-accent-focusRing, rgba(49, 130, 206, 0.6));
   outline: none;
 }
 
@@ -153,7 +141,5 @@ select:focus-visible {
 /* リンクのフォーカス */
 a:focus-visible {
   outline: 2px solid var(--chakra-colors-accent-focusRing, #3182ce);
-  outline-offset: 2px;
   text-decoration: underline;
 }
-

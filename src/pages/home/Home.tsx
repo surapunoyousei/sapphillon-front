@@ -102,9 +102,7 @@ function WorkflowCard({ workflow }: { workflow: Workflow }) {
       _hover={{
         borderColor: "border.emphasized",
         shadow: "md",
-        transform: "translateY(-2px)",
       }}
-      transition="all 0.2s"
       onClick={handleView}
     >
       <Card.Body p={4}>

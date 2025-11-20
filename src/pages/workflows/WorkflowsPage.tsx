@@ -78,10 +78,8 @@ function WorkflowRow({
         <Table.Row
             css={{
                 cursor: "pointer",
-                transition: "all 0.2s",
                 "&:hover": {
                     backgroundColor: "var(--chakra-colors-bg-subtle)",
-                    transform: "translateX(2px)",
                 },
             }}
             onClick={() => onView(workflow.id)}
@@ -424,7 +422,6 @@ export function WorkflowsPage() {
                         _focusWithin={{
                             outline: "2px solid",
                             outlineColor: "accent.focusRing",
-                            outlineOffset: "2px",
                         }}
                     >
                         <LuSearch

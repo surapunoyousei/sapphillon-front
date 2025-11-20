@@ -104,9 +104,36 @@ const server = http.createServer(async (req, res) => {
     const path = url.pathname;
     // クエリパラメータを除去してパスを取得
     const pathWithoutQuery = path.split("?")[0];
-    const handler = paths.get(pathWithoutQuery);
+
+    console.log(`[Request] ${req.method} ${pathWithoutQuery}`);
+
+    let handler = paths.get(pathWithoutQuery);
+
+    // FIX: Handle potential snake_case or case mismatch requests
+    if (!handler) {
+      // Try to find a matching handler by fuzzy matching the last part of the path
+      // e.g. /.../list_workflow matches /.../ListWorkflows
+      const requestedMethodName = pathWithoutQuery
+        .split("/")
+        .pop()
+        ?.replace(/_/g, "")
+        .toLowerCase();
+      if (requestedMethodName) {
+        for (const [key, h] of paths.entries()) {
+          const actualMethodName = key.split("/").pop()?.toLowerCase();
+          if (actualMethodName === requestedMethodName) {
+            console.log(
+              `[FuzzyMatch] Redirecting ${pathWithoutQuery} to ${key}`
+            );
+            handler = h;
+            break;
+          }
+        }
+      }
+    }
 
     if (!handler) {
+      console.warn(`[404] No handler found for ${pathWithoutQuery}`);
       res.writeHead(404);
       res.end("Not Found");
       return;

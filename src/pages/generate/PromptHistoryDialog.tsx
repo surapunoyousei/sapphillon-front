@@ -232,7 +232,6 @@ export function PromptHistoryDialog({
                 _focusWithin={{
                   outline: "2px solid",
                   outlineColor: "accent.focusRing",
-                  outlineOffset: "2px",
                 }}
               >
                 <LuSearch size={16} color="var(--chakra-colors-fg-muted)" />
