@@ -516,7 +516,6 @@ export function HomePage() {
         flexShrink={0}
         borderTopWidth="1px"
         borderTopColor="border"
-        bg="bg.panel"
         px={{ base: 3, sm: 4, md: 6, lg: 8, xl: 12 }}
         py={{ base: 3, md: 4, lg: 6 }}
         css={{

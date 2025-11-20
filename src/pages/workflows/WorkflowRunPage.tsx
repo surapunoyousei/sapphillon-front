@@ -23,73 +23,93 @@ import { useWorkflow } from "./useWorkflow";
 import { useWorkflowRun } from "./useWorkflowRun";
 import type { RunEvent } from "./useWorkflowRun";
 
+import { PermissionList } from "@/components/workflow/PermissionList";
+
 function RunPanel({
     running,
     events,
     workflow,
     runRes,
     onRun,
+    latestCode,
 }: {
     running: boolean;
     events: RunEvent[];
     workflow: React.ComponentProps<typeof WorkflowCanvas>["workflow"] | null;
     runRes: ReturnType<typeof useWorkflowRun>["runRes"];
     onRun: () => void;
+    latestCode: React.ComponentProps<typeof WorkflowCanvas>["workflow"]["workflowCode"][0] | null;
 }) {
     return (
-        <VStack
-            align="stretch"
-            gap={1}
-            p={{ base: 1.5, md: 2 }}
-            borderWidth="1px"
-            bg="bg"
-            rounded="md"
-            h="full"
-            minH={0}
-            display="grid"
-            gridTemplateRows="auto minmax(0, 1fr)"
-            overflow="hidden"
-        >
-            <HStack justify="space-between" flexWrap="wrap" gap={2}>
-                <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>
-                    実行
-                </Text>
-                <HStack gap={2}>
-                    <Text
-                        fontSize="xs"
-                        color={running ? "blue.500" : runRes ? "green.500" : "fg.muted"}
-                        fontWeight="medium"
-                    >
-                        {running ? "実行中" : runRes ? "完了" : "待機中"}
+        <Flex h="full" gap={4} overflow="hidden">
+            {/* Left Side: Execution Panel */}
+            <VStack
+                flex="1"
+                align="stretch"
+                gap={1}
+                p={{ base: 1.5, md: 2 }}
+                borderWidth="1px"
+                bg="bg"
+                rounded="md"
+                h="full"
+                minH={0}
+                display="grid"
+                gridTemplateRows="auto minmax(0, 1fr)"
+                overflow="hidden"
+            >
+                <HStack justify="space-between" flexWrap="wrap" gap={2}>
+                    <Text fontWeight="medium" fontSize={{ base: "sm", md: "md" }}>
+                        実行
                     </Text>
-                    <Button
-                        size="sm"
-                        onClick={onRun}
-                        disabled={!workflow || running}
-                        minH={{ base: "36px", md: "auto" }}
-                        colorPalette="floorp"
-                    >
-                        <LuPlay size={14} />
-                        <Text fontSize={{ base: "xs", sm: "sm" }}>実行</Text>
-                    </Button>
+                    <HStack gap={2}>
+                        <Text
+                            fontSize="xs"
+                            color={running ? "blue.500" : runRes ? "green.500" : "fg.muted"}
+                            fontWeight="medium"
+                        >
+                            {running ? "実行中" : runRes ? "完了" : "待機中"}
+                        </Text>
+                        <Button
+                            size="sm"
+                            onClick={onRun}
+                            disabled={!workflow || running}
+                            minH={{ base: "36px", md: "auto" }}
+                            colorPalette="floorp"
+                        >
+                            <LuPlay size={14} />
+                            <Text fontSize={{ base: "xs", sm: "sm" }}>実行</Text>
+                        </Button>
+                    </HStack>
                 </HStack>
-            </HStack>
-            <Separator my={{ base: 1, md: 2 }} />
-            <Box minH={0} h="full" overflow="hidden">
-                {events.length === 0 && !running && !runRes ? (
-                    <EmptyState
-                        icon={<LuPlay />}
-                        title="ワークフローを実行していません"
-                        description="「実行」ボタンをクリックして、ワークフローを実行してください。"
-                    />
+                <Separator my={{ base: 1, md: 2 }} />
+                <Box minH={0} h="full" overflow="hidden">
+                    {events.length === 0 && !running && !runRes ? (
+                        <EmptyState
+                            icon={<LuPlay />}
+                            title="ワークフローを実行していません"
+                            description="「実行」ボタンをクリックして、ワークフローを実行してください。"
+                        />
+                    ) : (
+                        <StreamConsole
+                            events={events as GenerationEvent[]}
+                            streaming={running}
+                        />
+                    )}
+                </Box>
+            </VStack>
+
+            {/* Right Side: Permissions Panel */}
+            <Box w="320px" borderWidth="1px" rounded="md" bg="bg" p={4} overflowY="auto" display={{ base: "none", xl: "block" }}>
+                <Heading size="sm" mb={4}>Required Permissions</Heading>
+                {latestCode?.allowedPermissions ? (
+                    <PermissionList permissions={latestCode.allowedPermissions} />
                 ) : (
-                    <StreamConsole
-                        events={events as GenerationEvent[]}
-                        streaming={running}
-                    />
+                    <Text fontSize="sm" color="fg.muted">
+                        No permission information available.
+                    </Text>
                 )}
             </Box>
-        </VStack>
+        </Flex>
     );
 }
 
@@ -107,8 +127,8 @@ export function WorkflowRunPage() {
         if (state?.from === "/home") {
             return "/home";
         }
-        return `/workflows/${id}`;
-    }, [location.state, id]);
+        return "/workflows";
+    }, [location.state]);
 
     // 自動実行フラグを取得
     const shouldAutoRun = React.useMemo(() => {
@@ -275,6 +295,7 @@ export function WorkflowRunPage() {
                                 workflow={workflow}
                                 runRes={runRes}
                                 onRun={handleRun}
+                                latestCode={latestCode}
                             />
                         </Tabs.Content>
 

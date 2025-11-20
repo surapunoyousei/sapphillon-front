@@ -59,13 +59,11 @@ function formatDate(timestamp?: { seconds: bigint; nanos: number }): string {
 
 function WorkflowRow({
     workflow,
-    onView,
     onRun,
     onClone,
     onDelete,
 }: {
     workflow: Workflow;
-    onView: (id: string) => void;
     onRun: (id: string) => void;
     onClone: (workflow: Workflow) => void;
     onDelete?: (id: string) => void;
@@ -76,13 +74,10 @@ function WorkflowRow({
 
     return (
         <Table.Row
-            css={{
-                cursor: "pointer",
-                "&:hover": {
-                    backgroundColor: "var(--chakra-colors-bg-subtle)",
-                },
+            key={workflow.id}
+            _hover={{
+                backgroundColor: "var(--chakra-colors-bg-subtle)",
             }}
-            onClick={() => onView(workflow.id)}
         >
             <Table.Cell>
                 <VStack align="start" gap={1}>
@@ -175,20 +170,6 @@ function WorkflowRow({
             </Table.Cell>
             <Table.Cell onClick={(e) => e.stopPropagation()}>
                 <HStack gap={1.5}>
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onView(workflow.id);
-                        }}
-                        _hover={{
-                            bg: "bg.subtle",
-                            borderColor: "border.emphasized",
-                        }}
-                    >
-                        {t("workflows.view")}
-                    </Button>
                     <Button
                         size="sm"
                         variant="outline"
@@ -303,7 +284,9 @@ export function WorkflowsPage() {
         (clonedWorkflow: Workflow) => {
             toaster.create({
                 title: t("workflows.cloneSuccess"),
-                description: t("workflows.cloneSuccessDescription", { name: clonedWorkflow.displayName }),
+                description: t("workflows.cloneSuccessDescription", {
+                    name: clonedWorkflow.displayName,
+                }),
                 type: "success",
                 duration: 3000,
             });
@@ -502,7 +485,9 @@ export function WorkflowsPage() {
                                             setIsNewWorkflowModalOpen(true)}
                                     >
                                         <LuPlus />
-                                        <Text>{t("workflows.newWorkflow")}</Text>
+                                        <Text>
+                                            {t("workflows.newWorkflow")}
+                                        </Text>
                                     </Button>
                                 </VStack>
                             </Card.Body>
@@ -525,7 +510,9 @@ export function WorkflowsPage() {
                                                     _hover={{ bg: "bg.subtle" }}
                                                 >
                                                     <HStack gap={2}>
-                                                        <Text>{t("workflows.name")}</Text>
+                                                        <Text>
+                                                            {t("workflows.name")}
+                                                        </Text>
                                                         {getSortIcon(
                                                             "display_name",
                                                         )}
@@ -550,13 +537,9 @@ export function WorkflowsPage() {
                                                 <WorkflowRow
                                                     key={workflow.id}
                                                     workflow={workflow}
-                                                    onView={(id) =>
-                                                        navigate(
-                                                            `/workflows/${id}`,
-                                                        )}
                                                     onRun={(id) =>
                                                         navigate(
-                                                            `/workflows/${id}/run`,
+                                                            `/workflows/${id}`,
                                                         )}
                                                     onClone={handleClone}
                                                     onDelete={handleDelete}
@@ -574,8 +557,12 @@ export function WorkflowsPage() {
                     <Flex justify="space-between" align="center" mt={4} gap={4}>
                         <Text fontSize="sm" color="fg.muted">
                             {workflows.length === 1
-                                ? t("workflows.showing", { count: workflows.length })
-                                : t("workflows.showingPlural", { count: workflows.length })}
+                                ? t("workflows.showing", {
+                                    count: workflows.length,
+                                })
+                                : t("workflows.showingPlural", {
+                                    count: workflows.length,
+                                })}
                             {nextPageToken && t("workflows.moreAvailable")}
                         </Text>
                         <HStack gap={2}>
@@ -619,7 +606,9 @@ export function WorkflowsPage() {
                         w={{ base: "100vw", md: "auto" }}
                     >
                         <Dialog.Header>
-                            <Heading size="md">{t("workflows.createNewWorkflow")}</Heading>
+                            <Heading size="md">
+                                {t("workflows.createNewWorkflow")}
+                            </Heading>
                         </Dialog.Header>
                         <Dialog.CloseTrigger />
                         <Dialog.Body>
